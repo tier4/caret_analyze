@@ -28,7 +28,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from .events_factory import EventsFactory
-from .lttng_event_filter import LttngEventFilter
+from .lttng_event_filter import LttngEventFilter, SameAddressFilter
 from .ros2_tracing.data_model import Ros2DataModel
 from .ros2_tracing.data_model_service import DataModelService
 from .ros2_tracing.processor import get_field, Ros2Handler
@@ -329,10 +329,18 @@ class Lttng(InfraBase):
         from .records_source import RecordsSource
         from .event_counter import EventCounter
 
+        # Add SameAddressFilter(10) by default
+        modified_event_filters = []
+        if event_filters:
+            modified_event_filters = event_filters.copy()
+        if len(list(filter(lambda f: isinstance(f, SameAddressFilter),
+                           modified_event_filters))) == 0:
+            modified_event_filters.append(LttngEventFilter.same_address_filter(10))
+
         data, events, begin, end = self._parse_lttng_data(
             trace_dir_or_events,
             force_conversion,
-            event_filters or [],
+            modified_event_filters,
             store_events
         )
         self.data = data
@@ -358,6 +366,10 @@ class Lttng(InfraBase):
         begin: int
         end: int
 
+        if event_filters:
+            for f in event_filters:
+                f.reset()
+
         # TODO(hsgwa): Same implementation duplicated. Refactoring required.
         if isinstance(trace_dir_or_events, str):
             event_collection = EventCollection(
@@ -379,15 +391,20 @@ class Lttng(InfraBase):
 
             init_events = []
             run_events = []
+            filtered_event_count = 0
 
             # distribute all trace events to init_events and run_events
             init_event_names = set(Lttng._prioritized_init_events)
             for event in event_collection:
                 event_name = event[LttngEventFilter.NAME]
+                if len(event_filters) > 0 and \
+                        any(not f.accept(event, common) for f in event_filters):
+                    continue
                 if event_name in init_event_names:
                     init_events.append(event)
                 else:
                     run_events.append(event)
+                filtered_event_count += 1
 
             import functools
             init_events.sort(key=functools.cmp_to_key(Lttng._compare_init_event))
@@ -402,28 +419,16 @@ class Lttng(InfraBase):
                 handler_(event)
 
             handler.create_runtime_handler_map()
-            filtered_event_count = 0
             for event in tqdm(
                     iter(run_events),
                     total=len(run_events),
                     desc='loading',
                     mininterval=1.0):
-                if len(event_filters) > 0 and \
-                        any(not f.accept(event, common) for f in event_filters):
-                    # memo:
-                    # case1 : arch = Architecture('lttng', tracing_log_path)
-                    # since event_filters is set,
-                    # initialization-related trace events are processed,
-                    # but all runtime-related trace events are not processed.
-                    # case2 : lttng = Lttng(tracing_log_path)
-                    # event_filters are not set, so all events are processed
-                    continue
                 if store_events:
                     event_dict = {
                         k: get_field(event, k) for k in event
                     }
                     events.append(event_dict)
-                filtered_event_count += 1
                 event_name = event[LttngEventFilter.NAME]
                 handler_ = handler.handler_map[event_name]
                 handler_(event)
@@ -433,6 +438,7 @@ class Lttng(InfraBase):
                 print('filtered to {} events.'.format(filtered_event_count))
         else:
             # Note: giving events as arguments is used only for debugging.
+            common = LttngEventFilter.Common()
             filtered_event_count = 0
             events = trace_dir_or_events
 
@@ -450,15 +456,20 @@ class Lttng(InfraBase):
 
             init_events = []
             run_events = []
+            filtered_event_count = 0
 
             # distribute all trace events to init_events and run_events
             init_event_names = set(Lttng._prioritized_init_events)
             for event in events:
                 event_name = event[LttngEventFilter.NAME]
+                if len(event_filters) > 0 and \
+                        any(not f.accept(event, common) for f in event_filters):
+                    continue
                 if event_name in init_event_names:
                     init_events.append(event)
                 else:
                     run_events.append(event)
+                filtered_event_count += 1
 
             import functools
             init_events.sort(key=functools.cmp_to_key(Lttng._compare_init_event))
@@ -470,12 +481,8 @@ class Lttng(InfraBase):
 
             handler.create_runtime_handler_map()
             for event in run_events:
-                if len(event_filters) > 0 and \
-                        any(not f.accept(event, common) for f in event_filters):
-                    continue
                 if store_events:
                     events.append(event)
-                filtered_event_count += 1
                 event_name = event[LttngEventFilter.NAME]
                 handler_ = handler.handler_map[event_name]
                 handler_(event)
