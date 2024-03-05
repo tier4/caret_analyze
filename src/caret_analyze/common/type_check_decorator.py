@@ -16,9 +16,7 @@ from __future__ import annotations
 from collections.abc import Collection
 from functools import wraps
 
-import inspect
-
-from inspect import Signature, signature
+from inspect import getfullargspec, Signature, signature
 from re import findall
 from typing import Any
 
@@ -232,7 +230,7 @@ try:
         def _custom_wrapper(*args, **kwargs):
             try:
                 # Checks whether the arguments of a given func have variable length arguments
-                arg_spec = inspect.getfullargspec(func)
+                arg_spec = getfullargspec(func)
                 if arg_spec.varargs is not None:
                     args = _parse_collection_or_unpack(args)
                 return validate_arguments_wrapper(*args, **kwargs)
