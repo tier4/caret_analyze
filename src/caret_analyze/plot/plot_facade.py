@@ -14,9 +14,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Collection
+from collections.abc import Sequence
 from logging import getLogger
-from typing import Any
 
 from .callback_scheduling import CallbackSchedulingPlot, CallbackSchedulingPlotFactory
 from .histogram import HistogramPlotFactory
@@ -25,48 +24,22 @@ from .plot_base import PlotBase
 from .stacked_bar import StackedBarPlot, StackedBarPlotFactory
 from .timeseries import TimeSeriesPlotFactory
 from .visualize_lib import VisualizeLibFactory
+from ..common import type_check_decorator
 from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, Executor, Node,
                        Path, Publisher, Subscription)
 
 logger = getLogger(__name__)
 
-CallbackSchedTypes = (Application | Executor | Path |
-                      Node | CallbackGroup | Collection[CallbackGroup])
 
-
-def parse_collection_or_unpack(
-    target_arg: tuple[Collection[Any]] | tuple[Any, ...]
-) -> list[Any]:
-    """
-    Parse target argument.
-
-    To address both cases where the target argument is passed in collection type
-    or unpacked, this function converts them to the same list format.
-
-    Parameters
-    ----------
-    target_arg : tuple[Collection[Any]] | tuple[Any, ...]
-        Target objects.
-
-    Returns
-    -------
-    list[Any]
-
-    """
-    parsed_target_objects: list[Any]
-    if isinstance(target_arg[0], Collection):
-        assert len(target_arg) == 1
-        parsed_target_objects = list(target_arg[0])
-    else:  # Unpacked case
-        parsed_target_objects = list(target_arg)  # type: ignore
-
-    return parsed_target_objects
+CallbackGroupTypes = (Application | Executor | Path | Node |
+                      CallbackGroup | Sequence[CallbackGroup])
 
 
 class Plot:
     """Facade class for plot."""
 
     @staticmethod
+    @type_check_decorator
     def create_response_time_stacked_bar_plot(
         target_object: Path,
         metrics: str = 'latency',
@@ -101,6 +74,7 @@ class Plot:
         return plot
 
     @staticmethod
+    @type_check_decorator
     def create_period_timeseries_plot(
         *target_objects: CallbackBase | Communication | Publisher | Subscription
     ) -> PlotBase:
@@ -119,12 +93,11 @@ class Plot:
 
         """
         visualize_lib = VisualizeLibFactory.create_instance()
-        plot = TimeSeriesPlotFactory.create_instance(
-            parse_collection_or_unpack(target_objects), 'period', visualize_lib
-        )
+        plot = TimeSeriesPlotFactory.create_instance(target_objects, 'period', visualize_lib)
         return plot
 
     @staticmethod
+    @type_check_decorator
     def create_frequency_timeseries_plot(
         *target_objects: CallbackBase | Communication | Publisher | Subscription
     ) -> PlotBase:
@@ -143,12 +116,11 @@ class Plot:
 
         """
         visualize_lib = VisualizeLibFactory.create_instance()
-        plot = TimeSeriesPlotFactory.create_instance(
-            parse_collection_or_unpack(target_objects), 'frequency', visualize_lib
-        )
+        plot = TimeSeriesPlotFactory.create_instance(target_objects, 'frequency', visualize_lib)
         return plot
 
     @staticmethod
+    @type_check_decorator
     def create_latency_timeseries_plot(
         *target_objects: CallbackBase | Communication
     ) -> PlotBase:
@@ -167,12 +139,11 @@ class Plot:
 
         """
         visualize_lib = VisualizeLibFactory.create_instance()
-        plot = TimeSeriesPlotFactory.create_instance(
-            parse_collection_or_unpack(target_objects), 'latency', visualize_lib
-        )
+        plot = TimeSeriesPlotFactory.create_instance(target_objects, 'latency', visualize_lib)
         return plot
 
     @staticmethod
+    @type_check_decorator
     def create_response_time_timeseries_plot(
         *target_objects: Path,
         case: str = 'all'
@@ -196,13 +167,14 @@ class Plot:
         """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
-            parse_collection_or_unpack(target_objects), 'response_time', visualize_lib, case
+            target_objects, 'response_time', visualize_lib, case
         )
         return plot
 
     @staticmethod
+    @type_check_decorator
     def create_callback_scheduling_plot(
-        target_objects: CallbackSchedTypes,
+        target_objects: CallbackGroupTypes,
         lstrip_s: float = 0,
         rstrip_s: float = 0
     ) -> CallbackSchedulingPlot:
@@ -211,9 +183,9 @@ class Plot:
 
         Parameters
         ----------
-        target_objects : CallbackSchedTypes
-            CallbackSchedTypes = (Application | Executor | Path | Node |
-                                  CallbackGroup | Collection[CallbackGroup])
+        target_objects : CallbackGroupTypes
+            CallbackGroupTypes = (Application | Executor | Path | Node |
+                                  CallbackGroup | Sequence[CallbackGroup])
             Instances that are the sources of the plotting.
         lstrip_s : float, optional
             Start time of cropping range, 0 by default.
@@ -234,6 +206,7 @@ class Plot:
         return plot
 
     @staticmethod
+    @type_check_decorator
     def create_message_flow_plot(
         target_path: Path,
         granularity: str | None = None,
@@ -270,6 +243,7 @@ class Plot:
         return plot
 
     @staticmethod
+    @type_check_decorator
     def create_frequency_histogram_plot(
         *target_objects: CallbackBase | Communication | Publisher | Subscription
     ) -> PlotBase:
@@ -288,13 +262,11 @@ class Plot:
 
         """
         visualize_lib = VisualizeLibFactory.create_instance()
-        plot = HistogramPlotFactory.create_instance(
-            parse_collection_or_unpack(target_objects),
-            'frequency', visualize_lib
-        )
+        plot = HistogramPlotFactory.create_instance(target_objects, 'frequency', visualize_lib)
         return plot
 
     @staticmethod
+    @type_check_decorator
     def create_latency_histogram_plot(
         *target_objects: CallbackBase | Communication
     ) -> PlotBase:
@@ -313,13 +285,11 @@ class Plot:
 
         """
         visualize_lib = VisualizeLibFactory.create_instance()
-        plot = HistogramPlotFactory.create_instance(
-            parse_collection_or_unpack(target_objects),
-            'latency', visualize_lib
-        )
+        plot = HistogramPlotFactory.create_instance(target_objects, 'latency', visualize_lib)
         return plot
 
     @staticmethod
+    @type_check_decorator
     def create_period_histogram_plot(
         *target_objects: CallbackBase | Communication | Publisher | Subscription
     ) -> PlotBase:
@@ -338,13 +308,11 @@ class Plot:
 
         """
         visualize_lib = VisualizeLibFactory.create_instance()
-        plot = HistogramPlotFactory.create_instance(
-            parse_collection_or_unpack(target_objects),
-            'period', visualize_lib
-        )
+        plot = HistogramPlotFactory.create_instance(target_objects, 'period', visualize_lib)
         return plot
 
     @staticmethod
+    @type_check_decorator
     def create_response_time_histogram_plot(
         *target_objects: Path,
         case: str = 'all',
@@ -368,7 +336,6 @@ class Plot:
         """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = HistogramPlotFactory.create_instance(
-            parse_collection_or_unpack(target_objects),
-            'response_time', visualize_lib, case
+            target_objects, 'response_time', visualize_lib, case
         )
         return plot

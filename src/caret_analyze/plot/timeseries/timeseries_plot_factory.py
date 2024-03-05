@@ -23,7 +23,6 @@ from .response_time_timeseries import ResponseTimeTimeSeries
 from .timeseries_plot import TimeSeriesPlot
 from ..metrics_base import MetricsBase
 from ..visualize_lib import VisualizeLibInterface
-from ...common import type_check_decorator
 from ...exceptions import UnsupportedTypeError
 from ...runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
@@ -34,7 +33,6 @@ class TimeSeriesPlotFactory:
     """Factory class to create an instance of TimeSeriesPlot."""
 
     @staticmethod
-    @type_check_decorator
     def create_instance(
         target_objects: Sequence[TimeSeriesPlotTypes],
         metrics: str,

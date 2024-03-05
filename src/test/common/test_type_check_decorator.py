@@ -20,7 +20,13 @@ from caret_analyze.exceptions import UnsupportedTypeError
 import pytest
 
 
-class DummyCustom:
+class DummyCustom1:
+
+    def __init__(self) -> None:
+        pass
+
+
+class DummyCustom2:
 
     def __init__(self) -> None:
         pass
@@ -40,12 +46,12 @@ class TestTypeCheckDecorator:
     def test_type_check_decorator_custom_type(self):
 
         @type_check_decorator
-        def custom_arg(c: DummyCustom):
+        def custom_arg(c: DummyCustom1):
             pass
 
         with pytest.raises(UnsupportedTypeError) as e:
             custom_arg(10)
-        assert "'c' must be 'DummyCustom'. The given argument type is 'int'" in str(e.value)
+        assert "'c' must be 'DummyCustom1'. The given argument type is 'int'" in str(e.value)
 
     def test_type_check_decorator_union(self):
         @type_check_decorator
@@ -113,3 +119,17 @@ class TestTypeCheckDecorator:
         with pytest.raises(UnsupportedTypeError) as e:
             kwarg(k=10)
         assert "'k' must be 'bool'. The given argument type is 'int'" in str(e.value)
+
+    def test_type_check_decorator_variable_length_arg(self):
+        @type_check_decorator
+        def var_len_args(*i: DummyCustom1 | DummyCustom2):
+            pass
+
+        dummy_1 = DummyCustom1()
+        dummy_2 = DummyCustom2()
+        with pytest.raises(UnsupportedTypeError) as e:
+            var_len_args(1, dummy_1, dummy_2)
+            var_len_args(dummy_1, 1, dummy_2)
+            var_len_args(dummy_1, dummy_2, 1)
+        assert "'i' must be ['DummyCustom1', 'DummyCustom2']. The given argument type is 'int'" \
+               in str(e.value)
