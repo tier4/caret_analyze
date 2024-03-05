@@ -36,22 +36,31 @@ from ..value_objects.node import DiffNode
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING = 10
+
 
 class Architecture(Summarizable):
     def __init__(
         self,
         file_type: str,
         file_path: str,
+        max_callback_construction_order_on_path_searching: int =
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
     ) -> None:
         from .architecture_reader_factory import ArchitectureReaderFactory
         from .architecture_loaded import ArchitectureLoaded
+
+        self._max_callback_construction_order_on_path_searching = \
+            max_callback_construction_order_on_path_searching
 
         # /parameter events and /rosout measurements are not yet supported.
         ignore_topics: list[str] = IGNORE_TOPICS
 
         reader = ArchitectureReaderFactory.create_instance(
             file_type, file_path)
-        loaded = ArchitectureLoaded(reader, ignore_topics)
+        loaded = ArchitectureLoaded(reader,
+                                    ignore_topics,
+                                    max_callback_construction_order_on_path_searching)
 
         self._nodes: list[NodeStruct] = loaded.nodes
         self._communications: list[CommunicationStruct] = loaded.communications
@@ -383,7 +392,12 @@ class Architecture(Summarizable):
         context_reader = AssignContextReader(node)
         context_reader.update_message_context(context_type,
                                               subscribe_topic_name, publish_topic_name)
-        node.update_node_path(NodeValuesLoaded._search_node_paths(node, context_reader))
+        node.update_node_path(
+            NodeValuesLoaded._search_node_paths(
+                                node,
+                                context_reader,
+                                self._max_callback_construction_order_on_path_searching)
+                            )
 
     def insert_publisher_callback(self, node_name: str,
                                   publish_topic_name: str, callback_name: str) -> None:
@@ -404,8 +418,12 @@ class Architecture(Summarizable):
 
         node.insert_publisher_callback(publish_topic_name, callback_name)
 
-        node.update_node_path(NodeValuesLoaded._search_node_paths(node,
-                              AssignContextReader(node)))
+        node.update_node_path(
+            NodeValuesLoaded._search_node_paths(
+                                node,
+                                AssignContextReader(node),
+                                self._max_callback_construction_order_on_path_searching)
+                            )
 
     def insert_variable_passing(self, node_name: str,
                                 callback_name_write: str, callback_name_read: str) -> None:
@@ -426,8 +444,12 @@ class Architecture(Summarizable):
 
         node.insert_variable_passing(callback_name_write, callback_name_read)
 
-        node.update_node_path(NodeValuesLoaded._search_node_paths(node,
-                              AssignContextReader(node)))
+        node.update_node_path(
+            NodeValuesLoaded._search_node_paths(
+                                node,
+                                AssignContextReader(node),
+                                self._max_callback_construction_order_on_path_searching)
+                            )
 
     def remove_publisher_callback(self, node_name: str,
                                   publish_topic_name: str, callback_name: str) -> None:
@@ -448,8 +470,12 @@ class Architecture(Summarizable):
 
         node.remove_publisher_and_callback(publish_topic_name, callback_name)
 
-        node.update_node_path(NodeValuesLoaded._search_node_paths(node,
-                              AssignContextReader(node)))
+        node.update_node_path(
+            NodeValuesLoaded._search_node_paths(
+                                node,
+                                AssignContextReader(node),
+                                self._max_callback_construction_order_on_path_searching)
+                            )
 
     def remove_variable_passing(self, node_name: str,
                                 callback_name_write: str, callback_name_read: str) -> None:
@@ -482,8 +508,12 @@ class Architecture(Summarizable):
                     context_reader.remove_callback_chain(callback_write.subscribe_topic_name,
                                                          publish_topic_name)
 
-            node.update_node_path(NodeValuesLoaded._search_node_paths(node,
-                                  context_reader))
+            node.update_node_path(
+                NodeValuesLoaded._search_node_paths(
+                                    node,
+                                    context_reader,
+                                    self._max_callback_construction_order_on_path_searching)
+                                )
 
     def rename_callback(self, src: str, dst: str) -> None:
         """

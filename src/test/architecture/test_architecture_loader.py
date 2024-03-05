@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from caret_analyze.architecture.architecture import \
+    DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
 from caret_analyze.architecture.architecture_loaded import (ArchitectureLoaded,
                                                             CallbackGroupsLoaded,
                                                             CallbackPathSearched,
@@ -85,7 +87,8 @@ class TestArchitectureLoaded:
         mocker.patch.object(exec_loaded, 'data', [])
         mocker.patch.object(path_loaded, 'data', [])
 
-        arch = ArchitectureLoaded(reader_mock, [])
+        arch = ArchitectureLoaded(reader_mock, [],
+                                  DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         assert len(arch.paths) == 0
         assert len(arch.executors) == 0
         assert len(arch.nodes) == 0
@@ -147,7 +150,8 @@ class TestArchitectureLoaded:
 
         mocker.patch('caret_analyze.architecture.architecture_loaded.TopicIgnoredReader',
                      return_value=reader_mock)
-        arch = ArchitectureLoaded(reader_mock, [])
+        arch = ArchitectureLoaded(reader_mock, [],
+                                  DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         assert len(arch.paths) == 1
         assert len(arch.executors) == 1
         assert len(arch.nodes) == 1
@@ -168,7 +172,8 @@ class TestNodesInfoLoaded():
         mocker.patch.object(
             reader_mock, 'get_nodes', return_value=[])
 
-        loader = NodeValuesLoaded(reader_mock)
+        loader = NodeValuesLoaded(reader_mock,
+                                  DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         nodes = loader.data
         assert len(nodes) == 0
 
@@ -188,7 +193,8 @@ class TestNodesInfoLoaded():
         mocker.patch.object(reader_mock, 'get_nodes',
                             return_value=[node])
 
-        loader = NodeValuesLoaded(reader_mock)
+        loader = NodeValuesLoaded(reader_mock,
+                                  DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         nodes = loader.data
         assert nodes == [node_mock]
 
@@ -207,7 +213,8 @@ class TestNodesInfoLoaded():
         mocker.patch.object(reader_mock, 'get_nodes',
                             return_value=[node_a, node_b])
 
-        loader = NodeValuesLoaded(reader_mock)
+        loader = NodeValuesLoaded(reader_mock,
+                                  DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         nodes = loader.data
         assert len(nodes) == 1
         assert 'Duplicated node name.' in caplog.messages[0]
@@ -219,7 +226,8 @@ class TestNodesInfoLoaded():
         mocker.patch.object(reader_mock, 'get_nodes',
                             return_value=[node_a, node_b])
 
-        loader = NodeValuesLoaded(reader_mock)
+        loader = NodeValuesLoaded(reader_mock,
+                                  DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         nodes = loader.data
         assert len(nodes) == 1
         assert 'Duplicated node id.' in caplog.messages[0]
@@ -237,7 +245,11 @@ class TestNodesInfoLoaded():
         mocker.patch.object(
             reader_mock, 'get_nodes', return_value=[node_b, node_c, node_a])
 
-        def create_node(node, reader):
+        def create_node(
+            node,
+            reader,
+            max_callback_construction_order_on_path_searching: int
+        ):
             node_mock = mocker.Mock(spec=NodeStruct)
             cb_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
             cbg_loaded_mock = mocker.Mock(spec=CallbackGroupsLoaded)
@@ -247,7 +259,8 @@ class TestNodesInfoLoaded():
         mocker.patch.object(NodeValuesLoaded, '_create_node',
                             side_effect=create_node)
 
-        loader = NodeValuesLoaded(reader_mock)
+        loader = NodeValuesLoaded(reader_mock,
+                                  DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         nodes = loader.data
         assert nodes[0].node_name == 'a'
         assert nodes[1].node_name == 'b'
@@ -290,7 +303,11 @@ class TestNodesInfoLoaded():
         mocker.patch.object(cbs_loaded, 'data', [])
 
         node_value = NodeValue('node', 'node')
-        node, _, _ = NodeValuesLoaded._create_node(node_value, reader_mock)
+        node, _, _ = NodeValuesLoaded._create_node(
+            node_value,
+            reader_mock,
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
+        )
 
         assert node.node_name == 'node'
         assert node.publishers == []
@@ -389,7 +406,11 @@ class TestNodesInfoLoaded():
             NodeValuesLoaded, '_search_node_paths', return_value=[path, path_])
 
         node_value = NodeValue('node', 'node')
-        node, _, _ = NodeValuesLoaded._create_node(node_value, reader_mock)
+        node, _, _ = NodeValuesLoaded._create_node(
+            node_value,
+            reader_mock,
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
+        )
 
         assert node.node_name == 'node'
         assert node.publishers == [publisher]
@@ -419,7 +440,8 @@ class TestNodesInfoLoaded():
         mocker.patch.object(reader_mock, 'get_nodes',
                             return_value=[node])
 
-        loaded = NodeValuesLoaded(reader_mock)
+        loaded = NodeValuesLoaded(reader_mock,
+                                  DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         assert loaded.find_callback('callback_id') == cb_mock
 
         mocker.patch.object(cb_loaded_mock, 'find_callback',
@@ -437,7 +459,8 @@ class TestNodesInfoLoaded():
         mocker.patch.object(NodeValuesLoaded, '_create_node',
                             return_value=(node_mock, cb_loaded_mock, cbg_loaded_mock))
 
-        nodes_loaded = NodeValuesLoaded(reader_mock)
+        nodes_loaded = NodeValuesLoaded(reader_mock,
+                                        DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
 
         node_mock = mocker.Mock(spec=NodeStruct)
         mocker.patch.object(Util, 'find_one', return_value=node_mock)
@@ -460,7 +483,8 @@ class TestNodesInfoLoaded():
         mocker.patch.object(NodeValuesLoaded, '_create_node',
                             return_value=(node_mock, cb_loaded_mock, cbg_loaded_mock))
 
-        nodes_loaded = NodeValuesLoaded(reader_mock)
+        nodes_loaded = NodeValuesLoaded(reader_mock,
+                                        DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
 
         mocker.patch.object(nodes_loaded, 'find_node',
                             return_value=node_mock)
@@ -527,7 +551,8 @@ class TestNodesInfoLoaded():
         node = NodeValue('node', None)
         mocker.patch.object(reader_mock, 'get_nodes', return_value=[node])
 
-        loaded = NodeValuesLoaded(reader_mock)
+        loaded = NodeValuesLoaded(reader_mock,
+                                  DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         assert loaded.find_callbacks(['callback_id']) == [cb_mock]
 
         mocker.patch.object(cb_loaded_mock, 'search_callbacks', return_value=[])
@@ -554,7 +579,8 @@ class TestNodesInfoLoaded():
         node = NodeValue('node', None)
         mocker.patch.object(reader_mock, 'get_nodes', return_value=[node])
 
-        loaded = NodeValuesLoaded(reader_mock)
+        loaded = NodeValuesLoaded(reader_mock,
+                                  DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
 
         cb_mock = mocker.Mock(spec=CallbackStruct)
         cb_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
@@ -708,7 +734,8 @@ class TestNodePathLoaded:
         mocker.patch.object(searcher_mock, 'search', return_value=[])
         node_mock = mocker.Mock(spec=NodeStruct)
         mocker.patch.object(node_mock, 'callbacks', [])
-        searched = CallbackPathSearched(node_mock)
+        searched = CallbackPathSearched(node_mock,
+                                        DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         assert len(searched.data) == 0
 
     def test_full(self, mocker):
@@ -717,6 +744,8 @@ class TestNodePathLoaded:
                      return_value=searcher_mock)
 
         callback_mock = mocker.Mock(spec=CallbackStruct)
+        callback_mock.construction_order = \
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING - 1
         node_path_mock = mocker.Mock(NodePathStruct)
         mocker.patch.object(searcher_mock, 'search',
                             return_value=[node_path_mock])
@@ -726,7 +755,8 @@ class TestNodePathLoaded:
         callbacks = (callback_mock, callback_mock)
         node_mock = mocker.Mock(spec=NodeStruct)
         mocker.patch.object(node_mock, 'callbacks', callbacks)
-        searched = CallbackPathSearched(node_mock)
+        searched = CallbackPathSearched(node_mock,
+                                        DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
 
         import itertools
         product = list(itertools.product(callbacks, callbacks))

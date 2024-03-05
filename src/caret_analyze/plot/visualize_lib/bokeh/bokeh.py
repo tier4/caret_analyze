@@ -34,7 +34,7 @@ from ...metrics_base import MetricsBase
 from ....runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
-HistTypes = CallbackBase | Communication | Path
+HistTypes = CallbackBase | Communication | Path | Publisher | Subscription
 
 
 logger = getLogger(__name__)
