@@ -406,6 +406,8 @@ class Lttng(InfraBase):
                     run_events.append(event)
                 filtered_event_count += 1
 
+            Lttng.apply_init_timestamp(init_events, offset)
+
             import functools
             init_events.sort(key=functools.cmp_to_key(Lttng._compare_init_event))
             handler.create_init_handler_map()
@@ -471,6 +473,8 @@ class Lttng(InfraBase):
                     run_events.append(event)
                 filtered_event_count += 1
 
+            Lttng.apply_init_timestamp(init_events, offset)
+
             import functools
             init_events.sort(key=functools.cmp_to_key(Lttng._compare_init_event))
             handler.create_init_handler_map()
@@ -494,20 +498,31 @@ class Lttng(InfraBase):
         return data, events_, begin, end
 
     @staticmethod
+    def apply_init_timestamp(
+        events: list,
+        monotonic_to_system_offset: int | None,
+    ):
+        for event in events:
+            if monotonic_to_system_offset is not None:
+                if 'init_timestamp' in event:
+                    init_timestamp: int = event.pop('init_timestamp')
+                    event['_timestamp'] = init_timestamp + monotonic_to_system_offset
+
+    @staticmethod
     def _compare_init_event(
         event1: dict,
         event2: dict,
     ) -> int:
-        if event2[LttngEventFilter.TIMESTAMP] < event1[LttngEventFilter.TIMESTAMP]:
-            return 1
-        if event2[LttngEventFilter.TIMESTAMP] > event1[LttngEventFilter.TIMESTAMP]:
-            return -1
         # same timestamp
         if Lttng._prioritized_init_events.index(event2[LttngEventFilter.NAME]) < \
                 Lttng._prioritized_init_events.index(event1[LttngEventFilter.NAME]):
             return 1
         if Lttng._prioritized_init_events.index(event2[LttngEventFilter.NAME]) > \
                 Lttng._prioritized_init_events.index(event1[LttngEventFilter.NAME]):
+            return -1
+        if event2[LttngEventFilter.TIMESTAMP] < event1[LttngEventFilter.TIMESTAMP]:
+            return 1
+        if event2[LttngEventFilter.TIMESTAMP] > event1[LttngEventFilter.TIMESTAMP]:
             return -1
         return 0
 
