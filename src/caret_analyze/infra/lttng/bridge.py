@@ -247,11 +247,13 @@ class SubscriptionCallbackBindCondition:
         # pub_match = True
         # # if value.publish_topic_names is not None:
         # #     pub_match = value.publish_topic_names == struct_value.publish_topic_names
+        if value.subscribe_topic_names is None or struct_value.subscribe_topic_name is None:
+            return False
 
         return value.node_name == struct_value.node_name and \
             value.callback_type == struct_value.callback_type and \
-            value.subscribe_topic_name == struct_value.subscribe_topic_name and \
-            value.construction_order == struct_value.construction_order and \
+            value.subscribe_topic_names[0][0] == struct_value.subscribe_topic_name[0] and \
+            value.subscribe_topic_names[0][1] == struct_value.subscribe_topic_name[1] and \
             value.symbol == struct_value.symbol and \
             value.construction_order == struct_value.construction_order
 

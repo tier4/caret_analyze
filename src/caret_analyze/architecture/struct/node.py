@@ -23,7 +23,7 @@ from .subscription import SubscriptionStruct
 from .timer import TimerStruct
 from .variable_passing import VariablePassingStruct
 from ...common import Util
-from ...exceptions import ItemNotFoundError
+from ...exceptions import ItemNotFoundError, MultipleItemFoundError
 from ...value_objects import NodeStructValue
 
 
@@ -201,7 +201,11 @@ class NodeStruct():
                                   publisher_construction_order: int) -> None:
         callback: CallbackStruct = \
             Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
-        callback.insert_publisher(publish_topic_name)
+        try:
+            callback.insert_publisher(publish_topic_name, publisher_construction_order)
+        except MultipleItemFoundError as e:
+            msg = f'{e}'
+            raise MultipleItemFoundError(msg)
 
         def is_target(publish: PublisherStruct):
             match = publish.topic_name == publish_topic_name
@@ -239,7 +243,7 @@ class NodeStruct():
                                       publisher_construction_order: int) -> None:
         callback: CallbackStruct = \
             Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
-        callback.remove_publisher(publish_topic_name)
+        callback.remove_publisher(publish_topic_name, publisher_construction_order)
 
         def is_target(publish: PublisherStruct):
             match = publish.topic_name == publish_topic_name

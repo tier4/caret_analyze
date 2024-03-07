@@ -225,6 +225,7 @@ class LttngInfo:
         tilde_sub = self._formatted.tilde_subscriptions.clone()
         sub.merge(tilde_sub, ['node_name', 'topic_name'], how='left')
 
+        order: dict[DataFrameFormatted.KeyTypeTopic, int] = defaultdict(int)
         for _, row in sub.df.iterrows():
             node_name = row['node_name']
             node_id = row['node_id']
@@ -240,13 +241,18 @@ class LttngInfo:
                 callback_object_intra = int(record_callback_object_intra)
             self._id_to_topic[row['callback_id']] = row['topic_name']
 
+            topic_name = row['topic_name']
+            key: DataFrameFormatted.KeyTypeTopic = node_name, topic_name
+            order_ = int(order[key])
+            order[key] += 1
+            topic_names = (row['topic_name'], order_),
             sub_cbs_info[node_id].append(
                 SubscriptionCallbackValueLttng(
                     callback_id=row['callback_id'],
                     node_id=node_id,
                     node_name=node_name,
                     symbol=row['symbol'],
-                    subscribe_topic_name=row['topic_name'],
+                    subscribe_topic_names=topic_names,
                     publish_topic_names=None,
                     subscription_handle=row['subscription_handle'],
                     callback_object=row['callback_object'],
@@ -986,7 +992,7 @@ class DataFrameFormatted:
         merge(timers, symbols, 'callback_object', merge_drop_columns=merge_drop_columns)
 
         DataFrameFormatted._add_construction_order(
-            timers, 'construction_order', 'timestamp', 'node_handle', 'period_ns')
+            timers, 'construction_order', 'timestamp', 'node_handle', 'period_ns', 'symbol')
 
         callback_group_timer = data.callback_group_timer.clone()
         callback_group_timer.reset_index()
@@ -1035,7 +1041,7 @@ class DataFrameFormatted:
 
         DataFrameFormatted._add_construction_order(
             subscriptions, 'construction_order', 'timestamp',
-            'node_handle', 'topic_name')
+            'node_handle', 'topic_name', 'symbol')
 
         callback_group_subscription = data.callback_group_subscription.clone()
         callback_group_subscription.reset_index()
@@ -1057,6 +1063,7 @@ class DataFrameFormatted:
         timestamp_column: str,
         node_handle_column: str,
         callback_parameter_column: str,
+        symbol_column: str
     ) -> None:
 
         data.sort(timestamp_column)
@@ -1065,7 +1072,8 @@ class DataFrameFormatted:
         def construct_order(row: pd.Series) -> int:
             node = row[node_handle_column]
             callback_param = row[callback_parameter_column]
-            key: DataFrameFormatted.KeyType = node, callback_param
+            symbol = row[symbol_column]
+            key: DataFrameFormatted.KeyType = node, callback_param, symbol
             order_ = int(order[key])
             order[key] += 1
             return order_
@@ -1073,6 +1081,7 @@ class DataFrameFormatted:
         data.add_column(column_name, construct_order)
 
     KeyTypePubSub = tuple[int | str, str | int]
+    KeyTypeTopic = tuple[int | str, str | int]
 
     @staticmethod
     def _add_construction_order_publisher_or_subscription(
@@ -1126,7 +1135,7 @@ class DataFrameFormatted:
 
         DataFrameFormatted._add_construction_order(
             services, 'construction_order',
-            'timestamp', 'node_handle', 'service_name')
+            'timestamp', 'node_handle', 'service_name', 'symbol')
 
         callback_group_service = data.callback_group_service.clone()
         callback_group_service.reset_index()

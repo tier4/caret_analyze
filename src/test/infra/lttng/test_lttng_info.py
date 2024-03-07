@@ -250,6 +250,7 @@ class TestLttngInfo:
         node_handle = [7, 8]
 
         topic_name = ['/topic1', '/topic2']
+        topic_names = [(('/topic1', 0),), (('/topic2', 0),)]
         node_name = ['/node1', '/node2']
         symbol = ['symbol0', 'symbol1']
         depth = [9, 10]
@@ -335,7 +336,7 @@ class TestLttngInfo:
             'node_id',
             node_name[0],
             symbol[0],
-            topic_name[0],
+            topic_names[0],
             subscription_handle[0],
             None,
             callback_object=callback_object[0],
@@ -351,7 +352,7 @@ class TestLttngInfo:
             'node_id_2',
             node_name[1],
             symbol[1],
-            topic_name[1],
+            topic_names[1],
             subscription_handle[1],
             None,
             callback_object[1],

@@ -262,10 +262,11 @@ class CommValuesLoaded():
             if callback.subscribe_topic_name is None:
                 return False
 
-            match = self._subscription.topic_name == callback.subscribe_topic_name
+            match = self._subscription.topic_name == callback.subscribe_topic_name[0]
             if self._subscription.callback_name:
                 match &= self._subscription.callback_name == callback.callback_name
-                match &= self._subscription.construction_order == callback.construction_order
+                match &= self._subscription.construction_order == \
+                    callback.subscription_construction_order
 
             return match
 
@@ -1262,7 +1263,8 @@ class CallbacksLoaded():
             return SubscriptionCallbackStruct(
                 node_name=callback.node_name,
                 symbol=callback.symbol,
-                subscribe_topic_name=callback.subscribe_topic_name,
+                subscribe_topic_names=None if callback.subscribe_topic_names is None
+                else list(callback.subscribe_topic_names),
                 publish_topic_names=None if callback.publish_topic_names is None
                 else list(callback.publish_topic_names),
                 callback_name=callback_name,

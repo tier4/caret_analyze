@@ -487,7 +487,7 @@ class Architecture(Summarizable):
             context_reader = AssignContextReader(node)
             for publish_topic_name in callback_read.publish_topic_names:
                 if callback_write.subscribe_topic_name:
-                    context_reader.remove_callback_chain(callback_write.subscribe_topic_name,
+                    context_reader.remove_callback_chain(callback_write.subscribe_topic_name[0],
                                                          publish_topic_name)
 
             node.update_node_path(NodeValuesLoaded._search_node_paths(node,

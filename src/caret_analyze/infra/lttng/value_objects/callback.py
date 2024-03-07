@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from ....value_objects import ServiceCallbackValue, SubscriptionCallbackValue, TimerCallbackValue
 
 
@@ -58,7 +60,7 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
         node_id: str,
         node_name: str,
         symbol: str,
-        subscribe_topic_name: str,
+        subscribe_topic_names: tuple[Any, ...] | None,
         subscription_handle: int,
         publish_topic_names: tuple[str, ...] | None,
         callback_object: int,
@@ -71,7 +73,7 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
             node_id=node_id,
             node_name=node_name,
             symbol=symbol,
-            subscribe_topic_name=subscribe_topic_name,
+            subscribe_topic_names=subscribe_topic_names,
             publish_topic_names=publish_topic_names,
             construction_order=construction_order
         )

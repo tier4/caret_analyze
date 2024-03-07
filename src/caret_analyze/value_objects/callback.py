@@ -79,7 +79,7 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         node_name: str,
         node_id: str,
         symbol: str,
-        subscribe_topic_name: str | None,
+        subscribe_topic_names: tuple[str, ...] | None,
         service_name: str | None,
         publish_topic_names: tuple[str, ...] | None,
         construction_order: int,
@@ -101,7 +101,7 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
             a value that can be identified when retrieved from the Architecture reader.
         symbol : str
             Symbol name of the callback.
-        subscribe_topic_name : str | None
+        subscribe_topic_names : tuple[str, ...] | None
             Topic name which the callback subscribes.
         service_name : str | None
             Service name which the callback service.
@@ -118,7 +118,7 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         self._node_id = node_id
         self._callback_name = callback_name
         self._symbol = symbol
-        self._subscribe_topic_name = subscribe_topic_name
+        self._subscribe_topic_names = subscribe_topic_names
         self._service_name = service_name
         self._publish_topic_names = publish_topic_names
         self._construction_order = construction_order
@@ -197,21 +197,22 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         return self._callback_name
 
     @property
-    def subscribe_topic_name(self) -> str | None:
+    def subscribe_topic_names(self) -> tuple[str, ...] | None:
         """
-        Get subscription topic name.
+        Get subscription topic names.
 
         Returns
         -------
-        str | None
-            Topic name which the callback subscribes.
+        tuple[str, ...] | None
+            Topic names which the callback subscribes.
 
         Note:
         -----
-        Only one subscription callback have a single subscribe topic name.
+        Since callback subscriptions multiple topics,
+        there are multiple subscription topic names.
 
         """
-        return self._subscribe_topic_name
+        return self._subscribe_topic_names
 
     @property
     def service_name(self) -> str | None:
@@ -289,7 +290,7 @@ class TimerCallbackValue(CallbackValue):
             node_name=node_name,
             node_id=node_id,
             symbol=symbol,
-            subscribe_topic_name=None,
+            subscribe_topic_names=None,
             service_name=None,
             publish_topic_names=publish_topic_names,
             construction_order=construction_order,
@@ -314,19 +315,20 @@ class SubscriptionCallbackValue(CallbackValue):
         node_name: str,
         node_id: str,
         symbol: str,
-        subscribe_topic_name: str,
+        subscribe_topic_names: tuple[str, ...] | None,
         publish_topic_names: tuple[str, ...] | None,
         construction_order: int,
         *,  # for yaml reader only.
         callback_name: str | None = None,
     ) -> None:
-        self.__subscribe_topic_name = subscribe_topic_name
+        if subscribe_topic_names is not None:
+            self.__subscribe_topic_name = subscribe_topic_names[0][0]
         super().__init__(
             callback_id=callback_id,
             node_name=node_name,
             node_id=node_id,
             symbol=symbol,
-            subscribe_topic_name=subscribe_topic_name,
+            subscribe_topic_names=subscribe_topic_names,
             service_name=None,
             publish_topic_names=publish_topic_names,
             construction_order=construction_order,
@@ -362,7 +364,7 @@ class ServiceCallbackValue(CallbackValue):
             node_name=node_name,
             node_id=node_id,
             symbol=symbol,
-            subscribe_topic_name=None,
+            subscribe_topic_names=None,
             service_name=service_name,
             publish_topic_names=publish_topic_names,
             construction_order=construction_order,

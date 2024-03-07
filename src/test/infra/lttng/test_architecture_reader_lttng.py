@@ -141,14 +141,15 @@ class TestArchitectureReaderLttng:
         node = ['node0', 'node1']
         node_id = ['node0_id', 'node1_id']
         topic = ['topic0', 'topic1']
+        topics = [(('topic0', 0),), (('topic1', 0),)]
         symbol = ['symbol0', 'symbol1']
         callback_id = ['callback0', 'callback1']
         construction_order = [0, 0]
 
         sub_cb_0 = SubscriptionCallbackValue(
-            callback_id[0], node[0], node_id[0], symbol[0], topic[0], None, None)
+            callback_id[0], node[0], node_id[0], symbol[0], topics[0], None, None)
         sub_cb_1 = SubscriptionCallbackValue(
-            callback_id[1], node[1], node_id[1], symbol[1], topic[1], None, None)
+            callback_id[1], node[1], node_id[1], symbol[1], topics[1], None, None)
 
         mocker.patch.object(
             lttng_mock,
@@ -165,12 +166,13 @@ class TestArchitectureReaderLttng:
 
         node = ['node0', 'node0']
         topic = ['topic0', 'topic0']
+        topics = [(('topic0', 0),), (('topic0', 1),)]
         construction_order = [0, 1]
 
         sub_cb_0 = SubscriptionCallbackValue(
-            callback_id[0], node[0], node_id[0], symbol[0], topic[0], None, None)
+            callback_id[0], node[0], node_id[0], symbol[0], topics[0], None, None)
         sub_cb_1 = SubscriptionCallbackValue(
-            callback_id[1], node[1], node_id[1], symbol[1], topic[1], None, None)
+            callback_id[1], node[1], node_id[1], symbol[1], topics[1], None, None)
 
         mocker.patch.object(
             lttng_mock,
