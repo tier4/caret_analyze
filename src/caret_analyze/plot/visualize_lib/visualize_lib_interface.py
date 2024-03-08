@@ -26,7 +26,7 @@ from ...runtime import CallbackBase, CallbackGroup, Communication, Path, Publish
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 MetricsTypes = Frequency | Latency | Period | ResponseTime
-HistTypes = CallbackBase | Communication | Path
+HistTypes = CallbackBase | Communication | Path | Publisher | Subscription
 
 
 class VisualizeLibInterface(metaclass=ABCMeta):

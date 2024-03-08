@@ -11,16 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from __future__ import annotations
 
+from collections.abc import Collection
 from functools import wraps
-from inspect import Signature, signature
+
+from inspect import getfullargspec, Signature, signature
 from re import findall
 from typing import Any
 
 from ..exceptions import UnsupportedTypeError
-
 
 try:
     from pydantic import ValidationError
@@ -122,7 +122,8 @@ try:
         args: tuple[Any, ...],
         kwargs: dict[str, Any],
         given_arg_loc: tuple,
-        error_type: str
+        error_type: str,
+        varargs: None | str
     ) -> str:
         """
         Get given argument type.
@@ -153,6 +154,8 @@ try:
 
             (iii) Not iterable type case
                 other
+        varargs: None | str
+            The name of the variable length argument if the function has one, otherwise None
 
         Returns
         -------
@@ -175,7 +178,6 @@ try:
             if k == arg_name:
                 given_arg = v
                 break
-
         if given_arg is None:
             # Check args
             given_arg_idx = list(signature.parameters.keys()).index(arg_name)
@@ -185,10 +187,40 @@ try:
             given_arg_type_str = f"'{given_arg[given_arg_loc[1]].__class__.__name__}'"
         elif error_type == 'IterableArg':
             given_arg_type_str = f"'{given_arg[int(given_arg_loc[1])].__class__.__name__}'"
-        else:
+        elif varargs is None:
             given_arg_type_str = f"'{given_arg.__class__.__name__}'"
+        else:
+            # For functions with variable length arguments,
+            given_arg_type_str = f"'{args[given_arg_loc[1]].__class__.__name__}'"
 
         return given_arg_type_str
+
+    def _parse_collection_or_unpack(
+        target_arg: tuple[Collection[Any]] | tuple[Any, ...]
+    ) -> tuple[Any]:
+        """
+        Parse target argument.
+
+        To address both cases where the target argument is passed in collection type
+        or unpacked, this function converts them to the same list format.
+
+        Parameters
+        ----------
+        target_arg : tuple[Collection[Any]] | tuple[Any, ...]
+            Target objects.
+
+        Returns
+        -------
+        tuple[Any]
+
+        """
+        parsed_target_objects: tuple[Any]
+        if isinstance(target_arg[0], Collection):
+            assert len(target_arg) == 1
+            parsed_target_objects = tuple(target_arg[0])
+        else:  # Unpacked case
+            parsed_target_objects = tuple(target_arg)  # type: ignore
+        return parsed_target_objects
 
     def decorator(func):
         validate_arguments_wrapper = \
@@ -197,14 +229,23 @@ try:
         @wraps(func)
         def _custom_wrapper(*args, **kwargs):
             try:
+                # Checks whether the arguments of a given func have variable length arguments
+                arg_spec = getfullargspec(func)
+                if arg_spec.varargs is not None:
+                    args = _parse_collection_or_unpack(args)
                 return validate_arguments_wrapper(*args, **kwargs)
             except ValidationError as e:
                 expected_types = _get_expected_types(e, signature(func))
                 error_type = e.title
                 loc_tuple = e.errors()[0]['loc']
                 given_arg_loc_str = _get_given_arg_loc_str(loc_tuple, error_type)
-                given_arg_type \
-                    = _get_given_arg_type(signature(func), args, kwargs, loc_tuple, error_type)
+                given_arg_type = _get_given_arg_type(
+                                            signature(func),
+                                            args,
+                                            kwargs,
+                                            loc_tuple, error_type,
+                                            arg_spec.varargs
+                )
 
                 msg = f'Type of argument {given_arg_loc_str} must be {expected_types}. '
                 msg += f'The given argument type is {given_arg_type}.'

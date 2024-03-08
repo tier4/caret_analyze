@@ -27,10 +27,10 @@ from ..util import get_clock_converter
 from ..visualize_lib import VisualizeLibInterface
 from ...common import ClockConverter
 from ...exceptions import UnsupportedTypeError
-from ...runtime import CallbackBase, Communication, Path
+from ...runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
 MetricsTypes = Frequency | Latency | Period | ResponseTime
-HistTypes = CallbackBase | Communication | Path
+HistTypes = CallbackBase | Communication | Path | Publisher | Subscription
 
 
 class HistogramPlot(PlotBase):
