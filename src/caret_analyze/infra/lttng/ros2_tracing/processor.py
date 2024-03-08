@@ -446,7 +446,8 @@ class Ros2Handler():
         subscription = get_field(event, 'subscription')
 
         ipb = self._remapper.ipb_remapper.get_nearest_object_id(ipb, event)
-        subscription = self._remapper.callback_holder_id_remapper.get_nearest_object_id(subscription, event)
+        subscription = self._remapper.callback_holder_id_remapper.get_nearest_object_id(
+            subscription, event)
 
         self.data.add_ipb_to_subscription(
             timestamp,
@@ -477,9 +478,11 @@ class Ros2Handler():
         timestamp = get_field(event, '_timestamp')
         handle = get_field(event, 'subscription_handle')
 
-        handle = self._remapper.subscription_handle_remapper.get_nearest_object_id(handle, event)
-        subscription_pointer = self._remapper.callback_holder_id_remapper.register_and_get_object_id(
-            subscription_pointer, event)
+        handle = self._remapper.subscription_handle_remapper.get_nearest_object_id(
+            handle, event)
+        subscription_pointer = \
+            self._remapper.callback_holder_id_remapper.register_and_get_object_id(
+                subscription_pointer, event)
         self.data.add_rclcpp_subscription(
             subscription_pointer, timestamp, handle)
 
@@ -508,8 +511,10 @@ class Ros2Handler():
         rmw_handle = get_field(event, 'rmw_service_handle')
         service_name = get_field(event, 'service_name')
 
-        handle = self._remapper.callback_holder_id_remapper.register_and_get_object_id(handle, event)
-        node_handle = self._remapper.node_handle_remapper.get_nearest_object_id(node_handle, event)
+        handle = self._remapper.callback_holder_id_remapper.register_and_get_object_id(
+            handle, event)
+        node_handle = self._remapper.node_handle_remapper.get_nearest_object_id(
+            node_handle, event)
         rmw_handle = \
             self._remapper.rmw_service_handle_remapper.register_and_get_object_id(
                 rmw_handle, event)
@@ -555,7 +560,8 @@ class Ros2Handler():
         period = get_field(event, 'period')
         tid = get_field(event, '_vtid')
 
-        handle = self._remapper.callback_holder_id_remapper.register_and_get_object_id(handle, event)
+        handle = \
+            self._remapper.callback_holder_id_remapper.register_and_get_object_id(handle, event)
         self.data.add_timer(tid, handle, timestamp, period)
 
     def _handle_caret_init(
@@ -614,7 +620,8 @@ class Ros2Handler():
         timestamp = get_field(event, '_timestamp')
         symbol = get_field(event, 'symbol')
 
-        callback_object = self._remapper.callback_remapper.get_nearest_object_id(callback_object, event)
+        callback_object = \
+            self._remapper.callback_remapper.get_nearest_object_id(callback_object, event)
         self.data.add_callback_symbol(callback_object, timestamp, symbol)
 
     def _handle_callback_start(
@@ -656,9 +663,10 @@ class Ros2Handler():
         node_handle = get_field(event, 'node_handle')
         state_machine = get_field(event, 'state_machine')
 
-        node_handle = self._remapper.node_handle_remapper.get_nearest_object_id(node_handle, event)
-        state_machine = self._remapper.state_machine_remapper.register_and_get_object_id(
-            state_machine, event)
+        node_handle = \
+            self._remapper.node_handle_remapper.get_nearest_object_id(node_handle, event)
+        state_machine = \
+            self._remapper.state_machine_remapper.register_and_get_object_id(state_machine, event)
         self.data.add_lifecycle_state_machine(state_machine, node_handle)
 
     def _handle_rcl_lifecycle_transition(
@@ -673,7 +681,8 @@ class Ros2Handler():
         start_label = get_field(event, 'start_label')
         goal_label = get_field(event, 'goal_label')
 
-        state_machine = self._remapper.state_machine_remapper.get_latest_object_id(state_machine, event)
+        state_machine = \
+            self._remapper.state_machine_remapper.get_latest_object_id(state_machine, event)
         self.data.add_lifecycle_state_transition(
             state_machine, start_label, goal_label, timestamp)
 
@@ -686,7 +695,8 @@ class Ros2Handler():
         if 'publisher_handle' in event.keys():
             publisher_handle = get_field(event, 'publisher_handle')
             publisher_handle = \
-                self._remapper.publisher_handle_remapper.get_latest_object_id(publisher_handle, event)
+                self._remapper.publisher_handle_remapper.get_latest_object_id(
+                    publisher_handle, event)
         else:
             publisher_handle = 0
         timestamp = get_field(event, '_timestamp')
@@ -800,7 +810,8 @@ class Ros2Handler():
         source_stamp = get_field(event, 'source_stamp')
         message_timestamp = get_field(event, 'message_timestamp')
 
-        callback_object = self._remapper.callback_remapper.get_latest_object_id(callback_object, event)
+        callback_object = \
+            self._remapper.callback_remapper.get_latest_object_id(callback_object, event)
         self.data.add_dispatch_subscription_callback_instance(
             timestamp, callback_object, message, source_stamp, message_timestamp
         )
@@ -818,8 +829,9 @@ class Ros2Handler():
         message = get_field(event, 'message')
         source_stamp = get_field(event, 'source_timestamp')
 
-        rmw_subscription_handle = self._remapper.rmw_subscription_handle_remapper.get_latest_object_id(
-            rmw_subscription_handle, event)
+        rmw_subscription_handle = \
+            self._remapper.rmw_subscription_handle_remapper.get_latest_object_id(
+                rmw_subscription_handle, event)
         self.data.add_rmw_take_instance(
             tid, timestamp, rmw_subscription_handle, message, source_stamp
         )
@@ -836,7 +848,8 @@ class Ros2Handler():
         timestamp = get_field(event, '_timestamp')
         message_timestamp = get_field(event, 'message_timestamp')
 
-        callback_object = self._remapper.callback_remapper.get_latest_object_id(callback_object, event)
+        callback_object = \
+            self._remapper.callback_remapper.get_latest_object_id(callback_object, event)
         self.data.add_dispatch_intra_process_subscription_callback_instance(
             timestamp, callback_object, message, message_timestamp
         )
@@ -937,7 +950,8 @@ class Ros2Handler():
         callback_group_addr = get_field(event, 'callback_group_addr')
         group_type_name = get_field(event, 'group_type_name')
 
-        executor_addr = self._remapper.executor_addr_remapper.get_nearest_object_id(executor_addr, event)
+        executor_addr = \
+            self._remapper.executor_addr_remapper.get_nearest_object_id(executor_addr, event)
         callback_group_addr = \
             self._remapper.callback_group_addr_remapper.register_and_get_object_id(
                 callback_group_addr, event)
@@ -954,7 +968,8 @@ class Ros2Handler():
         group_type_name = get_field(event, 'group_type_name')
 
         collector_addr = \
-            self._remapper.entities_collector_addr_remapper.get_nearest_object_id(collector_addr, event)
+            self._remapper.entities_collector_addr_remapper.get_nearest_object_id(
+                collector_addr, event)
         callback_group_addr = \
             self._remapper.callback_group_addr_remapper.register_and_get_object_id(
                 callback_group_addr, event)
@@ -969,9 +984,11 @@ class Ros2Handler():
         callback_group_addr = get_field(event, 'callback_group_addr')
         timer_handle = get_field(event, 'timer_handle')
 
-        callback_group_addr = self._remapper.callback_group_addr_remapper.get_nearest_object_id(
-            callback_group_addr, event)
-        timer_handle = self._remapper.callback_holder_id_remapper.get_nearest_object_id(timer_handle, event)
+        callback_group_addr = \
+            self._remapper.callback_group_addr_remapper.get_nearest_object_id(
+                callback_group_addr, event)
+        timer_handle = \
+            self._remapper.callback_holder_id_remapper.get_nearest_object_id(timer_handle, event)
         self.data.callback_group_add_timer(callback_group_addr, timestamp, timer_handle)
 
     def _handle_callback_group_add_subscription(
@@ -997,8 +1014,9 @@ class Ros2Handler():
         callback_group_addr = get_field(event, 'callback_group_addr')
         service_handle = get_field(event, 'service_handle')
 
-        callback_group_addr = self._remapper.callback_group_addr_remapper.get_nearest_object_id(
-            callback_group_addr, event)
+        callback_group_addr = \
+            self._remapper.callback_group_addr_remapper.get_nearest_object_id(
+                callback_group_addr, event)
         service_handle = \
             self._remapper.callback_holder_id_remapper.get_nearest_object_id(service_handle, event)
         self.data.callback_group_add_service(callback_group_addr, timestamp, service_handle)
@@ -1011,9 +1029,11 @@ class Ros2Handler():
         callback_group_addr = get_field(event, 'callback_group_addr')
         client_handle = get_field(event, 'client_handle')
 
-        callback_group_addr = self._remapper.callback_group_addr_remapper.get_nearest_object_id(
-            callback_group_addr, event)
-        client_handle = self._remapper.client_handle_remapper.get_nearest_object_id(client_handle, event)
+        callback_group_addr = \
+            self._remapper.callback_group_addr_remapper.get_nearest_object_id(
+                callback_group_addr, event)
+        client_handle = \
+            self._remapper.client_handle_remapper.get_nearest_object_id(client_handle, event)
         self.data.callback_group_add_client(callback_group_addr, timestamp, client_handle)
 
     def _handle_tilde_subscription_init(
