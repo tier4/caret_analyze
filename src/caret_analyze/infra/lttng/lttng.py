@@ -484,7 +484,6 @@ class Lttng(InfraBase):
                     handler_(event)
 
                 handler.create_runtime_handler_map()
-                filtered_event_count = 0
                 for event in tqdm(
                         iter(run_events),
                         total=len(run_events),
@@ -495,7 +494,6 @@ class Lttng(InfraBase):
                             k: get_field(event, k) for k in event
                         }
                         events.append(event_dict)
-                    filtered_event_count += 1
                     tid_remapper.remap(event)
                     pid_remapper.remap(event)
                     event_name = event[LttngEventFilter.NAME]
