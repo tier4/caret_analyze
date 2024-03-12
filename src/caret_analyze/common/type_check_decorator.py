@@ -15,10 +15,10 @@ from __future__ import annotations
 
 from collections.abc import Collection
 from functools import wraps
-
 from inspect import getfullargspec, Signature, signature
 from re import findall
 from typing import Any
+from warnings import warn
 
 from ..exceptions import UnsupportedTypeError
 
@@ -255,6 +255,10 @@ try:
     type_check_decorator = decorator
 
 except ImportError:
+    msg = 'pydantic is not installed or is not the latest version.\n' +\
+          'Please install or upgrade pydantic as CARET may not work properly.'
+    warn(msg, UserWarning)
+
     def empty_decorator(func):
         @wraps(func)
         def _wrapper(*args, **kwargs):
