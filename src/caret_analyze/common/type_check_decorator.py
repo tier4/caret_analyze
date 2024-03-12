@@ -33,6 +33,35 @@ try:
         given_arg_loc: tuple,
         varargs: None | str
     ) -> Any:
+        """
+        Get an argument which validation error occurs.
+
+        Parameters
+        ----------
+        signature: Signature
+            Signature of target function.
+        args: tuple[Any, ...]
+            Arguments of target function.
+        kwargs: dict[str, Any]
+            Keyword arguments of target function.
+        given_arg_loc: tuple
+            (i) Not iterable type case
+                ('<ARGUMENT_NAME>,')
+
+            (ii) Iterable type except for dict case
+                ('<ARGUMENT_NAME>', '<INDEX>')
+
+            (ii) Dict case
+                ('<ARGUMENT_NAME>', '<KEY>')
+        varargs: None | str
+            The name of the variable length argument if the function has one, otherwise None.
+
+        Returns
+        -------
+        str
+            The argument which validation error occurs.
+
+        """
         arg_name = given_arg_loc[0]
         given_arg: Any = None
 
@@ -114,15 +143,8 @@ try:
 
             (ii) Dict case
                 ('<ARGUMENT_NAME>', '<KEY>')
-        error_type: str
-            (i) Dict case
-                'DictArg'
-
-            (ii) Iterable type except for dict case
-                'IterableArg'
-
-            (iii) Not iterable type case
-                other
+        given_arg: Any
+            The argument which validation error occurs.
 
         Returns
         -------
@@ -156,12 +178,8 @@ try:
 
         Parameters
         ----------
-        signature: Signature
-            Signature of target function.
-        args: tuple[Any, ...]
-            Arguments of target function.
-        kwargs: dict[str, Any]
-            Keyword arguments of target function.
+        given_arg: Any
+            The argument which validation error occurs.
         given_arg_loc: tuple
             (i) Not iterable type case
                 ('<ARGUMENT_NAME>,')
@@ -181,7 +199,7 @@ try:
             (iii) Not iterable type case
                 other
         varargs: None | str
-            The name of the variable length argument if the function has one, otherwise None
+            The name of the variable length argument if the function has one, otherwise None.
 
         Returns
         -------
@@ -196,7 +214,6 @@ try:
                 Class name input for argument <ARGUMENT_NAME>[<KEY>]
 
         """
-
         if error_type == 'DictArg':
             given_arg_type_str = f"'{given_arg[given_arg_loc[1]].__class__.__name__}'"
         elif error_type == 'IterableArg':
@@ -250,11 +267,13 @@ try:
                 return validate_arguments_wrapper(*args, **kwargs)
             except ValidationError as e:
                 loc_tuple = e.errors()[0]['loc']
-                given_arg = _get_given_arg(signature(func), args, kwargs, loc_tuple, arg_spec.varargs)
+                given_arg = _get_given_arg(signature(func), args, kwargs,
+                                           loc_tuple, arg_spec.varargs)
                 expected_types = _get_expected_types(e, signature(func))
                 error_type = e.title
                 given_arg_loc_str = _get_given_arg_loc_str(loc_tuple, given_arg)
-                given_arg_type = _get_given_arg_type(given_arg, loc_tuple, error_type, arg_spec.varargs)
+                given_arg_type = _get_given_arg_type(given_arg, loc_tuple,
+                                                     error_type, arg_spec.varargs)
 
                 msg = f'Type of argument {given_arg_loc_str} must be {expected_types}. '
                 msg += f'The given argument type is {given_arg_type}.'
