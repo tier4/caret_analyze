@@ -26,6 +26,33 @@ try:
     from pydantic import ValidationError
     from pydantic.deprecated.decorator import validate_arguments
 
+    def _get_given_arg(
+        signature: Signature,
+        args: tuple[Any, ...],
+        kwargs: dict[str, Any],
+        given_arg_loc: tuple,
+        varargs: None | str
+    ) -> Any:
+        arg_name = given_arg_loc[0]
+        given_arg: Any = None
+
+        # Check kwargs
+        for k, v in kwargs.items():
+            if k == arg_name:
+                given_arg = v
+                break
+        if given_arg is None:
+            # Check args
+            given_arg_idx = list(signature.parameters.keys()).index(arg_name)
+
+            # for variable length arguments
+            if arg_name == varargs:
+                given_arg = args[given_arg_idx:]
+            else:
+                given_arg = args[given_arg_idx]
+
+        return given_arg
+
     def _get_expected_types(e: ValidationError, signature: Signature) -> str:
         """
         Get expected types.
@@ -118,9 +145,7 @@ try:
         return loc_str
 
     def _get_given_arg_type(
-        signature: Signature,
-        args: tuple[Any, ...],
-        kwargs: dict[str, Any],
+        given_arg: Any,
         given_arg_loc: tuple,
         error_type: str,
         varargs: None | str
@@ -170,23 +195,6 @@ try:
                 Class name input for argument <ARGUMENT_NAME>[<KEY>]
 
         """
-        arg_name = given_arg_loc[0]
-        given_arg: Any = None
-
-        # Check kwargs
-        for k, v in kwargs.items():
-            if k == arg_name:
-                given_arg = v
-                break
-        if given_arg is None:
-            # Check args
-            given_arg_idx = list(signature.parameters.keys()).index(arg_name)
-
-            # for variable length arguments
-            if arg_name == varargs:
-                given_arg = args[given_arg_idx:]
-            else:
-                given_arg = args[given_arg_idx]
 
         if error_type == 'DictArg':
             given_arg_type_str = f"'{given_arg[given_arg_loc[1]].__class__.__name__}'"
@@ -240,17 +248,12 @@ try:
                     args = _parse_collection_or_unpack(args)
                 return validate_arguments_wrapper(*args, **kwargs)
             except ValidationError as e:
+                loc_tuple = e.errors()[0]['loc']
+                given_arg = _get_given_arg(signature(func), args, kwargs, loc_tuple, arg_spec.varargs)
                 expected_types = _get_expected_types(e, signature(func))
                 error_type = e.title
-                loc_tuple = e.errors()[0]['loc']
                 given_arg_loc_str = _get_given_arg_loc_str(loc_tuple, error_type)
-                given_arg_type = _get_given_arg_type(
-                                            signature(func),
-                                            args,
-                                            kwargs,
-                                            loc_tuple, error_type,
-                                            arg_spec.varargs
-                )
+                given_arg_type = _get_given_arg_type(given_arg, loc_tuple, error_type, arg_spec.varargs)
 
                 msg = f'Type of argument {given_arg_loc_str} must be {expected_types}. '
                 msg += f'The given argument type is {given_arg_type}.'
