@@ -181,7 +181,12 @@ try:
         if given_arg is None:
             # Check args
             given_arg_idx = list(signature.parameters.keys()).index(arg_name)
-            given_arg = args[given_arg_idx]
+
+            # for variable length arguments
+            if arg_name == varargs:
+                given_arg = args[given_arg_idx:]
+            else:
+                given_arg = args[given_arg_idx]
 
         if error_type == 'DictArg':
             given_arg_type_str = f"'{given_arg[given_arg_loc[1]].__class__.__name__}'"
@@ -191,7 +196,7 @@ try:
             given_arg_type_str = f"'{given_arg.__class__.__name__}'"
         else:
             # For functions with variable length arguments,
-            given_arg_type_str = f"'{args[given_arg_loc[1]].__class__.__name__}'"
+            given_arg_type_str = f"'{given_arg[given_arg_loc[1]].__class__.__name__}'"
 
         return given_arg_type_str
 
