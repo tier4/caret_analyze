@@ -16,11 +16,13 @@ from __future__ import annotations
 from collections.abc import Collection
 from functools import wraps
 from inspect import getfullargspec, Signature, signature
+from logging import getLogger
 from re import findall
 from typing import Any
-from warnings import warn
 
 from ..exceptions import UnsupportedTypeError
+
+logger = getLogger(__name__)
 
 try:
     from pydantic import ValidationError
@@ -257,7 +259,7 @@ try:
 except ImportError:
     msg = 'pydantic is not installed or is not the latest version.\n' +\
           'Please install or upgrade pydantic as CARET may not work properly.'
-    warn(msg, UserWarning)
+    logger.warning(msg)
 
     def empty_decorator(func):
         @wraps(func)
