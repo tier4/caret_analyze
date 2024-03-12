@@ -99,7 +99,7 @@ try:
 
         return expected_types_str
 
-    def _get_given_arg_loc_str(given_arg_loc: tuple, error_type: str) -> str:
+    def _get_given_arg_loc_str(given_arg_loc: tuple, given_arg: Any) -> str:
         """
         Get given argument location string.
 
@@ -137,7 +137,8 @@ try:
                 '<ARGUMENT_NAME>'[KEY]
 
         """
-        if error_type == 'IterableArg' or error_type == 'DictArg':  # Iterable type case
+        # Iterable or dict type case
+        if isinstance(given_arg, Collection) or isinstance(given_arg, dict):
             loc_str = f"'{given_arg_loc[0]}'[{given_arg_loc[1]}]"
         else:
             loc_str = f"'{given_arg_loc[0]}'"
@@ -252,7 +253,7 @@ try:
                 given_arg = _get_given_arg(signature(func), args, kwargs, loc_tuple, arg_spec.varargs)
                 expected_types = _get_expected_types(e, signature(func))
                 error_type = e.title
-                given_arg_loc_str = _get_given_arg_loc_str(loc_tuple, error_type)
+                given_arg_loc_str = _get_given_arg_loc_str(loc_tuple, given_arg)
                 given_arg_type = _get_given_arg_type(given_arg, loc_tuple, error_type, arg_spec.varargs)
 
                 msg = f'Type of argument {given_arg_loc_str} must be {expected_types}. '
