@@ -262,8 +262,9 @@ try:
             try:
                 # Checks whether the arguments of a given func have variable length arguments
                 arg_spec = getfullargspec(func)
+                arg_len = len(arg_spec.args)
                 if arg_spec.varargs is not None:
-                    args = _parse_collection_or_unpack(args)
+                    args = args[:arg_len] + _parse_collection_or_unpack(args[arg_len:])
                 return validate_arguments_wrapper(*args, **kwargs)
             except ValidationError as e:
                 loc_tuple = e.errors()[0]['loc']

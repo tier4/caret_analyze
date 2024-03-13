@@ -133,11 +133,23 @@ class TestTypeCheckDecorator:
                in str(e.value)
 
         with pytest.raises(UnsupportedTypeError) as e:
-            var_len_args(dummy_1, 1, dummy_2)
+            var_len_args([dummy_1, 1, dummy_2])
         assert "'i'[1] must be ['DummyCustom1', 'DummyCustom2']. The given argument type is 'int'"\
                in str(e.value)
 
+    def test_type_check_decorator_mix_arg(self):
+        @type_check_decorator
+        def mix_args(a: DummyCustom1, *i: DummyCustom2):
+            pass
+
+        dummy_1 = DummyCustom1()
+        dummy_2 = DummyCustom2()
         with pytest.raises(UnsupportedTypeError) as e:
-            var_len_args(dummy_1, dummy_2, 1)
-        assert "'i'[2] must be ['DummyCustom1', 'DummyCustom2']. The given argument type is 'int'"\
+            mix_args(dummy_1, [1, dummy_2])
+        assert "'i'[0] must be 'DummyCustom2'. The given argument type is 'int'"\
+               in str(e.value)
+
+        with pytest.raises(UnsupportedTypeError) as e:
+            mix_args(dummy_1, [dummy_2, 1])
+        assert "'i'[1] must be 'DummyCustom2'. The given argument type is 'int'"\
                in str(e.value)
