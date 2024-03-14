@@ -271,6 +271,20 @@ class ResponseMapAll:
                     self._end_timestamps[idx] = end_ts
                     self._records[idx] = record
 
+        min_endstamp_idx = [
+            i for i, v in enumerate(self._end_timestamps) if v == min(self._end_timestamps)
+            ]
+
+        self._start_timestamps = [
+            v for i, v in enumerate(self._start_timestamps) if i not in min_endstamp_idx
+            ]
+        self._end_timestamps = [
+            v for i, v in enumerate(self._end_timestamps) if i not in min_endstamp_idx
+            ]
+        self._records = [
+            v for i, v in enumerate(self._records) if i not in min_endstamp_idx
+            ]
+
     def to_worst_with_external_latency_case_records(
         self,
         converter: ClockConverter | None = None
