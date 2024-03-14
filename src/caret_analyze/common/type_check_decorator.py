@@ -16,13 +16,11 @@ from __future__ import annotations
 from collections.abc import Collection
 from functools import wraps
 from inspect import getfullargspec, Signature, signature
-from logging import getLogger
+from logging import Formatter, getLogger, StreamHandler, WARN
 from re import findall
 from typing import Any
 
 from ..exceptions import UnsupportedTypeError
-
-logger = getLogger(__name__)
 
 try:
     from pydantic import ValidationError
@@ -257,9 +255,23 @@ try:
     type_check_decorator = decorator
 
 except ImportError:
-    msg = 'pydantic is not installed or is not the latest version.\n' +\
-          'Please install or upgrade pydantic as CARET may not work properly.'
-    logger.warning(msg)
+    # NOTE: import pydantic may do before than caret_analyze/common/load_config/init_config()
+    # NOTE: so, this logger is initialized independently.
+    handler = StreamHandler()
+    handler.setLevel(WARN)
+
+    fmt = '%(levelname)-8s: %(asctime)s | %(message)s'
+    formatter = Formatter(
+        fmt,
+        datefmt='%Y-%m-%d %H:%M:%S')
+    handler.setFormatter(formatter)
+
+    logger = getLogger(__name__)
+    logger.setLevel(WARN)
+    logger.addHandler(handler)
+
+    logger.warning('pydantic is not installed or is not the latest version. '
+                   'Please install or upgrade pydantic as CARET may not work properly.')
 
     def empty_decorator(func):
         @wraps(func)
