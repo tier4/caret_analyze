@@ -270,8 +270,8 @@ except ImportError:
     logger.setLevel(WARN)
     logger.addHandler(handler)
 
-    logger.warning('pydantic is not installed or is not the latest version. '
-                   'Please install or upgrade pydantic as CARET may not work properly.')
+    logger.warning('pydantic is not installed or is not the latest version.')
+    logger.warning('Please install or upgrade pydantic as CARET may not work properly.\n')
 
     def empty_decorator(func):
         @wraps(func)
