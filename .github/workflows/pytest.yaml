@@ -6,7 +6,7 @@ on:
 jobs:
   pytest:
     runs-on: ubuntu-latest
-    container: ghcr.io/autowarefoundation/autoware-universe:humble-latest
+    container: ghcr.io/autowarefoundation/autoware-openadk:latest-prebuilt
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
