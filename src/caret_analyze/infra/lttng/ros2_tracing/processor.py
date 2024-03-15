@@ -1001,7 +1001,7 @@ class Ros2Handler():
 
         callback_group_addr = self._remapper.callback_group_addr_remapper.get_nearest_object_id(
             callback_group_addr, event)
-        subscription_handle = self._remapper._subscription_handle_remapper.get_nearest_object_id(
+        subscription_handle = self._remapper.subscription_handle_remapper.get_nearest_object_id(
             subscription_handle, event)
         self.data.callback_group_add_subscription(
             callback_group_addr, timestamp, subscription_handle)
