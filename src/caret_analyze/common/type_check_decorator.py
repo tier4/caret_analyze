@@ -15,8 +15,8 @@ from __future__ import annotations
 
 from collections.abc import Collection
 from functools import wraps
-
 from inspect import getfullargspec, Signature, signature
+from logging import getLogger
 from re import findall
 from typing import Any
 
@@ -255,6 +255,11 @@ try:
     type_check_decorator = decorator
 
 except ImportError:
+    logger = getLogger(__name__)
+
+    logger.warning('pydantic is not installed or is not the latest version.')
+    logger.warning('Please install or upgrade pydantic as CARET may not work properly.\n')
+
     def empty_decorator(func):
         @wraps(func)
         def _wrapper(*args, **kwargs):
