@@ -496,7 +496,7 @@ class RecordsInterface:
             left records key name to use for comparison in time series merge.
         right_stamp_key : str
             right records key name to use for comparison in time series merge.
-        join_left_key : str | Nonr
+        join_left_key : str | None
             join key name to use equal condition.
         join_right_key : str | None
             join key name to use equal condition.
