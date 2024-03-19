@@ -180,3 +180,30 @@ class TestLatencyRecords:
         ]
         result = to_dict(latency.to_records(converter=create_converter.get_converter()))
         assert result == expect_raw
+
+    def test_invalid_vs_valid_case(self, create_converter):
+        invalid_records_raw = [
+            {'start': 0, 'end': 2},
+            {'start': 5, 'end': 4},
+            {'start': 10, 'end': 12}
+        ]
+        valid_records_raw = [
+            {'start': 0, 'end': 2},
+            {'start': 10, 'end': 12}
+        ]
+        columns = [ColumnValue('start'), ColumnValue('end')]
+        invalid_records = create_records(invalid_records_raw, columns)
+        valid_records = create_records(valid_records_raw, columns)
+
+        invalid_latency = Latency(invalid_records)
+        valid_latency = Latency(valid_records)
+
+        invalid_result = to_dict(invalid_latency.to_records())
+        valid_result = to_dict(valid_latency.to_records())
+        assert invalid_result == valid_result
+
+        invalid_result = to_dict(invalid_latency.to_records(
+            converter=create_converter.get_converter()))
+        valid_result = to_dict(valid_latency.to_records(
+            converter=create_converter.get_converter()))
+        assert invalid_result == valid_result

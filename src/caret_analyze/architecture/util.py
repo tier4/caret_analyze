@@ -25,7 +25,7 @@ from ..value_objects import NodePathStructValue
 
 def check_procedure(
     file_type: str,
-    file_path: str,
+    file_path: str | list[str],
     app_arch: Architecture,
     node_name: str,
 ) -> tuple[NodePathStructValue, ...]:
