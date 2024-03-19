@@ -31,7 +31,7 @@ class UniqueList(UserList):
 
         Parameters
         ----------
-        init : Any, optional
+        init : Iterable[Any] | None
             initial value, by default None.
             If there are duplicate values, only the first value is inserted.
 
