@@ -38,8 +38,8 @@ try:
 
         Parameters
         ----------
-        signature: Signature
-            Signature of target function.
+        annotations: dict[str, Any]
+            Dict of annotations of target function.
         args: tuple[Any, ...]
             Arguments of target function.
         kwargs: dict[str, Any]
@@ -58,7 +58,7 @@ try:
 
         Returns
         -------
-        str
+        Any
             The argument which validation error occurs.
 
         """
@@ -87,17 +87,17 @@ try:
 
         Parameters
         ----------
-        e: ValidationError
-            ValidationError instance has one or more ErrorDict instances.
-            Example of ErrorDict structure is as follows.
-            (i) Build-in type case:
-                {'type': 'type_error.<EXPECT_TYPE>', ...}
+        given_arg_loc: tuple
+            (i) Not iterable type case
+                ('<ARGUMENT_NAME>,')
 
-            (ii) Custom class type case:
-                {'type': 'type_error.arbitrary_type',
-                'ctx': {'expected_arbitrary_type': '<EXPECT_TYPE>'}, ...}
-        signature: Signature
-            Signature of target function.
+            (ii) Iterable type except for dict case
+                ('<ARGUMENT_NAME>', '<INDEX>')
+
+            (ii) Dict case
+                ('<ARGUMENT_NAME>', '<KEY>')
+        annotations: dict[str, Any]
+            Dict of annotations of target function.
 
         Returns
         -------
@@ -184,17 +184,6 @@ try:
 
             (ii) Dict case
                 ('<ARGUMENT_NAME>', '<KEY>')
-        error_type: str
-            (i) Dict case
-                'DictArg'
-
-            (ii) Iterable type except for dict case
-                'IterableArg'
-
-            (iii) Not iterable type case
-                other
-        varargs: None | str
-            The name of the variable length argument if the function has one, otherwise None.
 
         Returns
         -------
