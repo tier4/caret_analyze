@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from collections.abc import Collection
 from functools import wraps
-from inspect import getfullargspec, Signature, signature
+from inspect import getfullargspec, get_annotations
 from logging import getLogger
 from re import findall
 from typing import Any
@@ -27,7 +27,7 @@ try:
     from pydantic.deprecated.decorator import validate_arguments
 
     def _get_given_arg(
-        signature: Signature,
+        annotations: dict[str, Any],
         args: tuple[Any, ...],
         kwargs: dict[str, Any],
         given_arg_loc: tuple,
@@ -72,7 +72,7 @@ try:
                 break
         if given_arg is None:
             # Check args
-            given_arg_idx = list(signature.parameters.keys()).index(arg_name)
+            given_arg_idx = list(annotations.keys()).index(arg_name)
 
             # for variable length arguments
             if arg_name == varargs:
@@ -82,7 +82,7 @@ try:
 
         return given_arg
 
-    def _get_expected_types(e: ValidationError, signature: Signature) -> str:
+    def _get_expected_types(e: ValidationError, annotations: dict[str, Any]) -> str:
         """
         Get expected types.
 
@@ -112,7 +112,7 @@ try:
         """
         error = e.errors()[0]
         invalid_arg_name: str = str(error['loc'][0])
-        expected_type: str = str(signature.parameters[invalid_arg_name].annotation)
+        expected_type: str = str(annotations[invalid_arg_name])
 
         if e.title == 'IterableArg':
             expected_type = str(findall(r'.*\[(.*)\]', expected_type)[0])
@@ -268,9 +268,11 @@ try:
                 return validate_arguments_wrapper(*args, **kwargs)
             except ValidationError as e:
                 loc_tuple = e.errors()[0]['loc']
-                given_arg = _get_given_arg(signature(func), args, kwargs,
+                annotations = get_annotations(func)
+
+                given_arg = _get_given_arg(annotations, args, kwargs,
                                            loc_tuple, arg_spec.varargs)
-                expected_types = _get_expected_types(e, signature(func))
+                expected_types = _get_expected_types(e, annotations)
                 error_type = e.title
                 given_arg_loc_str = _get_given_arg_loc_str(loc_tuple, given_arg)
                 given_arg_type = _get_given_arg_type(given_arg, loc_tuple,
