@@ -31,7 +31,7 @@ try:
         args: tuple[Any, ...],
         kwargs: dict[str, Any],
         given_arg_loc: tuple,
-        varargs: None | str
+        varargs_name: None | str
     ) -> Any:
         """
         Get an argument which validation error occurs.
@@ -53,7 +53,7 @@ try:
 
             (ii) Dict case
                 ('<ARGUMENT_NAME>', '<KEY>')
-        varargs: None | str
+        varargs_name: None | str
             The name of the variable length argument if the function has one, otherwise None.
 
         Returns
@@ -74,7 +74,7 @@ try:
             given_arg_idx = list(annotations.keys()).index(arg_name)
 
             # for variable length arguments
-            if arg_name == varargs:
+            if arg_name == varargs_name:
                 given_arg = args[given_arg_idx:]
             else:
                 given_arg = args[given_arg_idx]
@@ -252,16 +252,18 @@ try:
             try:
                 # Checks whether the arguments of a given func have variable length arguments
                 arg_spec = getfullargspec(func)
+                varargs_name = arg_spec.varargs
                 arg_len = len(arg_spec.args)
-                if arg_spec.varargs is not None:
+
+                if varargs_name is not None:
                     args = args[:arg_len] + _parse_collection_or_unpack(args[arg_len:])
                 return validate_arguments_wrapper(*args, **kwargs)
+
             except ValidationError as e:
                 loc_tuple = e.errors()[0]['loc']
                 annotations = get_annotations(func)
 
-                given_arg = _get_given_arg(annotations, args, kwargs,
-                                           loc_tuple, arg_spec.varargs)
+                given_arg = _get_given_arg(annotations, args, kwargs, loc_tuple, varargs_name)
                 expected_types = _get_expected_types(loc_tuple, annotations)
                 given_arg_loc_str = _get_given_arg_loc_str(loc_tuple, given_arg)
                 given_arg_type = _get_given_arg_type(given_arg, loc_tuple)
