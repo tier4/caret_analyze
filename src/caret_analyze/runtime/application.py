@@ -436,8 +436,8 @@ class Application(Summarizable):
     def get_node_path(
         self,
         node_name: str,
-        subscribe_topic_name: str | None,
-        publish_topic_name: str | None,
+        subscribe_topic_name: str,
+        publish_topic_name: str,
         *,
         subscription_construction_order: int = 0,
         publisher_construction_order: int = 0
@@ -449,13 +449,13 @@ class Application(Summarizable):
         ----------
         node_name : str
             node name to get.
-        subscribe_topic_name : str | None
+        subscribe_topic_name : str
             topic name which the node subscribes.
-        publish_topic_name : str | None
+        publish_topic_name : str
             topic name which the node publishes.
-        subscription_construction_order : int | None
+        subscription_construction_order : int
             A construction order of subscription.
-        publisher_construction_order : int | None
+        publisher_construction_order : int
             A construction order of publisher.
 
         Returns
@@ -473,7 +473,9 @@ class Application(Summarizable):
         """
         if not isinstance(node_name, str) or \
                 not isinstance(subscribe_topic_name, str) or \
-                not isinstance(publish_topic_name, str):
+                not isinstance(publish_topic_name, str) or \
+                not isinstance(subscription_construction_order, int) or \
+                not isinstance(publisher_construction_order, int):
             raise InvalidArgumentError('Argument type is invalid.')
 
         target_name: dict[str, str | int] = \
