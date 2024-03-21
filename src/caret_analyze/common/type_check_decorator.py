@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from collections.abc import Collection, Sequence
 from functools import wraps
-from inspect import getfullargspec, get_annotations
+from inspect import get_annotations, getfullargspec
 from logging import getLogger
 from re import findall
 from typing import Any
