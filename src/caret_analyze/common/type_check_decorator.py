@@ -13,7 +13,7 @@
 # limitations under the License.
 from __future__ import annotations
 
-from collections.abc import Collection
+from collections.abc import Collection, Sequence
 from functools import wraps
 from inspect import getfullargspec, get_annotations
 from logging import getLogger
@@ -81,7 +81,7 @@ try:
 
         return given_arg
 
-    def _get_expected_types(e: ValidationError, annotations: dict[str, Any]) -> str:
+    def _get_expected_types(given_arg_loc: tuple, annotations: dict[str, Any]) -> str:
         """
         Get expected types.
 
@@ -109,15 +109,16 @@ try:
                 '<EXPECT_TYPE>'
 
         """
-        error = e.errors()[0]
-        invalid_arg_name: str = str(error['loc'][0])
+        invalid_arg_name: str = given_arg_loc[0]
         expected_type: str = str(annotations[invalid_arg_name])
 
-        if e.title == 'IterableArg':
+        # for list and dict
+        if 'list[' in expected_type:
             expected_type = str(findall(r'.*\[(.*)\]', expected_type)[0])
-        if e.title == 'DictArg':
+        if 'dict[' in expected_type:
             expected_type = str(findall(r'.*\[.*, (.*)\]', expected_type)[0])
 
+        # for union annotations
         expected_types: list[str] = expected_type.split(' | ')
 
         if len(expected_types) > 1:  # Union case
@@ -159,19 +160,14 @@ try:
 
         """
         # Iterable or dict type case
-        if isinstance(given_arg, Collection) or isinstance(given_arg, dict):
+        if isinstance(given_arg, Sequence) or isinstance(given_arg, dict):
             loc_str = f"'{given_arg_loc[0]}'[{given_arg_loc[1]}]"
         else:
             loc_str = f"'{given_arg_loc[0]}'"
 
         return loc_str
 
-    def _get_given_arg_type(
-        given_arg: Any,
-        given_arg_loc: tuple,
-        error_type: str,
-        varargs: None | str
-    ) -> str:
+    def _get_given_arg_type(given_arg: Any, given_arg_loc: tuple) -> str:
         """
         Get given argument type.
 
@@ -213,15 +209,10 @@ try:
                 Class name input for argument <ARGUMENT_NAME>[<KEY>]
 
         """
-        if error_type == 'DictArg':
+        if isinstance(given_arg, Sequence) or isinstance(given_arg, dict):
             given_arg_type_str = f"'{given_arg[given_arg_loc[1]].__class__.__name__}'"
-        elif error_type == 'IterableArg':
-            given_arg_type_str = f"'{given_arg[int(given_arg_loc[1])].__class__.__name__}'"
-        elif varargs is None:
-            given_arg_type_str = f"'{given_arg.__class__.__name__}'"
         else:
-            # For functions with variable length arguments,
-            given_arg_type_str = f"'{given_arg[given_arg_loc[1]].__class__.__name__}'"
+            given_arg_type_str = f"'{given_arg.__class__.__name__}'"
 
         return given_arg_type_str
 
@@ -271,11 +262,9 @@ try:
 
                 given_arg = _get_given_arg(annotations, args, kwargs,
                                            loc_tuple, arg_spec.varargs)
-                expected_types = _get_expected_types(e, annotations)
-                error_type = e.title
+                expected_types = _get_expected_types(loc_tuple, annotations)
                 given_arg_loc_str = _get_given_arg_loc_str(loc_tuple, given_arg)
-                given_arg_type = _get_given_arg_type(given_arg, loc_tuple,
-                                                     error_type, arg_spec.varargs)
+                given_arg_type = _get_given_arg_type(given_arg, loc_tuple)
 
                 msg = f'Type of argument {given_arg_loc_str} must be {expected_types}. '
                 msg += f'The given argument type is {given_arg_type}.'
