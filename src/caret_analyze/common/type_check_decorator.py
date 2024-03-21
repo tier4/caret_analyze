@@ -66,10 +66,9 @@ try:
         given_arg: Any = None
 
         # Check kwargs
-        for k, v in kwargs.items():
-            if k == arg_name:
-                given_arg = v
-                break
+        if arg_name in kwargs:
+            given_arg = kwargs.get(arg_name)
+
         if given_arg is None:
             # Check args
             given_arg_idx = list(annotations.keys()).index(arg_name)
