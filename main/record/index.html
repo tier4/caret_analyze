@@ -3094,20 +3094,6 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
               <em>required</em>
           </td>
         </tr>
-        <tr>
-          <td><code>inplace</code></td>
-          <td>
-                <code>bool</code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>inplace record if true, otherwise false.</p>
-            </div>
-          </td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
     </tbody>
   </table>
 
@@ -3755,7 +3741,7 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
         <tr>
           <td><code>right_records</code></td>
           <td>
-                <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordInterface" href="#caret_analyze.record.RecordInterface">RecordInterface</a></code>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3952,7 +3938,7 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
         <tr>
           <td><code>join_left_key</code></td>
           <td>
-                <code>str</code>
+                <code>str | None</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3966,25 +3952,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
         <tr>
           <td><code>join_right_key</code></td>
           <td>
-                <code>str</code>
+                <code>str | None</code>
           </td>
           <td>
             <div class="doc-md-description">
               <p>join key name to use equal condition.</p>
-            </div>
-          </td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>how</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>merge type. [inner/right/left/outer]</p>
             </div>
           </td>
           <td>
@@ -4005,14 +3977,47 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
               <em>required</em>
           </td>
         </tr>
+        <tr>
+          <td><code>how</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>merge type. [inner/right/left/outer]</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
     </tbody>
   </table>
 
-<details class="records" open>
-  <summary>Records</summary>
-  <p>RecordsInterface
-    Merged records.</p>
-</details>
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Merged records.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
 
 
 <p><strong>Examples:</strong></p>
@@ -4416,7 +4421,7 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
         <tr>
           <td><code>sub_key</code></td>
           <td>
-                <code>str</code>
+                <code>str | None</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4674,7 +4679,7 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
         <tr>
           <td><code>columns</code></td>
           <td>
-                <code>str | None</code>
+                <code>list[str] | None</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4716,28 +4721,18 @@ of message flows with the same output.</p>
   <table>
     <thead>
       <tr>
-<th>Name</th>        <th>Type</th>
+        <th>Type</th>
         <th>Description</th>
       </tr>
     </thead>
     <tbody>
         <tr>
-<td></td>          <td>
+          <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
           <td>
             <div class="doc-md-description">
               <p>Records of the all response time.</p>
-            </div>
-          </td>
-        </tr>
-        <tr>
-<td><code>converter</code></td>          <td>
-                <code>(<a class="autorefs autorefs-internal" title="caret_analyze.common.ClockConverter" href="../common/#caret_analyze.common.ClockConverter">ClockConverter</a> | None, optional)</code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>Converter to simulation time.</p>
             </div>
           </td>
         </tr>
