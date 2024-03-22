@@ -44,8 +44,8 @@ class MessageContextType(ValueObject):
         """
         Construct an instance.
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         type_name : str
             Type name.
 
@@ -57,8 +57,8 @@ class MessageContextType(ValueObject):
         """
         Get type name.
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         str
             Type name.
 
@@ -69,8 +69,8 @@ class MessageContextType(ValueObject):
         """
         Get type name.
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         str
             Type name.
 

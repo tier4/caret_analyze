@@ -83,7 +83,7 @@ class Plot:
 
         Parameters
         ----------
-        target_objects : Collection[CallbackBase | Communication | Publisher | Subscription]
+        *target_objects : CallbackBase | Communication | Publisher | Subscription
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -106,7 +106,7 @@ class Plot:
 
         Parameters
         ----------
-        target_objects : Collection[CallbackBase | Communication | Publisher | Subscription]
+        *target_objects : CallbackBase | Communication | Publisher | Subscription
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -129,7 +129,7 @@ class Plot:
 
         Parameters
         ----------
-        target_objects : Collection[CallbackBase | Communication]
+        *target_objects : CallbackBase | Communication
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -153,7 +153,7 @@ class Plot:
 
         Parameters
         ----------
-        target_objects : Collection[Path]
+        *target_objects : Path
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
         case: str, optional
@@ -252,7 +252,7 @@ class Plot:
 
         Parameters
         ----------
-        target_objects : Collection[CallbackBase | Communication | Publisher | Subscription]
+        *target_objects : CallbackBase | Communication | Publisher | Subscription
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -275,7 +275,7 @@ class Plot:
 
         Parameters
         ----------
-        target_objects : Collection[CallbackBase | Communication]
+        *target_objects : CallbackBase | Communication
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -298,7 +298,7 @@ class Plot:
 
         Parameters
         ----------
-        target_objects : Collection[CallbackBase | Communication | Publisher | Subscription]
+        *target_objects : CallbackBase | Communication | Publisher | Subscription
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -322,7 +322,7 @@ class Plot:
 
         Parameters
         ----------
-        target_objects : Collection[Path]
+        *target_objects : Path
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
         case: str, optional

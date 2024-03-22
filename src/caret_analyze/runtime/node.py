@@ -378,7 +378,7 @@ class Node(Summarizable):
 
         Parameters
         ----------
-        callback_names: *str
+        *callback_names: str
             callback names to get.
 
         Returns
