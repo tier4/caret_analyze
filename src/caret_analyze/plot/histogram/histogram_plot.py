@@ -18,8 +18,9 @@ from collections.abc import Sequence
 
 from bokeh.plotting import figure as Figure
 
-from caret_analyze.record import Frequency, Latency, Period, ResponseTime
+from caret_analyze.record import Frequency, Latency, Period, RecordsInterface, ResponseTime
 
+from numpy import histogram
 import pandas as pd
 
 from ..plot_base import PlotBase
@@ -41,13 +42,13 @@ class HistogramPlot(PlotBase):
         metrics: list[MetricsTypes],
         visualize_lib: VisualizeLibInterface,
         target_objects: Sequence[HistTypes],
-        data_type: str,
+        metrics_name: str,
         case: str | None = None
     ) -> None:
         self._metrics = metrics
         self._visualize_lib = visualize_lib
         self._target_objects = target_objects
-        self._data_type = data_type
+        self._metrics_name = metrics_name
         self._case = case
 
     def to_dataframe(
@@ -113,13 +114,64 @@ class HistogramPlot(PlotBase):
         if xaxis_type == 'sim_time':
             converter = get_clock_converter(self._target_objects)
 
+        hist_list, bins = self._histogram_data(converter)
+
         return self._visualize_lib.histogram(
-            self._metrics,
+            hist_list,
+            bins,
             self._target_objects,
-            self._data_type,
-            self._case,
-            converter=converter
+            self._metrics_name,
+            self._case
             )
+
+    def _histogram_data(self, converter: ClockConverter | None
+                        ) -> tuple[list[list[int]], list[float]]:
+
+        # wrapper function of to_records()/to_xxx_records()
+        def to_records(metrics: MetricsTypes,
+                       converter: ClockConverter | None) -> RecordsInterface:
+            if isinstance(metrics, ResponseTime):
+                if self._case == 'all':
+                    return metrics.to_all_records(converter=converter)
+                elif self._case == 'best':
+                    return metrics.to_best_case_records(converter=converter)
+                elif self._case == 'worst':
+                    return metrics.to_worst_case_records(converter=converter)
+                elif self._case == 'worst-with-external-latency':
+                    return metrics.to_worst_with_external_latency_case_records(converter=converter)
+                else:
+                    raise ValueError('optional argument "case" must be following: \
+                                     "all", "best", "worst", "worst-with-external-latency".')
+            else:
+                return metrics.to_records(converter=converter)
+
+        data_list: list[list[int]] = [
+            [
+                _ for _ in to_records(m, converter).get_column_series(self._metrics_name)
+                if _ is not None
+            ]
+            for m in self._metrics
+        ]
+
+        if self._metrics_name in ['period', 'latency', 'response_time']:
+            data_list = [[_ *10**(-6) for _ in data] for data in data_list]
+
+        filled_data_list = [data for data in data_list if len(data)]
+        if len(filled_data_list) != 0:
+            max_value = max(max(filled_data_list, key=lambda x: max(x)))
+            min_value = min(min(filled_data_list, key=lambda x: min(x)))
+            data_range = (min_value, max_value)
+        else:
+            data_range = None
+
+        hists: list[list[int]] = []
+        bins: list[float] = []
+        for hist_type in data_list:
+            hist, tmp_bins = histogram(hist_type, 20, data_range, density=False)
+            bins = list(tmp_bins)
+            hists.append(list(hist))
+
+        return hists, bins
 
     def _validate_xaxis_type(self, xaxis_type: str) -> None:
         if xaxis_type not in ['system_time', 'sim_time', 'index']:
