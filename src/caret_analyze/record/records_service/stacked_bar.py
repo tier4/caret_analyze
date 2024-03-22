@@ -18,7 +18,7 @@ from collections.abc import Sequence
 
 from .latency import Latency
 from ..interface import RecordsInterface
-from ..record import ColumnValue
+from ..column import ColumnValue
 from ..record_factory import RecordsFactory
 from ...common import ClockConverter
 

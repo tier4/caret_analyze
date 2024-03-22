@@ -20,7 +20,7 @@ from collections.abc import Sequence
 from multimethod import multimethod as singledispatchmethod
 
 from .column import ColumnValue
-from .record import Record, RecordInterface, RecordsInterface
+from .record import RecordInterface, RecordsInterface
 
 try:
     import caret_analyze.record.record_cpp_impl as cpp_impl
@@ -29,7 +29,7 @@ try:
     print('Succeed to find record_cpp_impl. the C++ version will be used.')
 except ModuleNotFoundError:
     use_cpp_impl = False
-    raise('Failed to find record_cpp_impl.')
+    raise ModuleNotFoundError('Failed to find record_cpp_impl.')
 
 
 class RecordFactory:
@@ -40,10 +40,7 @@ class RecordFactory:
 
     @classmethod
     def create_instance(cls, init: dict | None = None) -> RecordInterface:
-        if use_cpp_impl:
-            return cls._create_cpp_instance(init)
-        else:
-            return Record(init)
+        return cls._create_cpp_instance(init)
 
     @classmethod
     def _create_cpp_instance(cls, init: dict | None = None) -> RecordInterface:
@@ -74,10 +71,7 @@ class RecordsFactory:
         init: Sequence[RecordInterface],
         columns: Sequence[ColumnValue] | None
     ) -> RecordsInterface:
-        if use_cpp_impl:
             return RecordsFactory._create_cpp_instance(init, columns)
-        else:
-            return Records(init, columns)
 
     @staticmethod
     @create_instance.register
@@ -90,11 +84,8 @@ class RecordsFactory:
             for record
             in init or []
         ]
+        return RecordsFactory._create_cpp_instance(records, columns)
 
-        if use_cpp_impl:
-            return RecordsFactory._create_cpp_instance(records, columns)
-        else:
-            return Records(records, columns)
 
     @staticmethod
     def _create_cpp_instance(

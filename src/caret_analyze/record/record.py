@@ -14,14 +14,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
-from copy import deepcopy
 from enum import IntEnum
 from itertools import groupby
 
-import pandas as pd
-
-from .column import Column, Columns, ColumnValue
 from .interface import RecordInterface, RecordsInterface
 from ..exceptions import InvalidArgumentError
 
@@ -29,64 +24,6 @@ from ..exceptions import InvalidArgumentError
 class MergeSide(IntEnum):
     LEFT = 0
     RIGHT = 1
-
-
-# class Record(collections.UserDict, RecordInterface):
-class Record(RecordInterface):
-
-    def __init__(self, init: dict | None = None) -> None:
-        init = init or {}
-        self._data = init or {}
-        self._columns = set(init.keys())
-
-    def get(self, key: str) -> int:
-        return self._data[key]
-
-    def get_with_default(self, key: str, v: int) -> int:
-        return self._data.get(key, v)
-
-    @property
-    def data(self) -> dict[str, int]:
-        return self._data
-
-    @property
-    def columns(self) -> set[str]:
-        return deepcopy(self._columns)
-
-    def drop_columns(self, columns: list[str]) -> None:
-        if not isinstance(columns, list):
-            raise InvalidArgumentError('columns must be list.')
-
-        data: dict[str, int]
-
-        data = self._data
-
-        for column in columns:
-            if column not in self.columns:
-                continue
-            del data[column]
-
-        self._columns -= set(columns)
-        return None
-
-    def equals(self, other: RecordInterface) -> bool:
-        is_columns_equal = self.columns == other.columns
-        if is_columns_equal is False:
-            return False
-        return self.data == other.data
-
-    def add(self, key: str, stamp: int):
-        self._columns.add(key)
-        self._data[key] = stamp
-
-    def merge(self, other: RecordInterface) -> None:
-        self._data.update(other.data)
-        self._columns |= other.columns
-
-    def change_dict_key(self, old_key: str, new_key: str) -> None:
-        self._data[new_key] = self._data.pop(old_key, None)
-        self._columns -= {old_key}
-        self._columns |= {new_key}
 
 
 def merge(
