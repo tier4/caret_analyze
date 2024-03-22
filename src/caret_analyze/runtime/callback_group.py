@@ -174,6 +174,11 @@ class CallbackGroup(Summarizable):
         """
         Get callbacks that match the condition.
 
+        Parameters
+        ----------
+        *callback_names : str
+            callback names to get.
+
         Returns
         -------
         list[CallbackBase]

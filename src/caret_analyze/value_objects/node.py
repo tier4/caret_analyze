@@ -284,8 +284,8 @@ class NodeStructValue(ValueObject, Summarizable):
 
     def get_path(
         self,
-        subscribe_topic_name: str,
-        publish_topic_name: str
+        subscribe_topic_name: str | None,
+        publish_topic_name: str | None
     ) -> NodePathStructValue:
         """
         Get node path.
