@@ -723,7 +723,7 @@ class Application(Summarizable):
 
         Parameters
         ----------
-        callback_names : tuple[str, ...]
+        *callback_names : str
             callback names to get.
 
         Returns
