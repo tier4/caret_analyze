@@ -19,7 +19,6 @@ from .record import (merge,
                      merge_sequential_for_addr_track,
                      Record,
                      RecordInterface,
-                     Records,
                      RecordsInterface)
 from .record_factory import RecordFactory, RecordsFactory
 from .records_service import Frequency, Latency, Period, Range, ResponseTime, StackedBar

@@ -15,11 +15,12 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
+import pandas as pd
 
 from record_cpp_impl import RecordBase, RecordsBase
 
 from .column import Column, Columns, ColumnValue
-from .record import RecordInterface, Records, RecordsInterface, validate_rename_rule
+from .record import RecordInterface, RecordsInterface, validate_rename_rule
 from ..exceptions import InvalidArgumentError
 
 
@@ -37,7 +38,7 @@ class RecordsCppImpl(RecordsInterface):
         columns = columns or []
         column_names = [str(c) for c in columns]
         init_ = [] if init is None else list(init)
-        Records._validate(init_, column_names)
+        RecordsCppImpl._validate(init_, column_names)
         self._columns = Columns(columns)
         self._records = RecordsBase(init_, column_names)
 
@@ -102,7 +103,7 @@ class RecordsCppImpl(RecordsInterface):
 
     def to_dataframe(self):
         data_dict = [record.data for record in self.data]
-        return Records._to_dataframe(data_dict, self.columns)
+        return RecordsCppImpl._to_dataframe(data_dict, self.columns)
 
     def rename_columns(
         self, columns: dict[str, str]
@@ -123,7 +124,7 @@ class RecordsCppImpl(RecordsInterface):
         assert how in ['inner', 'left', 'right', 'outer']
         assert isinstance(right_records, RecordsCppImpl)
 
-        Records._validate_merge_records(columns, self, right_records)
+        RecordsCppImpl._validate_merge_records(columns, self, right_records)
 
         merged_cpp_base = self._records.merge(
             right_records._records, join_left_key, join_right_key,
@@ -155,7 +156,7 @@ class RecordsCppImpl(RecordsInterface):
         return self.data[index]
 
     def get_column_series(self, column_name: str) -> Sequence[int | None]:
-        return Records._get_column_series_core(self, column_name)
+        return RecordsCppImpl._get_column_series_core(self, column_name)
 
     @property
     def columns(self) -> list[str]:
@@ -240,7 +241,7 @@ class RecordsCppImpl(RecordsInterface):
         columns: list[str],
         how: str,
     ) -> RecordsInterface:
-        Records._validate_merge_records(columns, self, right_records)
+        RecordsCppImpl._validate_merge_records(columns, self, right_records)
 
         assert isinstance(right_records, RecordsCppImpl)
         merged_cpp_base = self._records.merge_sequential(
@@ -274,7 +275,7 @@ class RecordsCppImpl(RecordsInterface):
         assert isinstance(copy_records, RecordsCppImpl)
         assert isinstance(sink_records, RecordsCppImpl)
 
-        Records._validate_merge_records(columns, self, copy_records, sink_records)
+        RecordsCppImpl._validate_merge_records(columns, self, copy_records, sink_records)
 
         merged_cpp_base = self._records.merge_sequential_for_addr_track(
             source_stamp_key,
@@ -292,3 +293,103 @@ class RecordsCppImpl(RecordsInterface):
         merged = RecordsCppImpl(None, column_values)
         merged._insert_records(merged_cpp_base)
         return merged
+
+    @staticmethod
+    def _validate(
+        init: list[RecordInterface] | None,
+        columns: list[str] | None
+    ) -> None:
+        init = init or []
+        columns = columns or []
+
+        columns_set = set(columns)
+        for record in init:
+            RecordsCppImpl.__validate_unknown_columns(set(record.columns), columns_set)
+
+        RecordsCppImpl.__validate_duplicated_columns(columns)
+
+    @staticmethod
+    def __validate_duplicated_columns(columns: Sequence[str]):
+        if len(set(columns)) != len(columns):
+            from itertools import groupby
+            msg = 'columns must be unique. '
+            columns = sorted(columns)
+            msg += 'duplicated columns: '
+            for key, group in groupby(columns):
+                if len(list(group)) >= 2:
+                    msg += f'{key}, '
+
+            raise InvalidArgumentError(msg)
+
+    @staticmethod
+    def __validate_unknown_columns(
+        selected_columns: set[str],
+        columns: set[str]
+    ) -> None:
+        unknown_column = selected_columns - columns
+        if len(unknown_column) > 0:
+            msg = 'Contains an unknown columns. '
+            msg += f'{unknown_column}'
+            raise InvalidArgumentError(msg)
+
+    @staticmethod
+    def _validate_merge_records(
+        columns: list[str] | None,
+        *records_args: RecordsInterface,
+    ) -> None:
+        columns = columns or []
+
+        columns_set = set(columns)
+        columns_set_ = set()
+        for records in records_args:
+            columns_set_ |= set(records.columns)
+
+        RecordsCppImpl.__validate_unknown_columns(columns_set, columns_set_)
+
+        RecordsCppImpl.__validate_duplicated_columns(columns)
+
+    def __len__(self) -> int:
+        return len(self.data)
+
+    @staticmethod
+    def _get_column_series_core(records: RecordsInterface, column_name: str):
+        if column_name not in records.columns:
+            raise InvalidArgumentError(f'Unknown column_name: {column_name}')
+        l: list[int | None] = []
+        for datum in records.data:
+            if column_name in datum.columns:
+                l.append(datum.get(column_name))
+            else:
+                l.append(None)
+        return l
+
+    @staticmethod
+    def _to_dataframe(
+        df_list: list[dict[str, int]],
+        columns: list[str]
+    ) -> pd.DataFrame:
+        # When from_dict is used,
+        # dataframe values are rounded to a float type,
+        # so here uses a dictionary type.
+        df_dict: dict[str, list[int | None]]
+        df_dict = {c: [None]*len(df_list) for c in columns}
+
+        int64_max = 2**63-1
+
+        for i, df_row in enumerate(df_list):
+            for c in columns:
+                if c in df_row:
+                    # uint64 to int64 conversion.
+                    # This is workaround to fix some uint64 trace points.
+                    if df_row[c] <= int64_max:
+                        df_dict[c][i] = df_row[c]
+                    else:
+                        # convert uint64 to int64
+                        df_dict[c][i] = ~(df_row[c] & int64_max)
+
+        df = pd.DataFrame(df_dict, dtype='Int64')
+
+        missing_columns = list(set(columns) - set(df.columns))
+        df_miss = pd.DataFrame(columns=missing_columns)
+        df = pd.concat([df, df_miss])
+        return df[columns]
