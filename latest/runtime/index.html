@@ -5247,9 +5247,9 @@ to obtain the information they need for evaluation.</p>
     </thead>
     <tbody>
         <tr>
-          <td><code>callback_names</code></td>
+          <td><code>*callback_names</code></td>
           <td>
-                <code>tuple[str, ...]</code>
+                <code>str</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -7625,6 +7625,36 @@ None except for timer callback.</p>
 
 
 
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>*callback_names</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>callback names to get.</p>
+            </div>
+          </td>
+          <td>
+                <code>()</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -9278,6 +9308,36 @@ None except for timer callback.</p>
 
 
 
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>*callback_names</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>callback names to get.</p>
+            </div>
+          </td>
+          <td>
+                <code>()</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -10375,7 +10435,7 @@ None except for timer callback.</p>
     </thead>
     <tbody>
         <tr>
-          <td><code>callback_names</code></td>
+          <td><code>*callback_names</code></td>
           <td>
                 <code>str</code>
           </td>
@@ -12403,6 +12463,7 @@ return None except for all of node paths are not callback-chain.</p>
         <tr>
           <td><code>remove_dropped</code></td>
           <td>
+                <code>bool</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -12416,6 +12477,7 @@ return None except for all of node paths are not callback-chain.</p>
         <tr>
           <td><code>treat_drop_as_delay</code></td>
           <td>
+                <code>bool</code>
           </td>
           <td>
             <div class="doc-md-description">
