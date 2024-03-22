@@ -541,7 +541,7 @@ class ResponseTime:
         ----------
         records : RecordsInterface
             records to calculate response time.
-        columns : str | None
+        columns : list[str] | None
             List of column names to be used in return value.
             If None, only first and last columns are used.
 
@@ -565,8 +565,6 @@ class ResponseTime:
         -------
         RecordsInterface
             Records of the all response time.
-        converter : ClockConverter | None, optional
-            Converter to simulation time.
 
         Parameters
         ----------

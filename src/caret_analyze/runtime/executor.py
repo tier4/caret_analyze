@@ -171,6 +171,11 @@ class Executor(Summarizable):
         """
         Get callbacks.
 
+        Parameters
+        ----------
+        *callback_names : str
+            callback names to get.
+
         Returns
         -------
         list[CallbackBase]

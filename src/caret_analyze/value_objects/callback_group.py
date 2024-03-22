@@ -205,9 +205,9 @@ class CallbackGroupStructValue(ValueObject, Summarizable):
 
         Parameters
         ----------
-        callback_group_type : str
+        callback_group_type : CallbackGroupType
             callback group type
-        node_name : list[str]
+        node_name : str
             node name
         callback_values: tuple[CallbackStructValue, ...]
             callback values
