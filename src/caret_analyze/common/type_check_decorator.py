@@ -13,9 +13,9 @@
 # limitations under the License.
 from __future__ import annotations
 
-from collections.abc import Collection
+from collections.abc import Collection, Sequence
 from functools import wraps
-from inspect import getfullargspec, Signature, signature
+from inspect import get_annotations, getfullargspec
 from logging import getLogger
 from re import findall
 from typing import Any
@@ -27,19 +27,19 @@ try:
     from pydantic.deprecated.decorator import validate_arguments
 
     def _get_given_arg(
-        signature: Signature,
+        annotations: dict[str, Any],
         args: tuple[Any, ...],
         kwargs: dict[str, Any],
         given_arg_loc: tuple,
-        varargs: None | str
+        varargs_name: None | str
     ) -> Any:
         """
         Get an argument which validation error occurs.
 
         Parameters
         ----------
-        signature: Signature
-            Signature of target function.
+        annotations: dict[str, Any]
+            Dict of annotations of target function.
         args: tuple[Any, ...]
             Arguments of target function.
         kwargs: dict[str, Any]
@@ -53,12 +53,12 @@ try:
 
             (ii) Dict case
                 ('<ARGUMENT_NAME>', '<KEY>')
-        varargs: None | str
+        varargs_name: None | str
             The name of the variable length argument if the function has one, otherwise None.
 
         Returns
         -------
-        str
+        Any
             The argument which validation error occurs.
 
         """
@@ -66,39 +66,38 @@ try:
         given_arg: Any = None
 
         # Check kwargs
-        for k, v in kwargs.items():
-            if k == arg_name:
-                given_arg = v
-                break
+        if arg_name in kwargs:
+            given_arg = kwargs.get(arg_name)
+
         if given_arg is None:
             # Check args
-            given_arg_idx = list(signature.parameters.keys()).index(arg_name)
+            given_arg_idx = list(annotations.keys()).index(arg_name)
 
             # for variable length arguments
-            if arg_name == varargs:
+            if arg_name == varargs_name:
                 given_arg = args[given_arg_idx:]
             else:
                 given_arg = args[given_arg_idx]
 
         return given_arg
 
-    def _get_expected_types(e: ValidationError, signature: Signature) -> str:
+    def _get_expected_types(given_arg_loc: tuple, annotations: dict[str, Any]) -> str:
         """
         Get expected types.
 
         Parameters
         ----------
-        e: ValidationError
-            ValidationError instance has one or more ErrorDict instances.
-            Example of ErrorDict structure is as follows.
-            (i) Build-in type case:
-                {'type': 'type_error.<EXPECT_TYPE>', ...}
+        given_arg_loc: tuple
+            (i) Not iterable type case
+                ('<ARGUMENT_NAME>,')
 
-            (ii) Custom class type case:
-                {'type': 'type_error.arbitrary_type',
-                'ctx': {'expected_arbitrary_type': '<EXPECT_TYPE>'}, ...}
-        signature: Signature
-            Signature of target function.
+            (ii) Iterable type except for dict case
+                ('<ARGUMENT_NAME>', '<INDEX>')
+
+            (ii) Dict case
+                ('<ARGUMENT_NAME>', '<KEY>')
+        annotations: dict[str, Any]
+            Dict of annotations of target function.
 
         Returns
         -------
@@ -110,15 +109,16 @@ try:
                 '<EXPECT_TYPE>'
 
         """
-        error = e.errors()[0]
-        invalid_arg_name: str = str(error['loc'][0])
-        expected_type: str = str(signature.parameters[invalid_arg_name].annotation)
+        invalid_arg_name: str = given_arg_loc[0]
+        expected_type: str = str(annotations[invalid_arg_name])
 
-        if e.title == 'IterableArg':
+        # for list and dict
+        if 'list[' in expected_type:
             expected_type = str(findall(r'.*\[(.*)\]', expected_type)[0])
-        if e.title == 'DictArg':
+        if 'dict[' in expected_type:
             expected_type = str(findall(r'.*\[.*, (.*)\]', expected_type)[0])
 
+        # for union annotations
         expected_types: list[str] = expected_type.split(' | ')
 
         if len(expected_types) > 1:  # Union case
@@ -160,19 +160,14 @@ try:
 
         """
         # Iterable or dict type case
-        if isinstance(given_arg, Collection) or isinstance(given_arg, dict):
+        if isinstance(given_arg, Sequence) or isinstance(given_arg, dict):
             loc_str = f"'{given_arg_loc[0]}'[{given_arg_loc[1]}]"
         else:
             loc_str = f"'{given_arg_loc[0]}'"
 
         return loc_str
 
-    def _get_given_arg_type(
-        given_arg: Any,
-        given_arg_loc: tuple,
-        error_type: str,
-        varargs: None | str
-    ) -> str:
+    def _get_given_arg_type(given_arg: Any, given_arg_loc: tuple) -> str:
         """
         Get given argument type.
 
@@ -189,17 +184,6 @@ try:
 
             (ii) Dict case
                 ('<ARGUMENT_NAME>', '<KEY>')
-        error_type: str
-            (i) Dict case
-                'DictArg'
-
-            (ii) Iterable type except for dict case
-                'IterableArg'
-
-            (iii) Not iterable type case
-                other
-        varargs: None | str
-            The name of the variable length argument if the function has one, otherwise None.
 
         Returns
         -------
@@ -214,15 +198,10 @@ try:
                 Class name input for argument <ARGUMENT_NAME>[<KEY>]
 
         """
-        if error_type == 'DictArg':
+        if isinstance(given_arg, Sequence) or isinstance(given_arg, dict):
             given_arg_type_str = f"'{given_arg[given_arg_loc[1]].__class__.__name__}'"
-        elif error_type == 'IterableArg':
-            given_arg_type_str = f"'{given_arg[int(given_arg_loc[1])].__class__.__name__}'"
-        elif varargs is None:
-            given_arg_type_str = f"'{given_arg.__class__.__name__}'"
         else:
-            # For functions with variable length arguments,
-            given_arg_type_str = f"'{given_arg[given_arg_loc[1]].__class__.__name__}'"
+            given_arg_type_str = f"'{given_arg.__class__.__name__}'"
 
         return given_arg_type_str
 
@@ -262,19 +241,21 @@ try:
             try:
                 # Checks whether the arguments of a given func have variable length arguments
                 arg_spec = getfullargspec(func)
+                varargs_name = arg_spec.varargs
                 arg_len = len(arg_spec.args)
-                if arg_spec.varargs is not None:
+
+                if varargs_name is not None:
                     args = args[:arg_len] + _parse_collection_or_unpack(args[arg_len:])
                 return validate_arguments_wrapper(*args, **kwargs)
+
             except ValidationError as e:
                 loc_tuple = e.errors()[0]['loc']
-                given_arg = _get_given_arg(signature(func), args, kwargs,
-                                           loc_tuple, arg_spec.varargs)
-                expected_types = _get_expected_types(e, signature(func))
-                error_type = e.title
+                annotations = get_annotations(func)
+
+                given_arg = _get_given_arg(annotations, args, kwargs, loc_tuple, varargs_name)
+                expected_types = _get_expected_types(loc_tuple, annotations)
                 given_arg_loc_str = _get_given_arg_loc_str(loc_tuple, given_arg)
-                given_arg_type = _get_given_arg_type(given_arg, loc_tuple,
-                                                     error_type, arg_spec.varargs)
+                given_arg_type = _get_given_arg_type(given_arg, loc_tuple)
 
                 msg = f'Type of argument {given_arg_loc_str} must be {expected_types}. '
                 msg += f'The given argument type is {given_arg_type}.'
