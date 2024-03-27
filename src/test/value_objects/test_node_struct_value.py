@@ -13,7 +13,8 @@
 # limitations under the License.
 
 from caret_analyze.exceptions import ItemNotFoundError
-from caret_analyze.value_objects import (NodeStructValue, PublisherStructValue,
+from caret_analyze.value_objects import (NodePathStructValue,
+                                         NodeStructValue, PublisherStructValue,
                                          ServiceStructValue, SubscriptionStructValue,
                                          TimerStructValue)
 import pytest
@@ -38,9 +39,31 @@ class TestNodeStructValue:
         mocker.patch.object(timer_info_mock, 'node_name', 'node_name')
         mocker.patch.object(timer_info_mock, 'construction_order', 1)
 
+        node_pub_mock1 = mocker.Mock(spec=NodePathStructValue)
+        node_pub_mock2 = mocker.Mock(spec=NodePathStructValue)
+        node_pub_mock3 = mocker.Mock(spec=NodePathStructValue)
+        mocker.patch.object(node_pub_mock1, 'publish_topic_name', 'pub_name')
+        mocker.patch.object(node_pub_mock1, 'subscribe_topic_name', 'sub_name')
+        mocker.patch.object(node_pub_mock1, 'publisher_construction_order', 0)
+        mocker.patch.object(node_pub_mock1, 'subscription_construction_order', 0)
+        mocker.patch.object(node_pub_mock2, 'publish_topic_name', 'pub_name')
+        mocker.patch.object(node_pub_mock2, 'subscribe_topic_name', 'sub_name')
+        mocker.patch.object(node_pub_mock2, 'publisher_construction_order', 1)
+        mocker.patch.object(node_pub_mock2, 'subscription_construction_order', 0)
+        mocker.patch.object(node_pub_mock3, 'publish_topic_name', 'pub_name')
+        mocker.patch.object(node_pub_mock3, 'subscribe_topic_name', 'sub_name')
+        mocker.patch.object(node_pub_mock3, 'publisher_construction_order', 0)
+        mocker.patch.object(node_pub_mock3, 'subscription_construction_order', 1)
+
         node_info = NodeStructValue('node_name', [pub_info_mock],
                                     [sub_info_mock], [service_info_mock], [timer_info_mock],
-                                    None, None, None)
+                                    [node_pub_mock1, node_pub_mock2, node_pub_mock3], None, None)
+
+        node = node_info.get_path('sub_name', 1, 'pub_name', 0)
+        assert node == node_pub_mock3
+        node = node_info.get_path('sub_name', 0, 'pub_name', 1)
+        assert node == node_pub_mock2
+
         node = node_info.get_publisher('pub_name', None)
         assert node == pub_info_mock
         node = node_info.get_publisher('pub_name', 1)

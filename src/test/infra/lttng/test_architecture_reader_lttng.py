@@ -146,9 +146,9 @@ class TestArchitectureReaderLttng:
         construction_order = [0, 0]
 
         sub_cb_0 = SubscriptionCallbackValue(
-            callback_id[0], node[0], node_id[0], symbol[0], topic[0], None, None)
+            callback_id[0], node[0], node_id[0], symbol[0], topic[0], 0, None, None)
         sub_cb_1 = SubscriptionCallbackValue(
-            callback_id[1], node[1], node_id[1], symbol[1], topic[1], None, None)
+            callback_id[1], node[1], node_id[1], symbol[1], topic[1], 0, None, None)
 
         mocker.patch.object(
             lttng_mock,
@@ -168,9 +168,9 @@ class TestArchitectureReaderLttng:
         construction_order = [0, 1]
 
         sub_cb_0 = SubscriptionCallbackValue(
-            callback_id[0], node[0], node_id[0], symbol[0], topic[0], None, None)
+            callback_id[0], node[0], node_id[0], symbol[0], topic[0], 0, None, None)
         sub_cb_1 = SubscriptionCallbackValue(
-            callback_id[1], node[1], node_id[1], symbol[1], topic[1], None, None)
+            callback_id[1], node[1], node_id[1], symbol[1], topic[1], 0, None, None)
 
         mocker.patch.object(
             lttng_mock,

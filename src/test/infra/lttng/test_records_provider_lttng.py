@@ -405,7 +405,7 @@ class TestNodeRecordsCallbackChain:
         )
         mocker.patch.object(provider_mock, 'callback_records', return_value=cb_records)
         mocker.patch.object(path_info_mock, 'callbacks', return_value=[cb_info_mock])
-        mocker.patch.object(cb_info_mock, 'publish_topic_names', None)
+        mocker.patch.object(cb_info_mock, 'publish_topics', None)
         mocker.patch.object(cb_info_mock, 'callback_name', 'cb')
         mocker.patch.object(cb_info_mock, 'node_name', 'node')
         mocker.patch.object(path_info_mock, 'publish_topic_name', None)

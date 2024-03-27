@@ -47,6 +47,7 @@ from caret_analyze.value_objects import (CallbackGroupStructValue,
                                          TimerCallbackStructValue,
                                          TimerStructValue,
                                          VariablePassingStructValue)
+from caret_analyze.value_objects.publish_topic_info import PublishTopicInfoValue
 
 import pytest
 
@@ -671,12 +672,16 @@ class TestCallbacksLoaded:
 
         node_name = '/node'
         period_ns = 3
-        pub_topic_name = '/pub'
+        pub_topic_name0 = '/pub_topic0'
+        pub_topic_name1 = '/pub_topic1'
+        pub_topics0 = PublishTopicInfoValue(pub_topic_name0, 0)
+        pub_topics1 = PublishTopicInfoValue(pub_topic_name1, 1)
+        pub_topics = (pub_topics1, pub_topics0)
         cb_name = '/callback'
         symbol = 'symbol'
 
         cb_info = TimerCallbackStructValue(
-            node_name, symbol, period_ns, (pub_topic_name,), 0, cb_name
+            node_name, symbol, period_ns, pub_topics, 0, cb_name
         )
 
         pub_mock = mocker.Mock(spec=Publisher)
@@ -691,7 +696,7 @@ class TestCallbacksLoaded:
         assert cb.period_ns == period_ns
         assert cb.symbol == symbol
         assert cb.publishers == [pub_mock]
-        assert cb.publish_topic_names == [pub_topic_name]
+        assert cb.publish_topic_names == [pub_topic_name0, pub_topic_name1]
 
     def test_to_runtime_subscription_callback(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProvider)
@@ -700,7 +705,11 @@ class TestCallbacksLoaded:
         timer_loaded_mock = mocker.Mock(spec=TimersLoaded)
 
         node_name = '/node'
-        pub_topic = '/pub_topic'
+        pub_topic_name0 = '/pub_topic0'
+        pub_topic_name1 = '/pub_topic1'
+        pub_topics0 = PublishTopicInfoValue(pub_topic_name0, 0)
+        pub_topics1 = PublishTopicInfoValue(pub_topic_name1, 1)
+        pub_topics = (pub_topics1, pub_topics0)
         sub_topic = '/sub_topic'
         cb_name = '/callback'
         symbol = 'symbol'
@@ -712,7 +721,7 @@ class TestCallbacksLoaded:
         mocker.patch.object(sub_loaded_mock, 'get_subscription', return_value=sub_mock)
 
         cb_info = SubscriptionCallbackStructValue(
-            node_name, symbol, sub_topic, (pub_topic,), 0, cb_name
+            node_name, symbol, sub_topic, 0, pub_topics, 0, cb_name
         )
 
         cb = CallbacksLoaded._to_runtime(
@@ -725,7 +734,7 @@ class TestCallbacksLoaded:
         assert cb.subscription == sub_mock
         assert cb.subscribe_topic_name == sub_topic
         assert cb.symbol == symbol
-        assert cb.publish_topic_names == [pub_topic]
+        assert cb.publish_topic_names == [pub_topic_name0, pub_topic_name1]
 
 
 class TestCallbackGroupsLoaded:

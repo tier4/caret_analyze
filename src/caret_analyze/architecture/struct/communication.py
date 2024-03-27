@@ -18,7 +18,6 @@ from .callback import CallbackStruct
 from .node import NodeStruct
 from .publisher import PublisherStruct
 from .subscription import SubscriptionStruct
-from ...common import Util
 from ...value_objects import CommunicationStructValue
 
 
@@ -40,16 +39,6 @@ class CommunicationStruct():
         self._node_sub = node_subscription
         self._subscription_callback_value = subscription_callback_value
         self._publish_callbacks_value = publish_callback_values
-
-    def _find_publish_value(self, node: NodeStruct, topic_name: str):
-        def is_target(pub: PublisherStruct):
-            return pub.topic_name == topic_name
-        return Util.find_one(is_target, node.publishers)
-
-    def _find_subscription_value(self, node: NodeStruct, topic_name: str):
-        def is_target(sub: SubscriptionStruct):
-            return sub.topic_name == topic_name
-        return Util.find_one(is_target, node.subscriptions)
 
     @property
     def subscribe_node(self) -> NodeStruct:

@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from caret_analyze.infra.lttng.lttng_info import (DataFrameFormatted,
                                                   LttngInfo)
 from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
@@ -337,6 +336,7 @@ class TestLttngInfo:
             node_name[0],
             symbol[0],
             topic_name[0],
+            0,
             subscription_handle[0],
             None,
             callback_object=callback_object[0],
@@ -353,6 +353,7 @@ class TestLttngInfo:
             node_name[1],
             symbol[1],
             topic_name[1],
+            0,
             subscription_handle[1],
             None,
             callback_object[1],

@@ -19,7 +19,7 @@ from .node import NodeStructValue
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
 from .value_object import ValueObject
-from ..common import Summarizable, Summary, Util
+from ..common import Summarizable, Summary
 
 
 class CommunicationStructValue(ValueObject, Summarizable):
@@ -40,16 +40,6 @@ class CommunicationStructValue(ValueObject, Summarizable):
         self._node_sub = node_subscription
         self._subscription_callback_value = subscription_callback_value
         self._publish_callbacks_value = publish_callback_values
-
-    def _find_publish_value(self, node: NodeStructValue, topic_name: str):
-        def is_target(pub: PublisherStructValue):
-            return pub.topic_name == topic_name
-        return Util.find_one(is_target, node.publishers)
-
-    def _find_subscription_value(self, node: NodeStructValue, topic_name: str):
-        def is_target(sub: SubscriptionStructValue):
-            return sub.topic_name == topic_name
-        return Util.find_one(is_target, node.subscriptions)
 
     @property
     def subscribe_node(self) -> NodeStructValue:

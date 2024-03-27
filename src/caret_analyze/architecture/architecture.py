@@ -400,7 +400,8 @@ class Architecture(Summarizable):
                             )
 
     def insert_publisher_callback(self, node_name: str,
-                                  publish_topic_name: str, callback_name: str) -> None:
+                                  publish_topic_name: str, callback_name: str,
+                                  publisher_construction_order: int) -> None:
         """
         Insert association of callback with publisher in "node_name" node.
 
@@ -412,11 +413,14 @@ class Architecture(Summarizable):
             topic name of target publisher into which callback is inserted
         callback_name : str
             name of callback to be inserted for publisher
+        publisher_construction_order : int
+            construction order of target publisher
 
         """
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
-        node.insert_publisher_callback(publish_topic_name, callback_name)
+        node.insert_publisher_callback(publish_topic_name,
+                                       callback_name, publisher_construction_order)
 
         node.update_node_path(
             NodeValuesLoaded._search_node_paths(
@@ -452,7 +456,8 @@ class Architecture(Summarizable):
                             )
 
     def remove_publisher_callback(self, node_name: str,
-                                  publish_topic_name: str, callback_name: str) -> None:
+                                  publish_topic_name: str, callback_name: str,
+                                  publisher_construction_order: int) -> None:
         """
         Remove association of callback with publisher in "node_name" node.
 
@@ -464,11 +469,14 @@ class Architecture(Summarizable):
             topic name of target publisher from which callback is removed
         callback_name : str
             name of callback to be removed for publisher
+        publisher_construction_order : int
+            construction order of target publisher
 
         """
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
-        node.remove_publisher_and_callback(publish_topic_name, callback_name)
+        node.remove_publisher_and_callback(publish_topic_name,
+                                           callback_name, publisher_construction_order)
 
         node.update_node_path(
             NodeValuesLoaded._search_node_paths(
@@ -501,13 +509,13 @@ class Architecture(Summarizable):
         callback_write: CallbackStructValue = \
             Util.find_one(lambda x: x.callback_name == callback_name_write, self.callbacks)
 
-        if callback_read.publish_topic_names:
+        if callback_read.publish_topics:
             context_reader = AssignContextReader(node)
-            for publish_topic_name in callback_read.publish_topic_names:
-                if callback_write.subscribe_topic_name:
-                    context_reader.remove_callback_chain(callback_write.subscribe_topic_name,
-                                                         publish_topic_name)
-
+            for publish_topic_name in callback_read.publish_topics:
+                if callback_write.subscribe_topic_name and publish_topic_name is not None:
+                    for pub_topic in publish_topic_name:
+                        context_reader.remove_callback_chain(callback_write.subscribe_topic_name,
+                                                             pub_topic.topic_name)
             node.update_node_path(
                 NodeValuesLoaded._search_node_paths(
                                     node,

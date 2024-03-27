@@ -301,7 +301,9 @@ class Node(Summarizable):
     def get_path(
         self,
         subscribe_topic_name: str | None,
+        subscription_construction_order: int | None,
         publish_topic_name: str | None,
+        publisher_construction_order: int | None
     ) -> NodePath:
         """
         Get node path.
@@ -310,8 +312,12 @@ class Node(Summarizable):
         ----------
         subscribe_topic_name : str | None
             topic name to which the node subscribes.
+        subscription_construction_order : int
+            A construction order of subscription.
         publish_topic_name : str | None
             topic name to which the node publishes.
+        publisher_construction_order : int
+            A construction order of publisher.
 
         Returns
         -------
@@ -336,7 +342,9 @@ class Node(Summarizable):
 
         def is_target(path: NodePath):
             return path.publish_topic_name == publish_topic_name and \
-                path.subscribe_topic_name == subscribe_topic_name
+                path.subscribe_topic_name == subscribe_topic_name and \
+                path.publisher_construction_order == publisher_construction_order and \
+                path.subscription_construction_order == subscription_construction_order
 
         return Util.find_one(is_target, self.paths)
 
@@ -481,10 +489,3 @@ class Node(Summarizable):
             return match
 
         return Util.find_one(is_target_publisher, self._publishers)
-
-    def get_timer(self, topic_name: str) -> Timer:
-        # TODO(hsgwa): fix argument type.
-        if not isinstance(topic_name, str):
-            raise InvalidArgumentError('Argument type is invalid.')
-
-        return Util.find_one(lambda x: x.topic_name == topic_name, self._timers)

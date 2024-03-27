@@ -137,7 +137,7 @@ class LttngInfo:
                     symbol=row['symbol'],
                     period_ns=row['period_ns'],
                     timer_handle=row['timer_handle'],
-                    publish_topic_names=None,
+                    publish_topics=None,
                     callback_object=row['callback_object'],
                     construction_order=row['construction_order'],
                 )
@@ -225,6 +225,7 @@ class LttngInfo:
         tilde_sub = self._formatted.tilde_subscriptions.clone()
         sub.merge(tilde_sub, ['node_name', 'topic_name'], how='left')
 
+        order: dict[DataFrameFormatted.KeyTypeTopic, int] = defaultdict(int)
         for _, row in sub.df.iterrows():
             node_name = row['node_name']
             node_id = row['node_id']
@@ -240,14 +241,19 @@ class LttngInfo:
                 callback_object_intra = int(record_callback_object_intra)
             self._id_to_topic[row['callback_id']] = row['topic_name']
 
+            topic_name = row['topic_name']
+            key: DataFrameFormatted.KeyTypeTopic = node_name, topic_name
+            order_ = int(order[key])
+            order[key] += 1
             sub_cbs_info[node_id].append(
                 SubscriptionCallbackValueLttng(
                     callback_id=row['callback_id'],
                     node_id=node_id,
                     node_name=node_name,
                     symbol=row['symbol'],
-                    subscribe_topic_name=row['topic_name'],
-                    publish_topic_names=None,
+                    subscribe_topic_name=topic_name,
+                    subscription_construction_order=order_,
+                    publish_topics=None,
                     subscription_handle=row['subscription_handle'],
                     callback_object=row['callback_object'],
                     callback_object_intra=callback_object_intra,
@@ -327,7 +333,7 @@ class LttngInfo:
                     symbol=row['symbol'],
                     service_name=row['service_name'],
                     service_handle=row['service_handle'],
-                    publish_topic_names=None,
+                    publish_topics=None,
                     callback_object=row['callback_object'],
                     construction_order=row['construction_order']
                 )
@@ -1075,6 +1081,7 @@ class DataFrameFormatted:
         data.add_column(column_name, construct_order)
 
     KeyTypePubSub = tuple[int | str, str | int]
+    KeyTypeTopic = tuple[int | str, str | int]
 
     @staticmethod
     def _add_construction_order_publisher_or_subscription(

@@ -29,6 +29,7 @@ from ...value_objects import (CallbackGroupValue, CallbackType, ExecutorValue,
                               ServiceCallbackValue, ServiceValue,
                               SubscriptionCallbackValue, SubscriptionValue,
                               TimerCallbackValue, TimerValue, VariablePassingValue)
+from ...value_objects.publish_topic_info import PublishTopicInfoValue
 
 logger = getLogger(__name__)
 
@@ -82,17 +83,45 @@ class ArchitectureReaderYaml(ArchitectureReader):
         self,
         node_name: str,
         callback_name: str
-    ) -> list[str]:
+    ) -> list[Any]:
         node_dict = self._get_node_dict(node_name)
         if 'publishes' not in node_dict.keys():
             return []
 
         publishes = self._get_value(node_dict, 'publishes')
-        topic_names = [
-            self._get_value(p, 'topic_name')
-            for p
-            in publishes
-            if callback_name in self._get_value(p, 'callback_names')]
+        topic_names = []
+        for p in publishes:
+            if callback_name in self._get_value(p, 'callback_names'):
+                if 'construction_order' in p.keys():
+                    construction_order = self._get_value(p, 'construction_order')
+                else:
+                    construction_order = 0
+                pub_info = PublishTopicInfoValue(self._get_value(p, 'topic_name'),
+                                                 construction_order)
+                topic_names.append(pub_info)
+
+        return topic_names
+
+    def _get_subscribe_topic_names(
+        self,
+        node_name: str,
+        callback_name: str
+    ) -> list[Any]:
+        node_dict = self._get_node_dict(node_name)
+        if 'subscribes' not in node_dict.keys():
+            return []
+
+        subscribes = self._get_value(node_dict, 'subscribes')
+        topic_names = []
+        for p in subscribes:
+            if callback_name in self._get_value(p, 'callback_name'):
+                if 'construction_order' in p.keys():
+                    construction_order = self._get_value(p, 'construction_order')
+                else:
+                    construction_order = 0
+                sub_info = ((self._get_value(p, 'topic_name'), construction_order))
+                topic_names.append(sub_info)
+
         return topic_names
 
     def get_timer_callbacks(
@@ -125,7 +154,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
                     node_id=node_name,
                     symbol=self._get_value(info, 'symbol'),
                     period_ns=self._get_value(info, 'period_ns'),
-                    publish_topic_names=tuple(publish_topic_names),
+                    publish_topics=tuple(publish_topic_names),
                     construction_order=construction_order,
                     callback_name=callback_name)
             )
@@ -261,14 +290,16 @@ class ArchitectureReaderYaml(ArchitectureReader):
             callback_id = callback_name
             node_name = self._get_value(node_dict, 'node_name')
             construction_order = self._get_value_with_default(val, 'construction_order', 0)
+            subscribe_info = self._get_subscribe_topic_names(node.node_name, callback_name)
             callbacks.append(
                 SubscriptionCallbackValue(
                     callback_id=callback_id,
                     node_id=node_name,
                     node_name=node_name,
                     symbol=self._get_value(val, 'symbol'),
-                    subscribe_topic_name=self._get_value(val, 'topic_name'),
-                    publish_topic_names=tuple(publish_topic_names),
+                    subscribe_topic_name=subscribe_info[0][0],
+                    subscription_construction_order=subscribe_info[0][1],
+                    publish_topics=tuple(publish_topic_names),
                     callback_name=callback_name,
                     construction_order=construction_order
                 )

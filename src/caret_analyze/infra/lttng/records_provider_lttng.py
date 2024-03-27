@@ -1134,14 +1134,15 @@ class NodeRecordsCallbackChain:
         tail_callback = node_path.callbacks[-1]
 
         if node_path.publish_topic_name is not None and \
-            tail_callback.publish_topic_names is not None and \
-            len(tail_callback.publish_topic_names) != 0 and \
-                node_path.publish_topic_name not in tail_callback.publish_topic_names:
+            tail_callback.publish_topics is not None and \
+            len(tail_callback.publish_topics) != 0 and \
+                node_path.publish_topic_name not in tail_callback.publish_topics:
             raise UnsupportedNodeRecordsError('')
 
-        if node_path.subscribe_topic_name is not None and \
-                node_path.subscribe_topic_name != head_callback.subscribe_topic_name:
-            raise UnsupportedNodeRecordsError('')
+        if node_path.subscribe_topic_name is not None:
+            if node_path.subscribe_topic_name != head_callback.subscribe_topic_name or \
+               node_path.subscription_construction_order != head_callback.construction_order:
+                raise UnsupportedNodeRecordsError('')
 
 
 class NodeRecordsInheritUniqueTimestamp:
@@ -1225,7 +1226,11 @@ class NodeRecordsUseLatestMessage:
 
         self._provider = provider
         self._context: UseLatestMessage = node_path.message_context
-        self._validate(node_path, self._context)
+
+        try:
+            self._validate(node_path, self._context)
+        except UnsupportedNodeRecordsError as e:
+            raise UnsupportedNodeRecordsError(e.message)
         self._node_path = node_path
 
     def to_records(self):
@@ -1266,6 +1271,11 @@ class NodeRecordsUseLatestMessage:
             if context.publisher_topic_name != node_path.publish_topic_name:
                 return False
             if context.subscription_topic_name != node_path.subscribe_topic_name:
+                return False
+            if context.publisher_construction_order != node_path.publisher_construction_order:
+                return False
+            if context.subscription_construction_order != \
+               node_path.subscription_construction_order:
                 return False
 
             return True
