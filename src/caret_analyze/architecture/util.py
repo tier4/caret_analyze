@@ -1,4 +1,4 @@
-# Copyright 2021 Research Institute of Systems Planning, Inc.
+# Copyright 2021 TIER IV, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,7 +39,11 @@ def check_procedure(
     reader = ArchitectureReaderFactory.create_instance(file_type, file_path)
     node = Util.find_one(lambda x: x.node_name == node_name, app_arch._nodes)
 
-    paths = NodeValuesLoaded._search_node_paths(node, reader)
+    paths = NodeValuesLoaded._search_node_paths(
+                                node,
+                                reader,
+                                app_arch._max_callback_construction_order_on_path_searching
+                            )
 
     root_logger.removeHandler(handler)
     return tuple(v.to_value() for v in paths)

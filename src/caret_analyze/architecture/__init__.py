@@ -1,4 +1,4 @@
-# Copyright 2021 Research Institute of Systems Planning, Inc.
+# Copyright 2021 TIER IV, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .architecture import Architecture
+from .architecture import Architecture, DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
 from .util import check_procedure
 
 __all__ = [
     'Architecture',
-    'check_procedure'
+    'check_procedure',
+    'DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING'
 ]

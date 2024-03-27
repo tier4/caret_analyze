@@ -1,4 +1,4 @@
-# Copyright 2021 Research Institute of Systems Planning, Inc.
+# Copyright 2021 TIER IV, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
 
 from pathlib import Path
 
-from .architecture import Architecture, check_procedure
+from .architecture import \
+    Architecture, check_procedure, DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
 from .common import init_logger, Progress
 from .infra.lttng import Lttng, LttngEventFilter
 from .runtime.application import Application
@@ -25,6 +26,7 @@ __all__ = [
     'Architecture',
     'Lttng',
     'LttngEventFilter',
+    'DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING',
     'Progress',
     'check_procedure'
 ]

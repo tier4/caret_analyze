@@ -1,4 +1,4 @@
-# Copyright 2021 Research Institute of Systems Planning, Inc.
+# Copyright 2021 TIER IV, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,6 +30,25 @@ class ServiceValue(ValueObject):
         callback_id: str | None,
         construction_order: int
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        service_name : str
+            Service name.
+        node_name : str
+            Node name.
+        node_id : str | None
+            Node unique id,
+            a value that can be identified when retrieved from the Architecture reader.
+        callback_id : str | None
+            Callback unique id,
+            a value that can be identified when retrieved from the Architecture reader.
+        construction_order : int
+            Order of instance creation within the identical node.
+
+        """
         self._node_name = node_name
         self._node_id = node_id
         self._service_name = service_name
@@ -38,22 +57,67 @@ class ServiceValue(ValueObject):
 
     @property
     def node_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node name.
+
+        """
         return self._node_name
 
     @property
     def node_id(self) -> str | None:
+        """
+        Get node id.
+
+        Returns
+        -------
+        str | None
+            Node id.
+
+        """
         return self._node_id
 
     @property
     def service_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node name.
+
+        """
         return self._service_name
 
     @property
     def callback_id(self) -> str | None:
+        """
+        Get callback id.
+
+        Returns
+        -------
+        str | None
+            Callback unique id.
+
+        """
         return self._callback_id
 
     @property
     def construction_order(self) -> int:
+        """
+        Get construction order.
+
+        Returns
+        -------
+        int
+            Construction order.
+
+        """
         return self._construction_order
 
 
@@ -67,6 +131,21 @@ class ServiceStructValue(ValueObject, Summarizable):
         callback_info: ServiceCallbackStructValue | None,
         construction_order: int
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        node_name : str
+            Node name.
+        service_name : str
+            Service name.
+        callback_info : ServiceCallbackStructValue | None
+            Static info of callback.
+        construction_order : int
+            Order of instance creation within the identical node.
+
+        """
         self._node_name: str = node_name
         self._service_name: str = service_name
         self._callback_value = callback_info
@@ -74,14 +153,41 @@ class ServiceStructValue(ValueObject, Summarizable):
 
     @property
     def node_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node name.
+
+        """
         return self._node_name
 
     @property
     def service_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node name.
+
+        """
         return self._service_name
 
     @property
     def callback_name(self) -> str | None:
+        """
+        Get callback name.
+
+        Returns
+        -------
+        str | None
+            Callback name.
+
+        """
         if self._callback_value is None:
             return None
 
@@ -89,6 +195,15 @@ class ServiceStructValue(ValueObject, Summarizable):
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary.
+
+        Returns
+        -------
+        Summary
+            Summary about value objects and runtime data objects.
+
+        """
         return Summary({
             'node': self.node_name,
             'service_name': self.service_name,
@@ -97,8 +212,26 @@ class ServiceStructValue(ValueObject, Summarizable):
 
     @property
     def callback(self) -> ServiceCallbackStructValue | None:
+        """
+        Get callback.
+
+        Returns
+        -------
+        ServiceCallbackStructValue | None
+            Callback.
+
+        """
         return self._callback_value
 
     @property
     def construction_order(self) -> int:
+        """
+        Get construction order.
+
+        Returns
+        -------
+        int
+            Construction order.
+
+        """
         return self._construction_order

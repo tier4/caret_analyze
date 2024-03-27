@@ -1,4 +1,4 @@
-# Copyright 2021 Research Institute of Systems Planning, Inc.
+# Copyright 2021 TIER IV, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -59,8 +59,6 @@ class RecordInterface:
         ----------
         other : RecordInterface
             merge target.
-        inplace : bool
-            inplace record if true, otherwise false.
 
         Returns
         -------
@@ -274,7 +272,7 @@ class RecordsInterface:
 
     @abstractmethod
     def sort(
-        self, key: str, sub_key: str | None = None, ascending=True
+        self, key: str, sub_key: str | None = None, ascending: bool = True
     ) -> None:
         """
         Sort records.
@@ -283,7 +281,7 @@ class RecordsInterface:
         ----------
         key : str
             key name to used for sort.
-        sub_key : str
+        sub_key : str | None
             second key name to used for sort.
         ascending : bool
             ascending if True, descending if false.
@@ -295,7 +293,7 @@ class RecordsInterface:
     def sort_column_order(
         self,
         ascending: bool = True,
-        put_none_at_top=True,
+        put_none_at_top: bool = True,
     ) -> None:
         """
         Sort records by ordered columns.
@@ -436,7 +434,7 @@ class RecordsInterface:
 
         Parameters
         ----------
-        right_records : RecordInterface
+        right_records : RecordsInterface
             merge target.
         join_left_key : str
             Key to use for matching.
@@ -498,16 +496,16 @@ class RecordsInterface:
             left records key name to use for comparison in time series merge.
         right_stamp_key : str
             right records key name to use for comparison in time series merge.
-        join_left_key : str
+        join_left_key : str | None
             join key name to use equal condition.
-        join_right_key : str
+        join_right_key : str | None
             join key name to use equal condition.
-        how : str
-            merge type. [inner/right/left/outer]
         columns : list[str]
             columns
+        how : str
+            merge type. [inner/right/left/outer]
 
-        Records
+        Returns
         -------
         RecordsInterface
             Merged records.

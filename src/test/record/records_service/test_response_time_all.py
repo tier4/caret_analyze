@@ -1,4 +1,4 @@
-# Copyright 2021 Research Institute of Systems Planning, Inc.
+# Copyright 2021 TIER IV, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -89,7 +89,6 @@ class TestResponseTimeAll:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 2},
             {'start': 3, 'response_time': 1},
             {'start': 11, 'response_time': 1}
         ]
@@ -97,7 +96,6 @@ class TestResponseTimeAll:
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.round_convert(0), 'response_time': 2},
             {'start': create_converter.round_convert(3), 'response_time': 1},
             {'start': create_converter.round_convert(11), 'response_time': 1}
         ]
@@ -116,7 +114,6 @@ class TestResponseTimeAll:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 2},
             {'start': 3, 'response_time': 3},
             {'start': 11, 'response_time': 5}
         ]
@@ -124,7 +121,6 @@ class TestResponseTimeAll:
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.round_convert(0), 'response_time': 2},
             {'start': create_converter.round_convert(3), 'response_time': 3},
             {'start': create_converter.round_convert(11), 'response_time': 5}
         ]
@@ -133,9 +129,10 @@ class TestResponseTimeAll:
 
     def test_single_input_multi_output_case(self, create_converter):
         records_raw = [
-            {'start': 0, 'middle': 4, 'end': 5},
-            {'start': 0, 'middle': 4, 'end': 6},
-            {'start': 0, 'middle': 12, 'end': 13}
+            {'start': 0, 'middle': 2, 'end': 4},
+            {'start': 1, 'middle': 4, 'end': 5},
+            {'start': 1, 'middle': 4, 'end': 6},
+            {'start': 1, 'middle': 12, 'end': 13}
         ]
         columns = [ColumnValue('start'), ColumnValue('middle'), ColumnValue('end')]
         records = create_records(records_raw, columns)
@@ -143,21 +140,22 @@ class TestResponseTimeAll:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 5}
+            {'start': 1, 'response_time': 4}
         ]
         result = to_dict(response_time.to_all_records())
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.round_convert(0), 'response_time': 5}
+            {'start': create_converter.round_convert(1), 'response_time': 4}
         ]
         result = to_dict(response_time.to_all_records(converter=create_converter.get_converter()))
         assert result == expect_raw
 
     def test_multi_input_single_output_case(self, create_converter):
         records_raw = [
-            {'start': 0, 'middle': 4, 'end': 13},
+            {'start': 0, 'middle': 3, 'end': 12},
             {'start': 1, 'middle': 4, 'end': 13},
+            {'start': 2, 'middle': 4, 'end': 13},
             {'start': 5, 'middle': 12, 'end': 13}
         ]
         columns = [ColumnValue('start'), ColumnValue('middle'), ColumnValue('end')]
@@ -166,16 +164,16 @@ class TestResponseTimeAll:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 13},
             {'start': 1, 'response_time': 12},
+            {'start': 2, 'response_time': 11},
             {'start': 5, 'response_time': 8}
         ]
         result = to_dict(response_time.to_all_records())
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.round_convert(0), 'response_time': 13},
             {'start': create_converter.round_convert(1), 'response_time': 12},
+            {'start': create_converter.round_convert(2), 'response_time': 11},
             {'start': create_converter.round_convert(5), 'response_time': 8}
         ]
         result = to_dict(response_time.to_all_records(converter=create_converter.get_converter()))
@@ -183,8 +181,9 @@ class TestResponseTimeAll:
 
     def test_drop_case(self, create_converter):
         records_raw = [
-            {'start': 0, 'middle': 4, 'end': 13},
-            {'start': 1, 'middle': 4},
+            {'start': 0, 'middle': 3, 'end': 12},
+            {'start': 1, 'middle': 4, 'end': 13},
+            {'start': 2, 'middle': 4},
             {'start': 5, 'middle': 12, 'end': 13}
         ]
         columns = [ColumnValue('start'), ColumnValue('middle'), ColumnValue('end')]
@@ -193,16 +192,16 @@ class TestResponseTimeAll:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 13},
             {'start': 1, 'response_time': 12},
+            {'start': 2, 'response_time': 11},
             {'start': 5, 'response_time': 8}
         ]
         result = to_dict(response_time.to_all_records())
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.round_convert(0), 'response_time': 13},
             {'start': create_converter.round_convert(1), 'response_time': 12},
+            {'start': create_converter.round_convert(2), 'response_time': 11},
             {'start': create_converter.round_convert(5), 'response_time': 8}
         ]
         result = to_dict(response_time.to_all_records(converter=create_converter.get_converter()))
@@ -223,7 +222,6 @@ class TestResponseTimeAll:
         response_time = response.to_all_records()
         expect = [
             {'start': 0, 'response_time': 10},
-            {'start': 3, 'response_time': 1},
             {'start': 4, 'response_time': 6},
             {'start': 6, 'response_time': 0}
         ]
@@ -232,7 +230,6 @@ class TestResponseTimeAll:
         response_time = response.to_all_records(converter=create_converter.get_converter())
         expect = [
             {'start': create_converter.round_convert(0), 'response_time': 10},
-            {'start': create_converter.round_convert(3), 'response_time': 1},
             {'start': create_converter.round_convert(4), 'response_time': 6},
             {'start': create_converter.round_convert(6), 'response_time': 0}
         ]
@@ -261,7 +258,6 @@ class TestResponseTimeAll:
             assert str(w[0].message) == warning_message
 
             expect_raw = [
-                {'start': 0, 'response_time': 2},
                 {'start': 3, 'response_time': 1},
                 {'start': 11, 'response_time': 1}
             ]
@@ -269,7 +265,6 @@ class TestResponseTimeAll:
             assert result == expect_raw
 
             expect_raw = [
-                {'start': create_converter.round_convert(0), 'response_time': 2},
                 {'start': create_converter.round_convert(3), 'response_time': 1},
                 {'start': create_converter.round_convert(11), 'response_time': 1}
             ]
@@ -311,7 +306,6 @@ class TestResponseTimeBest:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 2},
             {'start': 3, 'response_time': 1},
             {'start': 11, 'response_time': 1}
         ]
@@ -319,7 +313,6 @@ class TestResponseTimeBest:
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.round_convert(0), 'response_time': 2},
             {'start': create_converter.round_convert(3), 'response_time': 1},
             {'start': create_converter.round_convert(11), 'response_time': 1}
         ]
@@ -339,7 +332,6 @@ class TestResponseTimeBest:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 2},
             {'start': 3, 'response_time': 3},
             {'start': 11, 'response_time': 5}
         ]
@@ -347,7 +339,6 @@ class TestResponseTimeBest:
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.round_convert(0), 'response_time': 2},
             {'start': create_converter.round_convert(3), 'response_time': 3},
             {'start': create_converter.round_convert(11), 'response_time': 5}
         ]
@@ -357,9 +348,10 @@ class TestResponseTimeBest:
 
     def test_single_input_multi_output_case(self, create_converter):
         records_raw = [
-            {'start': 0, 'middle': 4, 'end': 5},
-            {'start': 0, 'middle': 4, 'end': 6},
-            {'start': 0, 'middle': 12, 'end': 13}
+            {'start': 0, 'middle': 2, 'end': 4},
+            {'start': 1, 'middle': 4, 'end': 5},
+            {'start': 1, 'middle': 4, 'end': 6},
+            {'start': 1, 'middle': 12, 'end': 13}
         ]
         columns = [ColumnValue('start'), ColumnValue('middle'), ColumnValue('end')]
         records = create_records(records_raw, columns)
@@ -367,13 +359,13 @@ class TestResponseTimeBest:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 5}
+            {'start': 1, 'response_time': 4}
         ]
         result = to_dict(response_time.to_best_case_records())
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.round_convert(0), 'response_time': 5}
+            {'start': create_converter.round_convert(1), 'response_time': 4}
         ]
         result = to_dict(response_time.to_best_case_records(
             converter=create_converter.get_converter()))
@@ -381,8 +373,9 @@ class TestResponseTimeBest:
 
     def test_multi_input_single_output_case(self, create_converter):
         records_raw = [
-            {'start': 0, 'middle': 4, 'end': 13},
+            {'start': 0, 'middle': 3, 'end': 12},
             {'start': 1, 'middle': 4, 'end': 13},
+            {'start': 2, 'middle': 4, 'end': 13},
             {'start': 5, 'middle': 12, 'end': 13}
         ]
         columns = [ColumnValue('start'), ColumnValue('middle'), ColumnValue('end')]
@@ -417,7 +410,6 @@ class TestResponseTimeBest:
 
         response_time = response.to_best_case_records()
         expect = [
-            {'start': 3, 'response_time': 1},
             {'start': 4, 'response_time': 6},
             {'start': 6, 'response_time': 0}
         ]
@@ -425,7 +417,6 @@ class TestResponseTimeBest:
 
         response_time = response.to_best_case_records(converter=create_converter.get_converter())
         expect = [
-            {'start': create_converter.round_convert(3), 'response_time': 1},
             {'start': create_converter.round_convert(4), 'response_time': 6},
             {'start': create_converter.round_convert(6), 'response_time': 0}
         ]
@@ -454,7 +445,6 @@ class TestResponseTimeBest:
             assert str(w[0].message) == warning_message
 
             expect_raw = [
-                {'start': 0, 'response_time': 2},
                 {'start': 3, 'response_time': 1},
                 {'start': 11, 'response_time': 1},
             ]
@@ -462,7 +452,6 @@ class TestResponseTimeBest:
             assert result == expect_raw
 
             expect_raw = [
-                {'start': create_converter.round_convert(0), 'response_time': 2},
                 {'start': create_converter.round_convert(3), 'response_time': 1},
                 {'start': create_converter.round_convert(11), 'response_time': 1},
             ]
@@ -504,14 +493,12 @@ class TestResponseTimeWorstWithExternalLatency:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 4},
             {'start': 3, 'response_time': 9}
         ]
         result = to_dict(response_time.to_worst_with_external_latency_case_records())
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.round_convert(0), 'response_time': 4},
             {'start': create_converter.round_convert(3), 'response_time': 9}
         ]
         result = to_dict(response_time.to_worst_with_external_latency_case_records(
@@ -530,14 +517,12 @@ class TestResponseTimeWorstWithExternalLatency:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 6},
             {'start': 3, 'response_time': 13}
         ]
         result = to_dict(response_time.to_worst_with_external_latency_case_records())
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.round_convert(0), 'response_time': 6},
             {'start': create_converter.round_convert(3), 'response_time': 13}
         ]
         result = to_dict(response_time.to_worst_with_external_latency_case_records(
@@ -546,8 +531,9 @@ class TestResponseTimeWorstWithExternalLatency:
 
     def test_single_input_multi_output_case(self, create_converter):
         records_raw = [
-            {'start': 0, 'middle': 4, 'end': 5},
-            {'start': 0, 'middle': 4, 'end': 6},
+            {'start': 0, 'middle': 2, 'end': 3},
+            {'start': 1, 'middle': 4, 'end': 5},
+            {'start': 1, 'middle': 4, 'end': 6},
             {'start': 3, 'middle': 10, 'end': 11},
             {'start': 3, 'middle': 12, 'end': 13}
         ]
@@ -557,13 +543,13 @@ class TestResponseTimeWorstWithExternalLatency:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 11},
+            {'start': 1, 'response_time': 10},
         ]
         result = to_dict(response_time.to_worst_with_external_latency_case_records())
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.round_convert(0), 'response_time': 11},
+            {'start': create_converter.round_convert(1), 'response_time': 10},
         ]
         result = to_dict(response_time.to_worst_with_external_latency_case_records(
             converter=create_converter.get_converter()))
@@ -571,8 +557,9 @@ class TestResponseTimeWorstWithExternalLatency:
 
     def test_multi_input_single_output_case(self, create_converter):
         records_raw = [
-            {'start': 0, 'middle': 4, 'end': 13},
+            {'start': 0, 'middle': 3, 'end': 12},
             {'start': 1, 'middle': 4, 'end': 13},
+            {'start': 2, 'middle': 4, 'end': 13},
             {'start': 5, 'middle': 12, 'end': 13}
         ]
         columns = [ColumnValue('start'), ColumnValue('middle'), ColumnValue('end')]
@@ -581,13 +568,13 @@ class TestResponseTimeWorstWithExternalLatency:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 13}
+            {'start': 1, 'response_time': 12}
         ]
         result = to_dict(response_time.to_worst_with_external_latency_case_records())
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.round_convert(0), 'response_time': 13}
+            {'start': create_converter.round_convert(1), 'response_time': 12}
         ]
         result = to_dict(response_time.to_worst_with_external_latency_case_records(
             converter=create_converter.get_converter()))
@@ -595,8 +582,9 @@ class TestResponseTimeWorstWithExternalLatency:
 
     def test_drop_case(self, create_converter):
         records_raw = [
-            {'start': 0, 'middle': 4, 'end': 8},
-            {'start': 1, 'middle': 4},
+            {'start': 0, 'middle': 3, 'end': 12},
+            {'start': 1, 'middle': 4, 'end': 13},
+            {'start': 2, 'middle': 4},
             {'start': 5, 'middle': 12, 'end': 13}
         ]
         columns = [ColumnValue('start'), ColumnValue('middle'), ColumnValue('end')]
@@ -605,13 +593,13 @@ class TestResponseTimeWorstWithExternalLatency:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 13}
+            {'start': 1, 'response_time': 12}
         ]
         result = to_dict(response_time.to_worst_with_external_latency_case_records())
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.round_convert(0), 'response_time': 13}
+            {'start': create_converter.round_convert(1), 'response_time': 12}
         ]
         result = to_dict(response_time.to_worst_with_external_latency_case_records(
             converter=create_converter.get_converter()))
@@ -631,8 +619,7 @@ class TestResponseTimeWorstWithExternalLatency:
 
         response_time = response.to_worst_with_external_latency_case_records()
         expect = [
-            {'start': 0, 'response_time': 4},
-            {'start': 3, 'response_time': 7},
+            {'start': 0, 'response_time': 10},
             {'start': 4, 'response_time': 2}
         ]
         assert to_dict(response_time) == expect
@@ -640,8 +627,7 @@ class TestResponseTimeWorstWithExternalLatency:
         response_time = response.to_worst_with_external_latency_case_records(
             converter=create_converter.get_converter())
         expect = [
-            {'start': create_converter.round_convert(0), 'response_time': 4},
-            {'start': create_converter.round_convert(3), 'response_time': 7},
+            {'start': create_converter.round_convert(0), 'response_time': 10},
             {'start': create_converter.round_convert(4), 'response_time': 2}
         ]
         assert to_dict(response_time) == expect
@@ -669,14 +655,12 @@ class TestResponseTimeWorstWithExternalLatency:
             assert str(w[0].message) == warning_message
 
             expect_raw = [
-                {'start': 0, 'response_time': 4},
                 {'start': 3, 'response_time': 9}
             ]
             result = to_dict(response_time.to_worst_with_external_latency_case_records())
             assert result == expect_raw
 
             expect_raw = [
-                {'start': create_converter.round_convert(0), 'response_time': 4},
                 {'start': create_converter.round_convert(3), 'response_time': 9}
             ]
             result = to_dict(response_time.to_worst_with_external_latency_case_records(
@@ -714,7 +698,6 @@ class TestResponseTimeWorst:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 2},
             {'start': 3, 'response_time': 1},
             {'start': 11, 'response_time': 1}
         ]
@@ -722,7 +705,6 @@ class TestResponseTimeWorst:
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.round_convert(0), 'response_time': 2},
             {'start': create_converter.round_convert(3), 'response_time': 1},
             {'start': create_converter.round_convert(11), 'response_time': 1}
         ]
@@ -742,7 +724,6 @@ class TestResponseTimeWorst:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 2},
             {'start': 3, 'response_time': 3},
             {'start': 11, 'response_time': 5}
         ]
@@ -750,7 +731,6 @@ class TestResponseTimeWorst:
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.round_convert(0), 'response_time': 2},
             {'start': create_converter.round_convert(3), 'response_time': 3},
             {'start': create_converter.round_convert(11), 'response_time': 5}
         ]
@@ -760,9 +740,10 @@ class TestResponseTimeWorst:
 
     def test_single_input_multi_output_case(self, create_converter):
         records_raw = [
-            {'start': 0, 'middle': 4, 'end': 5},
-            {'start': 0, 'middle': 4, 'end': 6},
-            {'start': 0, 'middle': 12, 'end': 13}
+            {'start': 0, 'middle': 2, 'end': 4},
+            {'start': 1, 'middle': 4, 'end': 5},
+            {'start': 1, 'middle': 4, 'end': 6},
+            {'start': 1, 'middle': 12, 'end': 13}
         ]
         columns = [ColumnValue('start'), ColumnValue('middle'), ColumnValue('end')]
         records = create_records(records_raw, columns)
@@ -770,13 +751,13 @@ class TestResponseTimeWorst:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 5}
+            {'start': 1, 'response_time': 4}
         ]
         result = to_dict(response_time.to_worst_case_records())
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.round_convert(0), 'response_time': 5}
+            {'start': create_converter.round_convert(1), 'response_time': 4}
         ]
         result = to_dict(response_time.to_worst_case_records(
             converter=create_converter.get_converter()))
@@ -784,8 +765,9 @@ class TestResponseTimeWorst:
 
     def test_multi_input_single_output_case(self, create_converter):
         records_raw = [
-            {'start': 0, 'middle': 4, 'end': 13},
+            {'start': 0, 'middle': 3, 'end': 12},
             {'start': 1, 'middle': 4, 'end': 13},
+            {'start': 2, 'middle': 4, 'end': 13},
             {'start': 5, 'middle': 12, 'end': 13}
         ]
         columns = [ColumnValue('start'), ColumnValue('middle'), ColumnValue('end')]
@@ -794,13 +776,13 @@ class TestResponseTimeWorst:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 13}
+            {'start': 1, 'response_time': 12}
         ]
         result = to_dict(response_time.to_worst_case_records())
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.round_convert(0), 'response_time': 13}
+            {'start': create_converter.round_convert(1), 'response_time': 12}
         ]
         result = to_dict(response_time.to_worst_case_records(
             converter=create_converter.get_converter()))
@@ -818,14 +800,12 @@ class TestResponseTimeWorst:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 8},
             {'start': 1, 'response_time': 12}
         ]
         result = to_dict(response_time.to_worst_case_records())
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.round_convert(0), 'response_time': 8},
             {'start': create_converter.round_convert(1), 'response_time': 12}
         ]
         result = to_dict(response_time.to_worst_case_records(
@@ -847,7 +827,6 @@ class TestResponseTimeWorst:
         response_time = response.to_worst_case_records()
         expect = [
             {'start': 0, 'response_time': 10},
-            {'start': 3, 'response_time': 1},
             {'start': 6, 'response_time': 0}
         ]
         assert to_dict(response_time) == expect
@@ -855,7 +834,6 @@ class TestResponseTimeWorst:
         response_time = response.to_worst_case_records(converter=create_converter.get_converter())
         expect = [
             {'start': create_converter.round_convert(0), 'response_time': 10},
-            {'start': create_converter.round_convert(3), 'response_time': 1},
             {'start': create_converter.round_convert(6), 'response_time': 0}
         ]
         assert to_dict(response_time) == expect
@@ -883,7 +861,6 @@ class TestResponseTimeWorst:
             assert str(w[0].message) == warning_message
 
             expect_raw = [
-                {'start': 0, 'response_time': 2},
                 {'start': 3, 'response_time': 1},
                 {'start': 11, 'response_time': 1},
             ]
@@ -891,7 +868,6 @@ class TestResponseTimeWorst:
             assert result == expect_raw
 
             expect_raw = [
-                {'start': create_converter.round_convert(0), 'response_time': 2},
                 {'start': create_converter.round_convert(3), 'response_time': 1},
                 {'start': create_converter.round_convert(11), 'response_time': 1},
             ]
@@ -932,7 +908,6 @@ class TestAllStackedBar:
         response_time = ResponseTime(records, columns=self.column_names)
 
         expect_raw = [
-            {'start': 0, 'middle0': 1, 'middle1': 2, 'end': 3},
             {'start': 4, 'middle0': 5, 'middle1': 7, 'end': 8},
             {'start': 6, 'middle0': 7, 'middle1': 8, 'end': 9}
         ]
@@ -951,8 +926,6 @@ class TestAllStackedBar:
         response_time = ResponseTime(records, columns=self.column_names)
 
         expect_raw = [
-            {'start': 0, 'middle0': 1, 'middle1': 3, 'end': 4},
-            {'start': 1, 'middle0': 2, 'middle1': 3, 'end': 4},
             {'start': 2, 'middle0': 3, 'middle1': 5, 'end': 6},
             {'start': 3, 'middle0': 4, 'middle1': 5, 'end': 6}
         ]
@@ -971,8 +944,6 @@ class TestAllStackedBar:
         response_time = ResponseTime(records, columns=self.column_names)
 
         expect_raw = [
-            {'start': 0, 'middle0': 1, 'middle1': 3, 'end': 4},
-            {'start': 1, 'middle0': 2, 'middle1': 3, 'end': 4},
             {'start': 2, 'middle0': 3, 'middle1': 4, 'end': 6},
             {'start': 3, 'middle0': 4, 'middle1': 5, 'end': 6}
         ]
@@ -1012,7 +983,6 @@ class TestWorstInInputStackedBar:
         response_time = ResponseTime(records, columns=self.column_names)
 
         expect_raw = [
-            {'start': 0, 'middle0': 1, 'middle1': 2, 'end': 3},
             {'start': 4, 'middle0': 5, 'middle1': 7, 'end': 8},
             {'start': 6, 'middle0': 7, 'middle1': 8, 'end': 9}
         ]
@@ -1031,7 +1001,6 @@ class TestWorstInInputStackedBar:
         response_time = ResponseTime(records, columns=self.column_names)
 
         expect_raw = [
-            {'start': 0, 'middle0': 1, 'middle1': 3, 'end': 4},
             {'start': 2, 'middle0': 3, 'middle1': 5, 'end': 6},
         ]
         result = to_dict(response_time.to_worst_case_stacked_bar())
@@ -1049,7 +1018,6 @@ class TestWorstInInputStackedBar:
         response_time = ResponseTime(records, columns=self.column_names)
 
         expect_raw = [
-            {'start': 0, 'middle0': 1, 'middle1': 3, 'end': 4},
             {'start': 2, 'middle0': 3, 'middle1': 4, 'end': 6},
         ]
         result = to_dict(response_time.to_worst_case_stacked_bar())

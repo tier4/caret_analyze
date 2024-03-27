@@ -1,5 +1,5 @@
 
-# Copyright 2021 Research Institute of Systems Planning, Inc.
+# Copyright 2021 TIER IV, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -205,9 +205,9 @@ class CallbackGroupStructValue(ValueObject, Summarizable):
 
         Parameters
         ----------
-        callback_group_type : str
+        callback_group_type : CallbackGroupType
             callback group type
-        node_name : list[str]
+        node_name : str
             node name
         callback_values: tuple[CallbackStructValue, ...]
             callback values

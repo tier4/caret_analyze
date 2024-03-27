@@ -1,4 +1,4 @@
-# Copyright 2021 Research Institute of Systems Planning, Inc.
+# Copyright 2021 TIER IV, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,29 +20,16 @@ from collections.abc import Sequence
 from bokeh.plotting import figure as Figure
 
 from ..metrics_base import MetricsBase
-from ...common import ClockConverter
 from ...record import Frequency, Latency, Period, ResponseTime
 from ...runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 MetricsTypes = Frequency | Latency | Period | ResponseTime
-HistTypes = CallbackBase | Communication | Path
+HistTypes = CallbackBase | Communication | Path | Publisher | Subscription
 
 
 class VisualizeLibInterface(metaclass=ABCMeta):
     """Interface class for VisualizeLib."""
-
-    @abstractmethod
-    def response_time_hist(
-        self,
-        target_paths: Sequence[Path],
-        case: str,
-        binsize_ns: int,
-        xaxis_type: str,
-        ywheel_zoom: bool,
-        full_legends: bool,
-    ) -> Figure:
-        raise NotImplementedError()
 
     @abstractmethod
     def message_flow(
@@ -94,10 +81,10 @@ class VisualizeLibInterface(metaclass=ABCMeta):
 
     def histogram(
         self,
-        metrics: list[MetricsTypes],
+        hist_list: list[list[int]],
+        bins: list[float],
         target_objects: Sequence[HistTypes],
-        data_type: str,
-        case: str | None = None,
-        converter: ClockConverter | None = None,
+        metrics_name: str,
+        case: str | None = None
     ) -> Figure:
         raise NotImplementedError()

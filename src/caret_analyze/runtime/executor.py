@@ -1,4 +1,4 @@
-# Copyright 2021 Research Institute of Systems Planning, Inc.
+# Copyright 2021 TIER IV, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -170,6 +170,11 @@ class Executor(Summarizable):
     def get_callbacks(self, *callback_names: str) -> list[CallbackBase]:
         """
         Get callbacks.
+
+        Parameters
+        ----------
+        *callback_names : str
+            callback names to get.
 
         Returns
         -------

@@ -1,4 +1,4 @@
-# Copyright 2021 Research Institute of Systems Planning, Inc.
+# Copyright 2021 TIER IV, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -88,8 +88,8 @@ class PathBase(metaclass=ABCMeta):
 
     def to_dataframe(
         self,
-        remove_dropped=False,
-        treat_drop_as_delay=False,
+        remove_dropped: bool = False,
+        treat_drop_as_delay: bool = False,
         lstrip_s: float = 0,
         rstrip_s: float = 0,
         *,
@@ -100,9 +100,9 @@ class PathBase(metaclass=ABCMeta):
 
         Parameters
         ----------
-        remove_dropped: bool
+        remove_dropped : bool
             If true, eliminate the records that caused the drop.
-        treat_drop_as_delay: bool
+        treat_drop_as_delay : bool
             Convert dropped records as a delay.
             Valid only when remove_dropped=false.
         lstrip_s: float | None
@@ -149,8 +149,8 @@ class PathBase(metaclass=ABCMeta):
 
     def to_timeseries(
         self,
-        remove_dropped=False,
-        treat_drop_as_delay=False,
+        remove_dropped: bool = False,
+        treat_drop_as_delay: bool = False,
         lstrip_s: float = 0,
         rstrip_s: float = 0,
         *,
@@ -205,7 +205,7 @@ class PathBase(metaclass=ABCMeta):
     def to_histogram(
         self,
         binsize_ns: int = 1000000,
-        treat_drop_as_delay=False,
+        treat_drop_as_delay: bool = False,
         lstrip_s: float = 0,
         rstrip_s: float = 0,
         *,

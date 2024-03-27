@@ -1,4 +1,4 @@
-# Copyright 2021 Research Institute of Systems Planning, Inc.
+# Copyright 2021 TIER IV, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ class UniqueList(UserList):
 
         Parameters
         ----------
-        init : Any, optional
+        init : Iterable[Any] | None
             initial value, by default None.
             If there are duplicate values, only the first value is inserted.
 

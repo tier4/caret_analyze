@@ -1,4 +1,4 @@
-# Copyright 2021 Research Institute of Systems Planning, Inc.
+# Copyright 2021 TIER IV, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -69,22 +69,67 @@ class NodePathValue(ValueObject):
 
     @property
     def node_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node name.
+
+        """
         return self._node_name
 
     @property
     def publish_topic_name(self) -> str | None:
+        """
+        Get a topic name to publish.
+
+        Returns
+        -------
+        str | None
+            Topic name to publish.
+
+        """
         return self._publish_topic_name
 
     @property
     def subscribe_topic_name(self) -> str | None:
+        """
+        Get a topic name to subscribe to.
+
+        Returns
+        -------
+        str | None
+            Topic name to subscribe to.
+
+        """
         return self._subscribe_topic_name
 
     @property
     def publisher_construction_order(self) -> int | None:
+        """
+        Get a construction order of publisher.
+
+        Returns
+        -------
+        int | None
+            Construction order of publisher.
+
+        """
         return self._publisher_construction_order
 
     @property
     def subscription_construction_order(self) -> int | None:
+        """
+        Get a construction order of subscription.
+
+        Returns
+        -------
+        int | None
+            Construction order of subscription.
+
+        """
         return self._subscription_construction_order
 
 
@@ -111,7 +156,7 @@ class NodePathStructValue(ValueObject, Summarizable):
         Parameters
         ----------
         node_name : str
-            Node name
+            Node name.
         subscription : SubscriptionStructValue | None
             Subscription which the node path subscribes.
         publisher : PublisherStructValue | None
@@ -131,10 +176,28 @@ class NodePathStructValue(ValueObject, Summarizable):
 
     @property
     def node_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node name.
+
+        """
         return self._node_name
 
     @property
     def callbacks(self) -> tuple[CallbackStructValue, ...] | None:
+        """
+        Get callbacks.
+
+        Returns
+        -------
+        tuple[CallbackStructValue, ...] | None
+            Callbacks in all child elements that comprise the node path.
+
+        """
         if self._child is None:
             return None
 
@@ -146,6 +209,15 @@ class NodePathStructValue(ValueObject, Summarizable):
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary.
+
+        Returns
+        -------
+        Summary
+            Summary about value objects and runtime data objects.
+
+        """
         context = None
         if self.message_context is not None:
             context = self.message_context.summary
@@ -167,6 +239,15 @@ class NodePathStructValue(ValueObject, Summarizable):
 
     @property
     def callback_names(self) -> tuple[str, ...] | None:
+        """
+        Get callback names.
+
+        Returns
+        -------
+        tuple[str, ...] | None
+            Callback names of all child elements that comprise the node path.
+
+        """
         if self.callbacks is None:
             return None
 
@@ -174,6 +255,15 @@ class NodePathStructValue(ValueObject, Summarizable):
 
     @property
     def variable_passings(self) -> tuple[VariablePassingStructValue, ...] | None:
+        """
+        Get variable passings.
+
+        Returns
+        -------
+        tuple[VariablePassingStructValue, ...] | None
+            Variable passings in all child elements that comprise the node path.
+
+        """
         if self._child is None:
             return None
 
@@ -185,10 +275,28 @@ class NodePathStructValue(ValueObject, Summarizable):
 
     @property
     def message_context(self) -> MessageContext | None:
+        """
+        Get message context.
+
+        Returns
+        -------
+        MessageContext | None
+            Message context for this node path.
+
+        """
         return self._context
 
     @property
     def message_context_type(self) -> MessageContextType | None:
+        """
+        Get message context type.
+
+        Returns
+        -------
+        MessageContextType | None
+            Message context type for this node path.
+
+        """
         if self._context is None:
             return None
 
@@ -198,6 +306,15 @@ class NodePathStructValue(ValueObject, Summarizable):
     def child(
         self,
     ) -> tuple[CallbackStructValue | VariablePassingStructValue, ...] | None:
+        """
+        Get child elements.
+
+        Returns
+        -------
+        tuple[CallbackStructValue | VariablePassingStructValue, ...] | None
+            Child elements for this node path.
+
+        """
         if self._child is None:
             return None
 
@@ -205,38 +322,101 @@ class NodePathStructValue(ValueObject, Summarizable):
 
     @property
     def publisher(self) -> PublisherStructValue | None:
+        """
+        Get publisher.
+
+        Returns
+        -------
+        PublisherStructValue | None
+            Node path publisher.
+
+        """
         return self._publisher
 
     @property
     def subscription(self) -> SubscriptionStructValue | None:
+        """
+        Get subscription.
+
+        Returns
+        -------
+        SubscriptionStructValue | None
+            Subscription to subscribe to.
+
+        """
         return self._subscription
 
     @property
     def subscription_callback(self) -> SubscriptionCallbackStructValue | None:
+        """
+        Get subscription callback.
+
+        Returns
+        -------
+        SubscriptionCallbackStructValue | None
+            Subscription callback for this node path.
+
+        """
         if self._subscription is not None:
             return self._subscription.callback
         return None
 
     @property
     def publish_topic_name(self) -> str | None:
+        """
+        Get a topic name to publish.
+
+        Returns
+        -------
+        str | None
+            Topic name to publish.
+
+        """
         if self._publisher is None:
             return None
         return self._publisher.topic_name
 
     @property
     def subscribe_topic_name(self) -> str | None:
+        """
+        Get a topic name to subscribe to.
+
+        Returns
+        -------
+        str | None
+            Topic name to subscribe to.
+
+        """
         if self._subscription is None:
             return None
         return self._subscription.topic_name
 
     @property
     def publisher_construction_order(self) -> int | None:
+        """
+        Get a construction order of publisher.
+
+        Returns
+        -------
+        int | None
+            Construction order of publisher.
+
+        """
         if self.publisher:
             return self.publisher.construction_order
         return None
 
     @property
     def subscription_construction_order(self) -> int | None:
+        """
+        Get a construction order of subscription.
+
+        Returns
+        -------
+        int | None
+            Construction order of subscription.
+
+        """
         if self.subscription:
             return self.subscription.construction_order
         return None

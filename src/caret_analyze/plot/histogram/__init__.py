@@ -1,4 +1,4 @@
-# Copyright 2021 Research Institute of Systems Planning, Inc.
+# Copyright 2021 TIER IV, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,14 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .histogram import ResponseTimeHistPlot
-from .histogram_factory import ResponseTimeHistPlotFactory
 from .histogram_plot import HistogramPlot
 from .histogram_plot_factory import HistogramPlotFactory
 
 __all__ = [
-    'ResponseTimeHistPlot',
-    'ResponseTimeHistPlotFactory',
     'HistogramPlotFactory',
     'HistogramPlot'
 ]
