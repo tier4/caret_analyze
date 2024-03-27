@@ -53,6 +53,7 @@ from caret_analyze.value_objects import (CallbackGroupType, CallbackGroupValue,
 
 from caret_analyze.value_objects.message_context import MessageContextType
 from caret_analyze.value_objects.node import NodeValueWithId
+from caret_analyze.value_objects.publish_topic_info import PublishTopicInfoValue
 
 import pytest
 
@@ -635,10 +636,10 @@ class TestTopicIgnoreReader:
                             return_value=[node])
 
         sub_info = SubscriptionCallbackValue(
-            'cb', node.node_name, node.node_id, 'symbol', (('/topic_name', 0),), None, 0
+            'cb', node.node_name, node.node_id, 'symbol', '/topic_name', 0, None, 0
         )
         sub_info_ignore = SubscriptionCallbackValue(
-            'cb_ignore', node.node_name, node.node_id, 'symbol', (('topic_ignore', 0),), None, 0
+            'cb_ignore', node.node_name, node.node_id, 'symbol', 'topic_ignore', 0, None, 0
         )
         mocker.patch.object(
             reader_mock, 'get_subscription_callbacks',
@@ -657,9 +658,9 @@ class TestTopicIgnoreReader:
         node = NodeValueWithId('node_name', 'node_name')
 
         sub_cb = SubscriptionCallbackValue(
-            'cb_id', node.node_name, node.node_id, 'symbol', (('/topic_name', 0),), None, 0)
+            'cb_id', node.node_name, node.node_id, 'symbol', '/topic_name', 0, None, 0)
         sub_cb_ignored = SubscriptionCallbackValue(
-            'cb_id_ignore', node.node_name, node.node_id, 'symbol', (('/ignore', 0),), None, 0)
+            'cb_id_ignore', node.node_name, node.node_id, 'symbol', '/ignore', 0, None, 0)
         mocker.patch.object(reader_mock, 'get_subscription_callbacks',
                             return_value=[sub_cb, sub_cb_ignored])
 
@@ -678,9 +679,9 @@ class TestTopicIgnoreReader:
         node = NodeValueWithId('node_name', 'node_id')
 
         sub_cb = SubscriptionCallbackValue(
-            callback_id[0], node.node_name, node.node_id, 'symbol', '/topic_name', None, 0)
+            callback_id[0], node.node_name, node.node_id, 'symbol', '/topic_name', 0, None, 0)
         sub_cb_ignored = SubscriptionCallbackValue(
-            callback_id[1], node.node_name, node.node_id, 'symbol', '/ignore', None, 0)
+            callback_id[1], node.node_name, node.node_id, 'symbol', '/ignore', 0, None, 0)
         cbg = CallbackGroupValue(
             CallbackGroupType.MUTUALLY_EXCLUSIVE.type_name,
             node.node_name, node.node_id, (sub_cb.callback_id, sub_cb_ignored.callback_id),
@@ -751,17 +752,18 @@ class TestPublishersLoaded:
         publisher_info = PublisherValue(
             'topic_name', 'node_name', 'node_id', (callback_id,), 0
         )
+        pub_info = PublishTopicInfoValue('topic_name', 0)
         mocker.patch.object(reader_mock, 'get_publishers',
                             return_value=[publisher_info])
         callbacks_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
 
         callback_mock = mocker.Mock(spec=CallbackValue)
         mocker.patch.object(callback_mock, 'callback_id', callback_id)
-        mocker.patch.object(callback_mock, 'publish_topic_names', ['topic_name'])
+        mocker.patch.object(callback_mock, 'publish_topics', ['topic_name', 0])
         mocker.patch.object(callback_mock, 'callback_name', 'cb0')
 
         callback_struct_mock = mocker.Mock(spec=CallbackStruct)
-        mocker.patch.object(callback_struct_mock, 'publish_topic_names', ['topic_name'])
+        mocker.patch.object(callback_struct_mock, 'publish_topics', [pub_info])
         mocker.patch.object(callback_struct_mock, 'callback_name', 'cb0')
 
         mocker.patch.object(callbacks_loaded_mock, 'data', [callback_struct_mock])
@@ -1013,7 +1015,7 @@ class TestCallbacksLoaded:
 
         sub_cb = SubscriptionCallbackValue(
             callback_id[1], node.node_name, node.node_id, symbol[1],
-            topic_names, None, callback_name=callback_name[1], construction_order=0)
+            topic_name, 0, None, callback_name=callback_name[1], construction_order=0)
 
         srv_cb = ServiceCallbackValue(
             callback_id[2], node.node_name, node.node_id, symbol[2],
@@ -1036,24 +1038,27 @@ class TestCallbacksLoaded:
         assert cb.node_name == timer_cb.node_id
         assert cb.callback_name == timer_cb.callback_name
         assert cb.callback_type == timer_cb.callback_type
-        assert cb.publish_topic_names == [topic_name]
+        assert cb.publish_topics == [topic_names_value]
         assert cb.subscribe_topic_name is None
+        assert cb.subscription_construction_order is None
 
         cb = loaded.find_callback(callback_id[1])
         assert isinstance(cb, CallbackStruct)
         assert cb.node_name == sub_cb.node_id
         assert cb.callback_name == sub_cb.callback_name
         assert cb.callback_type == sub_cb.callback_type
-        assert cb.publish_topic_names is None
-        assert cb.subscribe_topic_name == topic_names_value
+        assert cb.publish_topics is None
+        assert cb.subscribe_topic_name == topic_name
+        assert cb.subscription_construction_order == 0
 
         cb = loaded.find_callback(callback_id[2])
         assert isinstance(cb, CallbackStruct)
         assert cb.node_name == srv_cb.node_id
         assert cb.callback_name == srv_cb.callback_name
         assert cb.callback_type == srv_cb.callback_type
-        assert cb.publish_topic_names is None
+        assert cb.publish_topics is None
         assert cb.subscribe_topic_name is None
+        assert cb.subscription_construction_order is None
         assert cb.service_name == srv_cb.service_name
 
     def test_not_implemented_callback_type(self, mocker):
@@ -1080,7 +1085,7 @@ class TestCallbacksLoaded:
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         node = NodeValueWithId('/node_name', '/node_name')
         period_ns = 4
-        topic_names = (('/topic_name', 0),)
+        topic_name = '/topic_name'
         service_name = '/service_name'
         symbol = ['symbol0', 'symbol1', 'symbol2', 'symbol3', 'symbol4', 'symbol5']
         callback_id = ['5', '6', '7', '8', '9', '10']
@@ -1092,10 +1097,10 @@ class TestCallbacksLoaded:
             callback_id[1], node.node_name, node.node_id, symbol[1], period_ns, (),
             construction_order=0)
         sub_cb_0 = SubscriptionCallbackValue(
-            callback_id[2], node.node_name, node.node_id, symbol[2], topic_names, None,
+            callback_id[2], node.node_name, node.node_id, symbol[2], topic_name, 0, None,
             construction_order=0)
         sub_cb_1 = SubscriptionCallbackValue(
-            callback_id[3], node.node_name, node.node_id, symbol[3], topic_names, None,
+            callback_id[3], node.node_name, node.node_id, symbol[3], topic_name, 0, None,
             construction_order=0)
         srv_cb_0 = ServiceCallbackValue(
             callback_id[4], node.node_name, node.node_id, symbol[4], service_name, None,
@@ -1144,10 +1149,10 @@ class TestCallbacksLoaded:
             callback_id[1], node.node_name, node.node_id, symbol[1], period_ns, (),
             construction_order=0)
         sub_cb_0 = SubscriptionCallbackValue(
-            callback_id[2], node.node_name, node.node_id, symbol[2], [topic_name, 0], None,
+            callback_id[2], node.node_name, node.node_id, symbol[2], topic_name, 0, None,
             construction_order=0)
         sub_cb_1 = SubscriptionCallbackValue(
-            callback_id[3], node.node_name, node.node_id, symbol[3], [topic_name, 1], None,
+            callback_id[3], node.node_name, node.node_id, symbol[3], topic_name, 1, None,
             construction_order=0)
         srv_cb_0 = ServiceCallbackValue(
             callback_id[4], node.node_name, node.node_id, symbol[4], service_name, None,
@@ -1188,7 +1193,7 @@ class TestCallbacksLoaded:
 
         sub_cb = SubscriptionCallbackValue(
             callback_id[1], node.node_name, node.node_id, symbol[1],
-            [topic_name, 0], None, construction_order=0, callback_name=callback_name[1])
+            topic_name, 0, None, construction_order=0, callback_name=callback_name[1])
 
         srv_cb = ServiceCallbackValue(
             callback_id[2], node.node_name, node.node_id, symbol[2],
@@ -1650,22 +1655,21 @@ class TestCommunicationInfoLoaded:
         pub_cb_mock = mocker.Mock(spec=CallbackStruct)
         sub_cb_mock = mocker.Mock(spec=CallbackStruct)
 
-        mocker.patch.object(pub_cb_mock, 'publish_topic_names', [topic_name])
+        mocker.patch.object(pub_cb_mock, 'publish_topics', [topic_name, 0])
         mocker.patch.object(pub_cb_mock, 'subscribe_topic_name', None)
+        mocker.patch.object(pub_cb_mock, 'subscription_construction_order', None)
         mocker.patch.object(pub_cb_mock, 'node_name', pub_node_name)
 
-        mocker.patch.object(sub_cb_mock, 'publish_topic_names', [])
-        mocker.patch.object(sub_cb_mock, 'subscribe_topic_name', [topic_name, 0])
-        # mocker.patch.object(sub_cb_mock, 'subscribe_topic_name', topic_name)
-        mocker.patch.object(sub_cb_mock, 'subscription_construction_order', 0)
+        mocker.patch.object(sub_cb_mock, 'publish_topics', [])
+        mocker.patch.object(sub_cb_mock, 'subscribe_topic_name', topic_name)
+        mocker.patch.object(pub_cb_mock, 'subscription_construction_order', 0)
         mocker.patch.object(sub_cb_mock, 'node_name', sub_node_name)
         mocker.patch.object(sub_cb_mock, 'callback_name', callback_name)
         mocker.patch.object(sub_cb_mock, 'construction_order', 0)
 
         sub_cb_mock2 = mocker.Mock(spec=CallbackStruct)
-        mocker.patch.object(sub_cb_mock2, 'publish_topic_names', [])
-        mocker.patch.object(sub_cb_mock2, 'subscribe_topic_name', [topic_name, 1])
-        # mocker.patch.object(sub_cb_mock2, 'subscribe_topic_name', topic_name)
+        mocker.patch.object(sub_cb_mock2, 'publish_topics', [])
+        mocker.patch.object(sub_cb_mock2, 'subscribe_topic_name', topic_name)
         mocker.patch.object(sub_cb_mock2, 'subscription_construction_order', 1)
         mocker.patch.object(sub_cb_mock2, 'node_name', sub_node_name)
         mocker.patch.object(sub_cb_mock2, 'callback_name', callback_name)

@@ -1134,9 +1134,9 @@ class NodeRecordsCallbackChain:
         tail_callback = node_path.callbacks[-1]
 
         if node_path.publish_topic_name is not None and \
-            tail_callback.publish_topic_names is not None and \
-            len(tail_callback.publish_topic_names) != 0 and \
-                node_path.publish_topic_name not in tail_callback.publish_topic_names:
+            tail_callback.publish_topics is not None and \
+            len(tail_callback.publish_topics) != 0 and \
+                node_path.publish_topic_name not in tail_callback.publish_topics:
             raise UnsupportedNodeRecordsError('')
 
         if node_path.subscribe_topic_name is not None:

@@ -483,13 +483,13 @@ class Architecture(Summarizable):
         callback_write: CallbackStructValue = \
             Util.find_one(lambda x: x.callback_name == callback_name_write, self.callbacks)
 
-        if callback_read.publish_topic_names:
+        if callback_read.publish_topics:
             context_reader = AssignContextReader(node)
-            for publish_topic_name in callback_read.publish_topic_names:
-                if callback_write.subscribe_topic_name:
-                    context_reader.remove_callback_chain(callback_write.subscribe_topic_name[0],
-                                                         publish_topic_name)
-
+            for publish_topic_name in callback_read.publish_topics:
+                if callback_write.subscribe_topic_name and publish_topic_name is not None:
+                    for pub_topic in publish_topic_name:
+                        context_reader.remove_callback_chain(callback_write.subscribe_topic_name,
+                                                             pub_topic.topic_name)
             node.update_node_path(NodeValuesLoaded._search_node_paths(node,
                                   context_reader))
 

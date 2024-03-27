@@ -21,6 +21,7 @@ from ...value_objects import (CallbackStructValue, CallbackType,
                               ServiceCallbackStructValue,
                               SubscriptionCallbackStructValue,
                               TimerCallbackStructValue)
+from ...value_objects.publish_topic_info import PublishTopicInfoValue
 
 
 class CallbackStruct(metaclass=ABCMeta):
@@ -30,27 +31,22 @@ class CallbackStruct(metaclass=ABCMeta):
         self,
         node_name: str,
         symbol: str,
-        subscribe_topic_names: list[str] | None,
+        subscribe_topic_name: str | None,
+        subscription_construction_order: int | None,
         service_name: str | None,
-        publish_topic_names: list[str] | None,
+        publish_topics: list[PublishTopicInfoValue] | None,
         construction_order: int,
         callback_name: str
     ) -> None:
         self._node_name = node_name
         self._callback_name = callback_name
         self._symbol = symbol
-        self._subscribe_topic_name = None
-        self._subscription_construction_order = None
-        if subscribe_topic_names is not None:
-            self._subscribe_topic_name = subscribe_topic_names[0][0]
-            self._subscription_construction_order = int(subscribe_topic_names[0][1])
+        self._subscribe_topic_name = subscribe_topic_name
+        self._subscription_construction_order = subscription_construction_order
+
         self._service_name = service_name
-        self._publish_topic_names = publish_topic_names
+        self._publish_topics = publish_topics
         self._construction_order = construction_order
-        self._publisher_construction_order = None
-        if publish_topic_names is not None and len(publish_topic_names) >= 1:
-            self._publish_topic_names = publish_topic_names[0][0].split()
-            self._publisher_construction_order = [int(publish_topic_names[0][1])]
 
     @property
     def node_name(self) -> str:
@@ -122,10 +118,6 @@ class CallbackStruct(metaclass=ABCMeta):
         return self._service_name
 
     @property
-    def publish_topic_names(self) -> list[str] | None:
-        return self._publish_topic_names
-
-    @property
     def subscription_construction_order(self) -> int | None:
         """
         Get subscription construction order.
@@ -139,17 +131,17 @@ class CallbackStruct(metaclass=ABCMeta):
         return self._subscription_construction_order
 
     @property
-    def publisher_construction_order(self) -> list[int] | None:
+    def publish_topics(self) -> list[PublishTopicInfoValue] | None:
         """
-        Get publisher construction order.
+        Get publisher topic info.
 
         Returns
         -------
-        int
-            construction order
+        PublishTopicInfo
+            publish topics
 
         """
-        return self._publisher_construction_order
+        return self._publish_topics
 
     @property
     def construction_order(self) -> int:
@@ -169,37 +161,40 @@ class CallbackStruct(metaclass=ABCMeta):
         pass
 
     def insert_publisher(self, publish_topic_name: str, publisher_construction_order: int) -> None:
-        self._publish_topic_names = self._publish_topic_names or []
-        self._publisher_construction_order = self._publisher_construction_order or []
-        for count in range(len(self._publish_topic_names)):
-            if self._publish_topic_names[count] == publish_topic_name and \
-                    self._publisher_construction_order[count] == publisher_construction_order:
-                msg = 'publisher is already registered. '
-                msg += f' publish_topic_name: {publish_topic_name}'
-                msg += f' construction_order: {publisher_construction_order}'
-                raise MultipleItemFoundError(msg)
-
-        self._publish_topic_names.append(publish_topic_name)
-        self._publisher_construction_order.append(publisher_construction_order)
+        if self.publish_topics is not None:
+            for count in range(len(self.publish_topics)):
+                if self.publish_topics[count].topic_name == publish_topic_name and \
+                    self.publish_topics[count].construction_order == \
+                        publisher_construction_order:
+                    msg = 'publisher is already registered. '
+                    msg += f' publish_topic_name: {publish_topic_name}'
+                    msg += f' construction_order: {publisher_construction_order}'
+                    raise MultipleItemFoundError(msg)
+            self.publish_topics.append(PublishTopicInfoValue
+                                       (publish_topic_name, publisher_construction_order))
+        else:
+            self._publish_topics = []
+            self._publish_topics.append(PublishTopicInfoValue
+                                        (publish_topic_name, publisher_construction_order))
 
     def remove_publisher(self, publish_topic_name: str, publisher_construction_order: int) -> None:
-        self._publish_topic_names = self._publish_topic_names or []
-        self._publisher_construction_order = self._publisher_construction_order or []
-        for count in range(len(self._publish_topic_names)):
-            if self._publish_topic_names[count] == publish_topic_name and \
-                    self._publisher_construction_order[count] == publisher_construction_order:
-                self._publish_topic_names.remove(publish_topic_name)
-                self._publisher_construction_order.remove(publisher_construction_order)
+        if self.publish_topics is not None:
+            for count in range(len(self.publish_topics)):
+                if self.publish_topics[count].topic_name == publish_topic_name and \
+                        self.publish_topics[count].construction_order == \
+                        publisher_construction_order:
+                    self.publish_topics.remove(self.publish_topics[count])
 
     def rename_node(self, src: str, dst: str) -> None:
         if self.node_name == src:
             self._node_name = dst
 
     def rename_topic(self, src: str, dst: str) -> None:
-        if self._publish_topic_names is not None:
-            for i, p in enumerate(self._publish_topic_names):
-                if p == src:
-                    self._publish_topic_names[i] = dst
+        if self.publish_topics is not None:
+            for i, p in enumerate(self.publish_topics):
+                if p.topic_name == src:
+                    pub_info = PublishTopicInfoValue(dst, p.construction_order)
+                    self.publish_topics[i] = pub_info
 
         if self._subscribe_topic_name is not None:
             if self._subscribe_topic_name == src:
@@ -214,16 +209,17 @@ class TimerCallbackStruct(CallbackStruct):
         node_name: str,
         symbol: str,
         period_ns: int,
-        publish_topic_names: list[str] | None,
+        publish_topics: list[PublishTopicInfoValue] | None,
         construction_order: int,
         callback_name: str,
     ) -> None:
         super().__init__(
             node_name=node_name,
             symbol=symbol,
-            subscribe_topic_names=None,
+            subscribe_topic_name=None,
+            subscription_construction_order=None,
             service_name=None,
-            publish_topic_names=publish_topic_names,
+            publish_topics=publish_topics,
             construction_order=construction_order,
             callback_name=callback_name)
         self._period_ns = period_ns
@@ -239,7 +235,7 @@ class TimerCallbackStruct(CallbackStruct):
     def to_value(self) -> TimerCallbackStructValue:
         return TimerCallbackStructValue(
             self.node_name, self.symbol, self.period_ns,
-            None if self.publish_topic_names is None else tuple(self.publish_topic_names),
+            None if self.publish_topics is None else tuple(self.publish_topics),
             self.construction_order, self.callback_name)
 
 
@@ -250,21 +246,23 @@ class SubscriptionCallbackStruct(CallbackStruct):
         self,
         node_name: str,
         symbol: str,
-        subscribe_topic_names: list[str] | None,
-        publish_topic_names: list[str] | None,
+        subscribe_topic_name: str,
+        subscription_construction_order: int,
+        publish_topics: list[PublishTopicInfoValue] | None,
         construction_order: int,
         callback_name: str,
     ) -> None:
         super().__init__(
             node_name=node_name,
             symbol=symbol,
-            subscribe_topic_names=subscribe_topic_names,
+            subscribe_topic_name=subscribe_topic_name,
+            subscription_construction_order=subscription_construction_order,
             service_name=None,
-            publish_topic_names=publish_topic_names,
+            publish_topics=publish_topics,
             construction_order=construction_order,
             callback_name=callback_name)
-        if subscribe_topic_names is not None:
-            self.__subscribe_topic_name = subscribe_topic_names[0]
+        self.__subscribe_topic_name = subscribe_topic_name
+        self.__subscription_construction_order = subscription_construction_order
 
     @property
     def callback_type(self) -> CallbackType:
@@ -274,23 +272,26 @@ class SubscriptionCallbackStruct(CallbackStruct):
     def subscribe_topic_name(self) -> str:
         return self.__subscribe_topic_name
 
+    @property
+    def subscription_construction_order(self) -> int:
+        return self.__subscription_construction_order
+
     def to_value(self) -> SubscriptionCallbackStructValue:
         return SubscriptionCallbackStructValue(
             self.node_name, self.symbol,
             self.subscribe_topic_name,
-            None if self.publish_topic_names is None else tuple(self.publish_topic_names),
+            self.subscription_construction_order,
+            None if self.publish_topics is None else tuple(self.publish_topics),
             self.construction_order, self.callback_name)
 
     def rename_topic(self, src: str, dst: str) -> None:
-        if self._publish_topic_names is not None:
-            for i, p in enumerate(self._publish_topic_names):
-                if p == src:
-                    self._publish_topic_names[i] = dst
+        if self.publish_topics is not None:
+            for i, p in enumerate(self.publish_topics):
+                if p.topic_name == src:
+                    self.publish_topics[i] = PublishTopicInfoValue(dst, p.construction_order)
 
-        if self.subscribe_topic_name[0] == src:
-            self._subscribe_topic_name = dst
-            self.__subscribe_topic_name = \
-                (dst, self._subscription_construction_order)  # type: ignore
+        if self.subscribe_topic_name == src:
+            self.__subscribe_topic_name = dst
 
 
 class ServiceCallbackStruct(CallbackStruct):
@@ -301,16 +302,17 @@ class ServiceCallbackStruct(CallbackStruct):
         node_name: str,
         symbol: str,
         service_name: str,
-        publish_topic_names: list[str] | None,
+        publish_topics: list[PublishTopicInfoValue] | None,
         construction_order: int,
         callback_name: str,
     ) -> None:
         super().__init__(
             node_name=node_name,
             symbol=symbol,
-            subscribe_topic_names=None,
+            subscribe_topic_name=None,
+            subscription_construction_order=None,
             service_name=service_name,
-            publish_topic_names=publish_topic_names,
+            publish_topics=publish_topics,
             construction_order=construction_order,
             callback_name=callback_name)
         self.__service_name = service_name
@@ -328,5 +330,5 @@ class ServiceCallbackStruct(CallbackStruct):
             self.node_name,
             self.symbol,
             self.service_name,
-            None if self.publish_topic_names is None else tuple(self.publish_topic_names),
+            None if self.publish_topics is None else tuple(self.publish_topics),
             self.construction_order, self.callback_name)

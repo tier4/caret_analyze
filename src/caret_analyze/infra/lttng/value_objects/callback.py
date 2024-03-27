@@ -14,9 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from ....value_objects import ServiceCallbackValue, SubscriptionCallbackValue, TimerCallbackValue
+from ....value_objects.publish_topic_info import PublishTopicInfoValue
 
 
 class TimerCallbackValueLttng(TimerCallbackValue):
@@ -28,7 +27,7 @@ class TimerCallbackValueLttng(TimerCallbackValue):
         symbol: str,
         period_ns: int,
         timer_handle: int,
-        publish_topic_names: tuple[str, ...] | None,
+        publish_topics: tuple[PublishTopicInfoValue] | None,
         callback_object: int,
         construction_order: int,
     ) -> None:
@@ -38,7 +37,7 @@ class TimerCallbackValueLttng(TimerCallbackValue):
             node_name=node_name,
             symbol=symbol,
             period_ns=period_ns,
-            publish_topic_names=publish_topic_names,
+            publish_topics=publish_topics,
             construction_order=construction_order
         )
         self._callback_object = callback_object
@@ -60,9 +59,10 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
         node_id: str,
         node_name: str,
         symbol: str,
-        subscribe_topic_names: tuple[Any, ...] | None,
+        subscribe_topic_name: str,
+        subscription_construction_order: int,
         subscription_handle: int,
-        publish_topic_names: tuple[str, ...] | None,
+        publish_topics: tuple[PublishTopicInfoValue] | None,
         callback_object: int,
         callback_object_intra: int | None,
         construction_order: int,
@@ -73,8 +73,9 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
             node_id=node_id,
             node_name=node_name,
             symbol=symbol,
-            subscribe_topic_names=subscribe_topic_names,
-            publish_topic_names=publish_topic_names,
+            subscribe_topic_name=subscribe_topic_name,
+            subscription_construction_order=subscription_construction_order,
+            publish_topics=publish_topics,
             construction_order=construction_order
         )
 
@@ -109,7 +110,7 @@ class ServiceCallbackValueLttng(ServiceCallbackValue):
         symbol: str,
         service_name: str,
         service_handle: int,
-        publish_topic_names: tuple[str, ...] | None,
+        publish_topics: tuple[PublishTopicInfoValue] | None,
         callback_object: int,
         construction_order: int,
     ) -> None:
@@ -119,7 +120,7 @@ class ServiceCallbackValueLttng(ServiceCallbackValue):
             node_name=node_name,
             symbol=symbol,
             service_name=service_name,
-            publish_topic_names=publish_topic_names,
+            publish_topics=publish_topics,
             construction_order=construction_order)
 
         self._callback_object = callback_object

@@ -1049,7 +1049,7 @@ class TestNodeRecords:
         bridge_setup_get_callback(callback_, timer_cb_lttng)
 
         mocker.patch.object(
-            callback_, 'publish_topic_names', ['pub_topic_name'])
+            callback_, 'publish_topics', ['pub_topic_name', 0])
 
         node_path = mocker.Mock(spec=NodePathStructValue)
         mocker.patch.object(node_path, 'message_context_type',

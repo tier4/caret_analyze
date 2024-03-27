@@ -834,7 +834,7 @@ class CallbacksLoaded:
     ) -> CallbackBase:
         publishers: list[Publisher] | None = None
 
-        if callback_value.publish_topic_names is not None:
+        if callback_value.publish_topics is not None:
             publishers = publishers_loaded.get_publishers(
                 None, callback_value.callback_name, None)
 

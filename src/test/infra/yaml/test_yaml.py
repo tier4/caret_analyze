@@ -228,7 +228,10 @@ nodes:
             assert timer_cb.callback_type == CallbackType.TIMER
             assert timer_cb.symbol == 'timer_symbol'
             assert timer_cb.node_id == '/node'
-            assert timer_cb.publish_topic_names == (('/chatter', 0),)
+            assert timer_cb.subscribe_topic_name is None
+            assert timer_cb.subscription_construction_order is None
+            assert timer_cb.publish_topics[0].topic_name == '/chatter'
+            assert timer_cb.publish_topics[0].construction_order == 0
             assert timer_cb.period_ns == 1
 
         sub_cbs = reader.get_subscription_callbacks(NodeValue('/node', None))
