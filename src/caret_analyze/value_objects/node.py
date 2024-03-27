@@ -284,9 +284,9 @@ class NodeStructValue(ValueObject, Summarizable):
 
     def get_path(
         self,
-        subscribe_topic_name: str,
+        subscribe_topic_name: str | None,
         subscription_construction_order: int | None,
-        publish_topic_name: str,
+        publish_topic_name: str | None,
         publisher_construction_order: int | None
     ) -> NodePathStructValue:
         """
@@ -296,8 +296,12 @@ class NodeStructValue(ValueObject, Summarizable):
         ----------
         subscribe_topic_name : str | None
             Topic name to which the node subscribes.
+        subscription_construction_order : int | None
+            Construction order to which the node subscribes.
         publish_topic_name : str | None
             Topic name to which the node publishes.
+        publisher_construction_order : int | None
+            Construction order to which the node publishes.
 
         Returns
         -------
