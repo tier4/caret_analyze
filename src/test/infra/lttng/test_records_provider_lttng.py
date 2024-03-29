@@ -26,9 +26,9 @@ from caret_analyze.infra.lttng.records_provider_lttng import (FilteredRecordsSou
 from caret_analyze.infra.lttng.value_objects import (PublisherValueLttng,
                                                      SubscriptionCallbackValueLttng,
                                                      TimerCallbackValueLttng)
-from caret_analyze.record import Record, Records, RecordsInterface
 from caret_analyze.record.column import ColumnValue
 from caret_analyze.record.interface import RecordInterface
+from caret_analyze.record.record_cpp_impl import RecordCppImpl, RecordsCppImpl, RecordsInterface
 from caret_analyze.value_objects import (CallbackChain, CallbackStructValue,
                                          CommunicationStructValue,
                                          MessageContextType,
@@ -220,11 +220,11 @@ class TestRecordsProviderLttng:
         provider = RecordsProviderLttng(lttng_mock)
         comm_info_mock = mocker.Mock(spec=Lttng)
 
-        records = Records()
+        records = RecordsCppImpl()
         mocker.patch.object(
             provider, '_compose_intra_proc_comm_records', return_value=records)
         assert provider.is_intra_process_communication(comm_info_mock) is False
-        records.concat(Records([Record()]))
+        records.concat(RecordsCppImpl([RecordCppImpl()]))
 
         assert provider.is_intra_process_communication(comm_info_mock) is True
 
@@ -387,16 +387,16 @@ class TestNodeRecordsCallbackChain:
 
         records_data: list[RecordInterface]
         records_data = [
-            Record({
+            RecordCppImpl({
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP: 0,
                 COLUMN_NAME.CALLBACK_END_TIMESTAMP: 1,
             }),
-            Record({
+            RecordCppImpl({
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP: 2,
                 COLUMN_NAME.CALLBACK_END_TIMESTAMP: 3,
             }),
         ]
-        cb_records = Records(
+        cb_records = RecordsCppImpl(
             records_data,
             [
                 ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP),
@@ -431,16 +431,16 @@ class TestNodeRecordsCallbackChain:
 
         records_data: list[RecordInterface]
         records_data = [
-            Record({
+            RecordCppImpl({
                 COLUMN_NAME.CALLBACK_END_TIMESTAMP: 1,
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP: 2,
             }),
-            Record({
+            RecordCppImpl({
                 COLUMN_NAME.CALLBACK_END_TIMESTAMP: 3,
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP: 4,
             }),
         ]
-        vp_records = Records(
+        vp_records = RecordsCppImpl(
             records_data,
             [
                 ColumnValue(COLUMN_NAME.CALLBACK_END_TIMESTAMP),
@@ -481,13 +481,13 @@ class TestNodeRecordsCallbackChain:
         cb0_info_mock = mocker.Mock(spec=CallbackStructValue)
         cb1_info_mock = mocker.Mock(spec=CallbackStructValue)
 
-        cb0_records = Records(
+        cb0_records = RecordsCppImpl(
             [
-                Record({
+                RecordCppImpl({
                     f'cb0/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}': 0,
                     f'cb0/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}': 1,
                 }),
-                Record({
+                RecordCppImpl({
                     f'cb0/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}': 2,
                     f'cb0/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}': 3,
                 }),
@@ -497,13 +497,13 @@ class TestNodeRecordsCallbackChain:
                 ColumnValue(f'cb0/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}'),
             ]
         )
-        vp_records = Records(
+        vp_records = RecordsCppImpl(
             [
-                Record({
+                RecordCppImpl({
                     f'cb0/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}': 1,
                     f'cb1/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}': 2,
                 }),
-                Record({
+                RecordCppImpl({
                     f'cb0/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}': 3,
                     f'cb1/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}': 4,
                 }),
@@ -513,13 +513,13 @@ class TestNodeRecordsCallbackChain:
                 ColumnValue(f'cb1/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}'),
             ]
         )
-        cb1_records = Records(
+        cb1_records = RecordsCppImpl(
             [
-                Record({
+                RecordCppImpl({
                     f'cb1/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}': 2,
                     f'cb1/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}': 3,
                 }),
-                Record({
+                RecordCppImpl({
                     f'cb1/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}': 4,
                     f'cb1/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}': 5,
                 }),
@@ -563,15 +563,15 @@ class TestNodeRecordsCallbackChain:
             f'cb1/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}',
         ]
         records = node_records.to_records()
-        expect = Records(
+        expect = RecordsCppImpl(
             [
-                Record({
+                RecordCppImpl({
                     column_names[0]: 0,
                     column_names[1]: 1,
                     column_names[2]: 2,
                     column_names[3]: 3,
                 }),
-                Record({
+                RecordCppImpl({
                     column_names[0]: 2,
                     column_names[1]: 3,
                     column_names[2]: 4,

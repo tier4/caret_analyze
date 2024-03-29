@@ -13,9 +13,8 @@
 # limitations under the License.
 
 from caret_analyze.infra import RecordsProvider
-# from caret_analyze.record import Record, Records
-from caret_analyze.record.record_cpp_impl import RecordCppImpl, RecordsCppImpl
 from caret_analyze.record.column import ColumnValue
+from caret_analyze.record.record_cpp_impl import RecordCppImpl, RecordsCppImpl
 from caret_analyze.runtime.node_path import NodePath
 from caret_analyze.value_objects import NodePathStructValue
 
