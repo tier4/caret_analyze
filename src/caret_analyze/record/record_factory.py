@@ -71,7 +71,7 @@ class RecordsFactory:
         init: Sequence[RecordInterface],
         columns: Sequence[ColumnValue] | None
     ) -> RecordsInterface:
-            return RecordsFactory._create_cpp_instance(init, columns)
+        return RecordsFactory._create_cpp_instance(init, columns)
 
     @staticmethod
     @create_instance.register
@@ -85,7 +85,6 @@ class RecordsFactory:
             in init or []
         ]
         return RecordsFactory._create_cpp_instance(records, columns)
-
 
     @staticmethod
     def _create_cpp_instance(
