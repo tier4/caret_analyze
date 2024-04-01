@@ -17,7 +17,7 @@ from __future__ import annotations
 from enum import IntEnum
 from itertools import groupby
 
-from .interface import RecordsInterface
+from .interface import RecordsInterface, RecordInterface
 from ..exceptions import InvalidArgumentError
 
 
