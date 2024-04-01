@@ -20,7 +20,7 @@ from collections.abc import Sequence
 from multimethod import multimethod as singledispatchmethod
 
 from .column import ColumnValue
-from .record import RecordInterface, RecordsInterface
+from .interface import RecordInterface, RecordsInterface
 
 try:
     import caret_analyze.record.record_cpp_impl as cpp_impl

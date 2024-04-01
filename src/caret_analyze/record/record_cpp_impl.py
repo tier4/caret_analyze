@@ -15,12 +15,14 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
+
 import pandas as pd
 
 from record_cpp_impl import RecordBase, RecordsBase
 
 from .column import Column, Columns, ColumnValue
-from .record import RecordInterface, RecordsInterface, validate_rename_rule
+from .interface import RecordInterface, RecordsInterface
+from .record_utils import validate_rename_rule
 from ..exceptions import InvalidArgumentError
 
 

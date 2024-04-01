@@ -24,7 +24,7 @@ from .path_base import PathBase
 from ..common import Summarizable, Summary, Util
 from ..exceptions import Error, InvalidArgumentError, InvalidRecordsError
 from ..record import Columns, RecordsFactory
-from ..record.record import merge, merge_sequential, RecordsInterface
+from ..record.record_utils import merge, merge_sequential, RecordsInterface
 from ..value_objects import CallbackChain, PathStructValue
 
 logger = getLogger(__name__)
