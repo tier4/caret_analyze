@@ -14,7 +14,7 @@
 
 from .column import Column, Columns, ColumnValue
 from .data_frame_shaper import Clip, DataFrameShaper, Strip
-from .record_cpp_impl import RecordInterface, RecordsInterface
+from .interface import RecordInterface, RecordsInterface
 from .record_factory import RecordFactory, RecordsFactory
 from .record_utils import (merge,
                            merge_sequential,
