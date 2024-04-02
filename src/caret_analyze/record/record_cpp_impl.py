@@ -22,7 +22,7 @@ from record_cpp_impl import RecordBase, RecordsBase
 
 from .column import Column, Columns, ColumnValue
 from .interface import RecordInterface, RecordsInterface
-from .record_utils import validate_rename_rule
+from .record_operations import validate_rename_rule
 from ..exceptions import InvalidArgumentError
 
 
@@ -349,9 +349,6 @@ class RecordsCppImpl(RecordsInterface):
         RecordsCppImpl.__validate_unknown_columns(columns_set, columns_set_)
 
         RecordsCppImpl.__validate_duplicated_columns(columns)
-
-    def __len__(self) -> int:
-        return len(self.data)
 
     @staticmethod
     def _get_column_series_core(records: RecordsInterface, column_name: str):
