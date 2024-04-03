@@ -25,10 +25,8 @@ from .interface import RecordInterface, RecordsInterface
 try:
     import caret_analyze.record.record_cpp_impl as cpp_impl
 
-    use_cpp_impl = True
     print('Succeed to find record_cpp_impl. the C++ version will be used.')
 except ModuleNotFoundError:
-    use_cpp_impl = False
     raise ModuleNotFoundError('Failed to find record_cpp_impl.')
 
 
