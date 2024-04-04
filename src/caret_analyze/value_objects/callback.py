@@ -115,7 +115,7 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         subscribe_topic_name : str | None
             Topic name which the callback subscribes.
         subscription_construction_order: int
-            construction_order which the callback subscribes.
+            A construction order of subscription.
         service_name : str | None
             Service name which the callback service.
         publish_topics : tuple[PublishTopicInfoValue] | None
@@ -235,11 +235,7 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         Returns
         -------
         int | None
-            construction_order which the callback subscribes.
-
-        Note:
-        -----
-        Only one subscription callback have a single subscribe construction_order.
+            A construction order of subscription..
 
         """
         return self._subscription_construction_order
@@ -423,7 +419,7 @@ class SubscriptionCallbackValue(CallbackValue):
         subscribe_topic_name : str
             Topic name which the callback subscribes.
         subscription_construction_order : int
-            Order of instance creation within the identical subscribes.
+            A construction order of subscription.
         publish_topics : tuple[PublishTopicInfoValue, ...] | None
             Topic information which the callback publishes.
         construction_order : int
@@ -474,6 +470,15 @@ class SubscriptionCallbackValue(CallbackValue):
 
     @property
     def subscription_construction_order(self) -> int:
+        """
+        Get subscription construction_order.
+
+        Returns
+        -------
+        int
+            A construction order of subscription..
+
+        """
         return self.__subscription_construction_order
 
 
@@ -601,7 +606,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         self._subscribe_topic_name = subscribe_topic_name
         self._subscription_construction_order = subscription_construction_order
         self._service_name = service_name
-        self._publish_topics = publish_topics,
+        self._publish_topics = publish_topics
         self._construction_order = construction_order
 
     @property
@@ -685,6 +690,15 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
 
     @property
     def subscription_construction_order(self) -> int | None:
+        """
+        Get subscription construction order.
+
+        Returns
+        -------
+        int | None
+            A construction order of subscription.
+
+        """
         return self._subscription_construction_order
 
     @property
@@ -701,7 +715,16 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         return self._service_name
 
     @property
-    def publish_topics(self) -> tuple[tuple[PublishTopicInfoValue, ...] | None]:
+    def publish_topics(self) -> tuple[PublishTopicInfoValue, ...] | None:
+        """
+        Get publisher topic info.
+
+        Returns
+        -------
+        tuple[PublishTopicInfoValue, ...] | None
+            publish topics
+
+        """
         return self._publish_topics
 
     @property
@@ -755,7 +778,7 @@ class TimerCallbackStructValue(CallbackStructValue, ValueObject):
             Symbol name of the callback.
         period_ns : int
             Period of the timer.
-        publish_topics : tuple[str, ...] | None
+        publish_topics : tuple[PublishTopicInfoValue, ...] | None
             Topic information which the callback publishes.
         construction_order: int
             Order of instance creation within the identical node.
@@ -861,7 +884,6 @@ class SubscriptionCallbackStructValue(CallbackStructValue, ValueObject):
             publish_topics=publish_topics,
             construction_order=construction_order,
             callback_name=callback_name)
-        self._subscription_construction_order = subscription_construction_order
 
     @property
     def callback_type(self) -> CallbackType:
@@ -908,10 +930,6 @@ class SubscriptionCallbackStructValue(CallbackStructValue, ValueObject):
         topic_name = super().subscribe_topic_name
         assert topic_name is not None
         return topic_name
-
-    @property
-    def subscription_construction_order(self) -> int | None:
-        return self._subscription_construction_order
 
 
 class ServiceCallbackStructValue(CallbackStructValue, ValueObject):

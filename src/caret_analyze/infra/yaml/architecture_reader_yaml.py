@@ -25,11 +25,10 @@ from ...common import Util
 from ...exceptions import InvalidYamlFormatError
 from ...value_objects import (CallbackGroupValue, CallbackType, ExecutorValue,
                               NodePathValue, NodeValue, NodeValueWithId,
-                              PathValue, PublisherValue,
+                              PathValue, PublisherValue, PublishTopicInfoValue,
                               ServiceCallbackValue, ServiceValue,
                               SubscriptionCallbackValue, SubscriptionValue,
                               TimerCallbackValue, TimerValue, VariablePassingValue)
-from ...value_objects.publish_topic_info import PublishTopicInfoValue
 
 logger = getLogger(__name__)
 
@@ -79,11 +78,11 @@ class ArchitectureReaderYaml(ArchitectureReader):
     ):
         return obj.get(key_name, default)
 
-    def _get_publish_topic_names(
+    def _get_publish_topic_infos(
         self,
         node_name: str,
         callback_name: str
-    ) -> list[Any]:
+    ) -> list[PublishTopicInfoValue]:
         node_dict = self._get_node_dict(node_name)
         if 'publishes' not in node_dict.keys():
             return []
@@ -102,7 +101,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
 
         return topic_names
 
-    def _get_subscribe_topic_names(
+    def _get_subscribe_topic_infos(
         self,
         node_name: str,
         callback_name: str
@@ -142,7 +141,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         callbacks = []
         for _, info in enumerate(cbs_dict):
             callback_name = self._get_value(info, 'callback_name')
-            publish_topic_names = self._get_publish_topic_names(node.node_name, callback_name)
+            publish_topic_names = self._get_publish_topic_infos(node.node_name, callback_name)
             callback_id = callback_name
             node_name = self._get_value(node_dict, 'node_name')
             construction_order = self._get_value_with_default(info, 'construction_order', 0)
@@ -286,11 +285,11 @@ class ArchitectureReaderYaml(ArchitectureReader):
         callbacks = []
         for val in callback_values:
             callback_name = self._get_value(val, 'callback_name')
-            publish_topic_names = self._get_publish_topic_names(node.node_name, callback_name)
+            publish_topic_infos = self._get_publish_topic_infos(node.node_name, callback_name)
             callback_id = callback_name
             node_name = self._get_value(node_dict, 'node_name')
             construction_order = self._get_value_with_default(val, 'construction_order', 0)
-            subscribe_info = self._get_subscribe_topic_names(node.node_name, callback_name)
+            subscribe_info = self._get_subscribe_topic_infos(node.node_name, callback_name)
             callbacks.append(
                 SubscriptionCallbackValue(
                     callback_id=callback_id,
@@ -299,7 +298,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
                     symbol=self._get_value(val, 'symbol'),
                     subscribe_topic_name=subscribe_info[0][0],
                     subscription_construction_order=subscribe_info[0][1],
-                    publish_topics=tuple(publish_topic_names),
+                    publish_topics=tuple(publish_topic_infos),
                     callback_name=callback_name,
                     construction_order=construction_order
                 )

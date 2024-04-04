@@ -789,7 +789,7 @@ class TestPublishersLoaded:
 
         callback_mock = mocker.Mock(spec=CallbackValue)
         mocker.patch.object(callback_mock, 'callback_id', callback_id)
-        mocker.patch.object(callback_mock, 'publish_topics', ['topic_name', 0])
+        mocker.patch.object(callback_mock, 'publish_topics', [pub_info])
         mocker.patch.object(callback_mock, 'callback_name', 'cb0')
 
         callback_struct_mock = mocker.Mock(spec=CallbackStruct)
@@ -1673,6 +1673,7 @@ class TestCommunicationInfoLoaded:
 
         mocker.patch.object(pub_mock, 'topic_name', topic_name)
         mocker.patch.object(sub_mock, 'topic_name', topic_name)
+        mocker.patch.object(pub_mock, 'construction_order', 0)
 
         mocker.patch.object(pub_mock, 'node_name', pub_node_name)
         mocker.patch.object(sub_mock, 'node_name', sub_node_name)
@@ -1685,14 +1686,15 @@ class TestCommunicationInfoLoaded:
         pub_cb_mock = mocker.Mock(spec=CallbackStruct)
         sub_cb_mock = mocker.Mock(spec=CallbackStruct)
 
-        mocker.patch.object(pub_cb_mock, 'publish_topics', [topic_name, 0])
+        pub_info = PublishTopicInfoValue(topic_name, 0)
+        mocker.patch.object(pub_cb_mock, 'publish_topics',  [pub_info])
         mocker.patch.object(pub_cb_mock, 'subscribe_topic_name', None)
         mocker.patch.object(pub_cb_mock, 'subscription_construction_order', None)
         mocker.patch.object(pub_cb_mock, 'node_name', pub_node_name)
 
         mocker.patch.object(sub_cb_mock, 'publish_topics', [])
         mocker.patch.object(sub_cb_mock, 'subscribe_topic_name', topic_name)
-        mocker.patch.object(pub_cb_mock, 'subscription_construction_order', 0)
+        mocker.patch.object(sub_cb_mock, 'subscription_construction_order', 0)
         mocker.patch.object(sub_cb_mock, 'node_name', sub_node_name)
         mocker.patch.object(sub_cb_mock, 'callback_name', callback_name)
         mocker.patch.object(sub_cb_mock, 'construction_order', 0)

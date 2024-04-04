@@ -25,6 +25,7 @@ from .variable_passing import VariablePassingStruct
 from ...common import Util
 from ...exceptions import ItemNotFoundError, MultipleItemFoundError
 from ...value_objects import NodeStructValue
+from ...value_objects.publish_topic_info import PublishTopicInfoValue
 
 
 class NodeStruct():
@@ -129,13 +130,18 @@ class NodeStruct():
 
     def get_service(
         self,
-        service_name: str
+        service_name: str,
+        construction_order: int | None
     ) -> ServiceStruct:
 
+        def is_target(service: ServiceStruct):
+            match = service.service_name == service_name
+            if construction_order is not None:
+                match &= service.construction_order == construction_order
+            return match
+
         try:
-            return Util.find_one(
-                lambda x: x.service_name == service_name,
-                self._services)
+            return Util.find_one(is_target, self._services)
         except ItemNotFoundError:
             msg = 'Failed to find service info. '
             msg += f'service_name: {service_name}'
@@ -202,7 +208,8 @@ class NodeStruct():
         callback: CallbackStruct = \
             Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
         try:
-            callback.insert_publisher(publish_topic_name, publisher_construction_order)
+            pub_info = PublishTopicInfoValue(publish_topic_name, publisher_construction_order)
+            callback.insert_publisher(pub_info)
         except MultipleItemFoundError as e:
             msg = f'{e}'
             raise MultipleItemFoundError(msg)
@@ -243,7 +250,8 @@ class NodeStruct():
                                       publisher_construction_order: int) -> None:
         callback: CallbackStruct = \
             Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
-        callback.remove_publisher(publish_topic_name, publisher_construction_order)
+        pub_info = PublishTopicInfoValue(publish_topic_name, publisher_construction_order)
+        callback.remove_publisher(pub_info)
 
         def is_target(publish: PublisherStruct):
             match = publish.topic_name == publish_topic_name

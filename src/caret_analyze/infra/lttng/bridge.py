@@ -294,7 +294,8 @@ class PublisherBindCondition:
         struct_value: PublisherStructValue
     ) -> bool:
         return value.node_name == struct_value.node_name and \
-            value.topic_name == struct_value.topic_name
+            value.topic_name == struct_value.topic_name and \
+            value.construction_order == struct_value.construction_order
 
     def __str__(self):
         return self._target

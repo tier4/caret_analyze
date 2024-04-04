@@ -253,7 +253,11 @@ class CommValuesLoaded():
         def __call__(self, callback: CallbackStruct) -> bool:
             if callback.publish_topics is None:
                 return False
-            return self._publish.topic_name in callback.publish_topics
+            for pubinfo in callback.publish_topics:
+                if self._publish.topic_name == pubinfo.topic_name and \
+                        self._publish.construction_order == pubinfo.construction_order:
+                    return True
+            return False
 
     class IsTargetSubCallback:
 
@@ -797,7 +801,7 @@ class PublishersLoaded:
             if callback.publish_topics is None or len(callback.publish_topics) == 0:
                 continue
             for count in range(len(callback.publish_topics)):
-                if publisher_value.topic_name in callback.publish_topics[count].topic_name and \
+                if publisher_value.topic_name == callback.publish_topics[count].topic_name and \
                         callback not in pub_callbacks:
                     pub_callbacks.append(callback)
 

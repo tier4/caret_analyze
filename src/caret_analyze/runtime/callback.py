@@ -173,8 +173,7 @@ class CallbackBase(PathBase, Summarizable):
         list_info = []
         for vals in self.__val.publish_topics:
             if vals is not None:
-                for val in vals:
-                    list_info.append(val.topic_name)
+                list_info.append(vals.topic_name)
         return sorted(list_info)
 
     @property

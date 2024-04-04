@@ -160,29 +160,27 @@ class CallbackStruct(metaclass=ABCMeta):
     def to_value(self) -> CallbackStructValue:
         pass
 
-    def insert_publisher(self, publish_topic_name: str, publisher_construction_order: int) -> None:
+    def insert_publisher(self, publish_topic_info: PublishTopicInfoValue) -> None:
         if self.publish_topics is not None:
             for count in range(len(self.publish_topics)):
-                if self.publish_topics[count].topic_name == publish_topic_name and \
-                    self.publish_topics[count].construction_order == \
-                        publisher_construction_order:
+                if self.publish_topics[count] == publish_topic_info:
                     msg = 'publisher is already registered. '
-                    msg += f' publish_topic_name: {publish_topic_name}'
-                    msg += f' construction_order: {publisher_construction_order}'
+                    msg += f' publish_topic_name: {publish_topic_info.topic_name}'
+                    msg += f' construction_order: {publish_topic_info.construction_order}'
                     raise MultipleItemFoundError(msg)
             self.publish_topics.append(PublishTopicInfoValue
-                                       (publish_topic_name, publisher_construction_order))
+                                       (publish_topic_info.topic_name,
+                                        publish_topic_info.construction_order))
         else:
             self._publish_topics = []
             self._publish_topics.append(PublishTopicInfoValue
-                                        (publish_topic_name, publisher_construction_order))
+                                        (publish_topic_info.topic_name,
+                                         publish_topic_info.construction_order))
 
-    def remove_publisher(self, publish_topic_name: str, publisher_construction_order: int) -> None:
+    def remove_publisher(self, publish_topic_info: PublishTopicInfoValue) -> None:
         if self.publish_topics is not None:
             for count in range(len(self.publish_topics)):
-                if self.publish_topics[count].topic_name == publish_topic_name and \
-                        self.publish_topics[count].construction_order == \
-                        publisher_construction_order:
+                if self.publish_topics[count] == publish_topic_info:
                     self.publish_topics.remove(self.publish_topics[count])
 
     def rename_node(self, src: str, dst: str) -> None:
