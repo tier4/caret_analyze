@@ -253,9 +253,9 @@ class CommValuesLoaded():
         def __call__(self, callback: CallbackStruct) -> bool:
             if callback.publish_topics is None:
                 return False
-            for pubinfo in callback.publish_topics:
-                if self._publish.topic_name == pubinfo.topic_name and \
-                        self._publish.construction_order == pubinfo.construction_order:
+            for publish_info in callback.publish_topics:
+                if self._publish.topic_name == publish_info.topic_name and \
+                        self._publish.construction_order == publish_info.construction_order:
                     return True
             return False
 
