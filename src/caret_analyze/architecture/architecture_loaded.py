@@ -1300,25 +1300,6 @@ class CallbacksLoaded():
                 callback_name=callback_name,
                 construction_order=callback.construction_order
             )
-        # Service callbacks support "read" only, not "export".
-        # To avoid affecting exported files, special handling is done for service callbacks.
-        # When the service is officially supported, the special processing will be removed.
-        if isinstance(callback, ServiceCallbackValue):
-            self._srv_callback_count[callback] = self._srv_callback_count.get(
-                callback, len(self._srv_callback_count))
-            callback_count = self._srv_callback_count[callback]
-            indexed = indexed_name(
-                f'{self.node_name}/service_callback', callback_count, srv_callback_num)
-            callback_name = callback.callback_name or indexed
-            return ServiceCallbackStruct(
-                node_name=callback.node_name,
-                symbol=callback.symbol,
-                service_name=callback.service_name,
-                publish_topic_names=None if callback.publish_topic_names is None
-                else list(callback.publish_topic_names),
-                callback_name=callback_name,
-                construction_order=callback.construction_order
-            )
         raise UnsupportedTypeError('Unsupported callback type')
 
     def _validate(self, callbacks: list[CallbackValue]) -> None:
