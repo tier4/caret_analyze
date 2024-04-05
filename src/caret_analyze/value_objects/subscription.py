@@ -171,7 +171,9 @@ class SubscriptionStructValue(ValueObject, Summarizable):
         # but for speed, only necessary items are compared.
 
         if isinstance(other, SubscriptionStructValue):
-            return self.node_name == other.node_name and self.topic_name == other.topic_name
+            return self.node_name == other.node_name and \
+                self.topic_name == other.topic_name and \
+                self.construction_order == other.construction_order
         return False
 
     def __hash__(self):

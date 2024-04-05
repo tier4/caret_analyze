@@ -23,7 +23,7 @@ from .subscription import SubscriptionStruct
 from .timer import TimerStruct
 from .variable_passing import VariablePassingStruct
 from ...common import Util
-from ...exceptions import ItemNotFoundError, MultipleItemFoundError
+from ...exceptions import ItemNotFoundError
 from ...value_objects import NodeStructValue
 from ...value_objects.publish_topic_info import PublishTopicInfoValue
 
@@ -165,19 +165,6 @@ class NodeStruct():
             msg += f'construction_order: {construction_order}'
             raise ItemNotFoundError(msg)
 
-    def get_timer(
-        self,
-        timer_period: str
-    ) -> TimerStruct:
-        try:
-            return Util.find_one(
-                lambda x: x.period == timer_period,
-                self._publishers)
-        except ItemNotFoundError:
-            msg = 'Failed to find timer info. '
-            msg += f'timer_period: {timer_period}'
-            raise ItemNotFoundError(msg)
-
     def to_value(self) -> NodeStructValue:
         return NodeStructValue(
             self.node_name,
@@ -207,12 +194,8 @@ class NodeStruct():
                                   publisher_construction_order: int) -> None:
         callback: CallbackStruct = \
             Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
-        try:
-            pub_info = PublishTopicInfoValue(publish_topic_name, publisher_construction_order)
-            callback.insert_publisher(pub_info)
-        except MultipleItemFoundError as e:
-            msg = f'{e}'
-            raise MultipleItemFoundError(msg)
+        pub_info = PublishTopicInfoValue(publish_topic_name, publisher_construction_order)
+        callback.insert_publisher(pub_info)
 
         def is_target(publish: PublisherStruct):
             match = publish.topic_name == publish_topic_name
