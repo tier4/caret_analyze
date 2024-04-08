@@ -34,6 +34,7 @@ from caret_analyze.value_objects import (
     MessageContextType,
     NodePathStructValue,
     PublisherStructValue,
+    PublishTopicInfoValue,
     SubscriptionCallbackStructValue,
     SubscriptionStructValue,
     Tilde,
@@ -1048,8 +1049,9 @@ class TestNodeRecords:
         bridge_setup_get_callback(callback, sub_cb_lttng)
         bridge_setup_get_callback(callback_, timer_cb_lttng)
 
+        pub_topics0 = PublishTopicInfoValue('pub_topic_name', 0)
         mocker.patch.object(
-            callback_, 'publish_topics', ['pub_topic_name', 0])
+            callback_, 'publish_topics', [pub_topics0])
 
         node_path = mocker.Mock(spec=NodePathStructValue)
         mocker.patch.object(node_path, 'message_context_type',

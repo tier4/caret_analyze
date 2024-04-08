@@ -1134,10 +1134,13 @@ class NodeRecordsCallbackChain:
         tail_callback = node_path.callbacks[-1]
 
         if node_path.publish_topic_name is not None and \
-            tail_callback.publish_topics is not None and \
-            len(tail_callback.publish_topics) != 0 and \
-                node_path.publish_topic_name not in tail_callback.publish_topics:
-            raise UnsupportedNodeRecordsError('')
+                tail_callback.publish_topics is not None:
+            b_val = False
+            for topics in tail_callback.publish_topics:
+                if node_path.publish_topic_name == topics.topic_name:
+                    b_val = True
+            if b_val is not True:
+                raise UnsupportedNodeRecordsError('')
 
         if node_path.subscribe_topic_name is not None:
             if node_path.subscribe_topic_name != head_callback.subscribe_topic_name or \
