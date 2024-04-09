@@ -14,14 +14,15 @@
 
 from __future__ import annotations
 
-import pandas as pd
 
 from copy import deepcopy
 from typing import Any
 
 from caret_analyze.exceptions import InvalidArgumentError
 from caret_analyze.record.column import ColumnValue
+from caret_analyze.record.record_operations import merge
 
+import pandas as pd
 import pytest
 
 RecordCppImpl: Any
@@ -41,6 +42,7 @@ except ModuleNotFoundError as e:
 column0 = 'stamp'
 column1 = 'value'
 column2 = 'addr'
+
 
 class TestRecord:
 
@@ -64,7 +66,6 @@ class TestRecord:
         dic = {column0: 0, column1: 18446744073709551615}
         record = RecordCppImpl(dic)
         assert record.data == dic
-
 
     def test_columns(self):
         dic = {column0: 0, column1: 1}
@@ -758,7 +759,7 @@ class TestRecords:
         ],
     )
     def test_equals(self, records, records_, expect):
-            assert records.equals(records_) is expect
+        assert records.equals(records_) is expect
 
     def test_reindex(self):
         records = RecordsCppImpl(
@@ -790,17 +791,17 @@ class TestRecords:
                 RecordsCppImpl(
                     [
                         RecordCppImpl({'value_left': 10, 'value_right': 10,
-                               'stamp': 1, 'stamp_': 2}),
+                                       'stamp': 1, 'stamp_': 2}),
                         RecordCppImpl({'value_left': 20, 'value_right': 20,
-                               'stamp': 3, 'stamp_': 4}),
+                                       'stamp': 3, 'stamp_': 4}),
                         RecordCppImpl({'value_left': 30, 'value_right': 30,
-                               'stamp': 5, 'stamp_': 6}),
+                                       'stamp': 5, 'stamp_': 6}),
                         RecordCppImpl({'value_left': 30, 'value_right': 30,
-                               'stamp': 5, 'stamp_': 6}),
+                                       'stamp': 5, 'stamp_': 6}),
                         RecordCppImpl({'value_left': 70, 'value_right': 70,
-                               'stamp': 9, 'stamp_': 11}),
+                                       'stamp': 9, 'stamp_': 11}),
                         RecordCppImpl({'value_left': 70, 'value_right': 70,
-                               'stamp': 10, 'stamp_': 11}),
+                                       'stamp': 10, 'stamp_': 11}),
                     ],
                     [
                         ColumnValue('stamp'),
@@ -815,17 +816,17 @@ class TestRecords:
                 RecordsCppImpl(
                     [
                         RecordCppImpl({'value_left': 10, 'value_right': 10,
-                               'stamp': 1, 'stamp_': 2}),
+                                       'stamp': 1, 'stamp_': 2}),
                         RecordCppImpl({'value_left': 20, 'value_right': 20,
-                               'stamp': 3, 'stamp_': 4}),
+                                       'stamp': 3, 'stamp_': 4}),
                         RecordCppImpl({'value_left': 30, 'value_right': 30,
-                               'stamp': 5, 'stamp_': 6}),
+                                       'stamp': 5, 'stamp_': 6}),
                         RecordCppImpl({'value_left': 30, 'value_right': 30,
-                               'stamp': 5, 'stamp_': 6}),
+                                       'stamp': 5, 'stamp_': 6}),
                         RecordCppImpl({'value_left': 70, 'value_right': 70,
-                               'stamp': 9, 'stamp_': 11}),
+                                       'stamp': 9, 'stamp_': 11}),
                         RecordCppImpl({'value_left': 70, 'value_right': 70,
-                               'stamp': 10, 'stamp_': 11}),
+                                       'stamp': 10, 'stamp_': 11}),
                         RecordCppImpl({'value_left': 40, 'stamp': 7}),
                     ],
                     [
@@ -841,17 +842,17 @@ class TestRecords:
                 RecordsCppImpl(
                     [
                         RecordCppImpl({'value_left': 10, 'value_right': 10,
-                               'stamp': 1, 'stamp_': 2}),
+                                       'stamp': 1, 'stamp_': 2}),
                         RecordCppImpl({'value_left': 20, 'value_right': 20,
-                               'stamp': 3, 'stamp_': 4}),
+                                       'stamp': 3, 'stamp_': 4}),
                         RecordCppImpl({'value_left': 30, 'value_right': 30,
-                               'stamp': 5, 'stamp_': 6}),
+                                       'stamp': 5, 'stamp_': 6}),
                         RecordCppImpl({'value_left': 30, 'value_right': 30,
-                               'stamp': 5, 'stamp_': 6}),
+                                       'stamp': 5, 'stamp_': 6}),
                         RecordCppImpl({'value_left': 70, 'value_right': 70,
-                               'stamp': 9, 'stamp_': 11}),
+                                       'stamp': 9, 'stamp_': 11}),
                         RecordCppImpl({'value_left': 70, 'value_right': 70,
-                               'stamp': 10, 'stamp_': 11}),
+                                       'stamp': 10, 'stamp_': 11}),
                         RecordCppImpl({'value_right': 50, 'stamp_': 10}),
                     ],
                     [
@@ -867,17 +868,17 @@ class TestRecords:
                 RecordsCppImpl(
                     [
                         RecordCppImpl({'value_left': 10, 'value_right': 10,
-                               'stamp': 1, 'stamp_': 2}),
+                                       'stamp': 1, 'stamp_': 2}),
                         RecordCppImpl({'value_left': 20, 'value_right': 20,
-                               'stamp': 3, 'stamp_': 4}),
+                                       'stamp': 3, 'stamp_': 4}),
                         RecordCppImpl({'value_left': 30, 'value_right': 30,
-                               'stamp': 5, 'stamp_': 6}),
+                                       'stamp': 5, 'stamp_': 6}),
                         RecordCppImpl({'value_left': 30, 'value_right': 30,
-                               'stamp': 5, 'stamp_': 6}),
+                                       'stamp': 5, 'stamp_': 6}),
                         RecordCppImpl({'value_left': 70, 'value_right': 70,
-                               'stamp': 9, 'stamp_': 11}),
+                                       'stamp': 9, 'stamp_': 11}),
                         RecordCppImpl({'value_left': 70, 'value_right': 70,
-                               'stamp': 10, 'stamp_': 11}),
+                                       'stamp': 10, 'stamp_': 11}),
                         RecordCppImpl({'value_left': 40, 'stamp': 7}),
                         RecordCppImpl({'value_right': 50, 'stamp_': 10}),
                     ],
@@ -891,8 +892,8 @@ class TestRecords:
             ),
         ],
     )
-    def test_merge(self, how: str, records_expect: RecordsCppImpl):
-        records_left  = RecordsCppImpl(
+    def test_merge(self, how: str, records_expect):
+        records_left = RecordsCppImpl(
             [
                 RecordCppImpl({'stamp': 1, 'value_left': 10}),
                 RecordCppImpl({'stamp': 3, 'value_left': 20}),
@@ -943,3 +944,759 @@ class TestRecords:
         with pytest.raises(InvalidArgumentError):
             records_left.merge(
                 records_right, 'value_left', 'value_right', ['unknown'], how='inner')
+
+    @pytest.mark.parametrize(
+        'how, expect_records',
+        [
+            (
+                'inner',
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl(
+                            {
+                                'other_stamp': 4,
+                                'other_stamp_': 6,
+                                'stamp': 1,
+                                'stamp_': 7,
+                                'value_left': 1,
+                                'value_right': 1,
+                            }
+                        ),
+                        RecordCppImpl(
+                            {
+                                'other_stamp': 12,
+                                'other_stamp_': 2,
+                                'stamp': 9,
+                                'stamp_': 3,
+                                'value_left': 2,
+                                'value_right': 2,
+                            }
+                        ),
+                    ],
+                    [
+                        ColumnValue('other_stamp'),
+                        ColumnValue('other_stamp_'),
+                        ColumnValue('stamp'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_left'),
+                        ColumnValue('value_right'),
+                    ]
+                ),
+            ),
+            (
+                'left',
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl(
+                            {
+                                'other_stamp': 4,
+                                'other_stamp_': 6,
+                                'stamp': 1,
+                                'stamp_': 7,
+                                'value_left': 1,
+                                'value_right': 1,
+                            }
+                        ),
+                        RecordCppImpl(
+                            {
+                                'other_stamp': 12,
+                                'other_stamp_': 2,
+                                'stamp': 9,
+                                'stamp_': 3,
+                                'value_left': 2,
+                                'value_right': 2,
+                            }
+                        ),
+                        RecordCppImpl({'other_stamp': 8}),
+                        RecordCppImpl({'other_stamp': 16}),
+                    ],
+                    [
+                        ColumnValue('other_stamp'),
+                        ColumnValue('other_stamp_'),
+                        ColumnValue('stamp'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_left'),
+                        ColumnValue('value_right'),
+                    ]
+                ),
+            ),
+            (
+                'right',
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl(
+                            {
+                                'other_stamp': 4,
+                                'other_stamp_': 6,
+                                'stamp': 1,
+                                'stamp_': 7,
+                                'value_left': 1,
+                                'value_right': 1,
+                            }
+                        ),
+                        RecordCppImpl(
+                            {
+                                'other_stamp': 12,
+                                'other_stamp_': 2,
+                                'stamp': 9,
+                                'stamp_': 3,
+                                'value_left': 2,
+                                'value_right': 2,
+                            }
+                        ),
+                        RecordCppImpl({'other_stamp_': 10}),
+                        RecordCppImpl({'other_stamp_': 14}),
+                    ],
+                    [
+                        ColumnValue('other_stamp'),
+                        ColumnValue('other_stamp_'),
+                        ColumnValue('stamp'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_left'),
+                        ColumnValue('value_right'),
+                    ]
+                ),
+            ),
+            (
+                'outer',
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl(
+                            {
+                                'other_stamp': 4,
+                                'other_stamp_': 6,
+                                'stamp': 1,
+                                'stamp_': 7,
+                                'value_left': 1,
+                                'value_right': 1,
+                            }
+                        ),
+                        RecordCppImpl(
+                            {
+                                'other_stamp': 12,
+                                'other_stamp_': 2,
+                                'stamp': 9,
+                                'stamp_': 3,
+                                'value_left': 2,
+                                'value_right': 2,
+                            }
+                        ),
+                        RecordCppImpl({'other_stamp': 8}),
+                        RecordCppImpl({'other_stamp': 16}),
+                        RecordCppImpl({'other_stamp_': 10}),
+                        RecordCppImpl({'other_stamp_': 14}),
+                    ],
+                    [
+                        ColumnValue('other_stamp'),
+                        ColumnValue('other_stamp_'),
+                        ColumnValue('stamp'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_left'),
+                        ColumnValue('value_right'),
+                    ]
+                ),
+            ),
+        ],
+    )
+    def test_merge_with_loss(self, how, expect_records):
+        left_records = RecordsCppImpl(
+            [
+                RecordCppImpl({'other_stamp': 4, 'stamp': 1, 'value_left': 1}),
+                RecordCppImpl({'other_stamp': 8}),
+                RecordCppImpl({'other_stamp': 12, 'stamp': 9, 'value_left': 2}),
+                RecordCppImpl({'other_stamp': 16}),
+            ],
+            [ColumnValue('other_stamp'), ColumnValue('stamp'), ColumnValue('value_left')]
+        )
+
+        right_records = RecordsCppImpl(
+            [
+                RecordCppImpl({'other_stamp_': 2, 'stamp_': 3, 'value_right': 2}),
+                RecordCppImpl({'other_stamp_': 6, 'stamp_': 7, 'value_right': 1}),
+                RecordCppImpl({'other_stamp_': 10}),
+                RecordCppImpl({'other_stamp_': 14}),
+            ],
+            [ColumnValue('other_stamp_'), ColumnValue('stamp_'), ColumnValue('value_right')]
+        )
+
+        merged = merge(
+            left_records=left_records,
+            right_records=right_records,
+            join_left_key='value_left',
+            join_right_key='value_right',
+            columns=['other_stamp', 'other_stamp_', 'stamp',
+                     'stamp_', 'value_left', 'value_right'],
+            how=how
+        )
+
+        assert merged.equals(expect_records) is True
+
+    @pytest.mark.parametrize(
+        'how, expect_records',
+        [
+            (
+                'inner',
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl({'key': 1, 'stamp': 0, 'sub_stamp': 3}),
+                        RecordCppImpl({'key': 2, 'stamp': 1, 'sub_stamp': 2}),
+                    ],
+                    [ColumnValue('key'), ColumnValue('stamp'), ColumnValue('sub_stamp')]
+                ),
+            ),
+            (
+                'left',
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl({'key': 1, 'stamp': 0, 'sub_stamp': 3}),
+                        RecordCppImpl({'key': 2, 'stamp': 1, 'sub_stamp': 2}),
+                        RecordCppImpl({'key': 1, 'stamp': 6}),
+                        RecordCppImpl({'key': 2, 'stamp': 7}),
+                    ],
+                    [ColumnValue('key'), ColumnValue('stamp'), ColumnValue('sub_stamp')]
+                ),
+            ),
+            (
+                'left_use_latest',
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl({'key': 1, 'stamp': 0, 'sub_stamp': 3}),
+                        RecordCppImpl({'key': 1, 'stamp': 0, 'sub_stamp': 4}),
+                        RecordCppImpl({'key': 2, 'stamp': 1, 'sub_stamp': 2}),
+                        RecordCppImpl({'key': 2, 'stamp': 1, 'sub_stamp': 5}),
+                        RecordCppImpl({'key': 1, 'stamp': 6}),
+                        RecordCppImpl({'key': 2, 'stamp': 7}),
+                    ],
+                    [ColumnValue('key'), ColumnValue('stamp'), ColumnValue('sub_stamp')]
+                ),
+            ),
+            (
+                'right',
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl({'key': 1, 'stamp': 0, 'sub_stamp': 3}),
+                        RecordCppImpl({'key': 2, 'stamp': 1, 'sub_stamp': 2}),
+                        RecordCppImpl({'key': 1, 'sub_stamp': 4}),
+                        RecordCppImpl({'key': 2, 'sub_stamp': 5}),
+                    ],
+                    [ColumnValue('key'), ColumnValue('stamp'), ColumnValue('sub_stamp')]
+                ),
+            ),
+            (
+                'outer',
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl({'key': 1, 'stamp': 0, 'sub_stamp': 3}),
+                        RecordCppImpl({'key': 2, 'stamp': 1, 'sub_stamp': 2}),
+                        RecordCppImpl({'key': 1, 'sub_stamp': 4}),
+                        RecordCppImpl({'key': 2, 'sub_stamp': 5}),
+                        RecordCppImpl({'key': 1, 'stamp': 6}),
+                        RecordCppImpl({'key': 2, 'stamp': 7}),
+                    ],
+                    [ColumnValue('key'), ColumnValue('stamp'), ColumnValue('sub_stamp')]
+                ),
+            ),
+        ],
+    )
+    def test_merge_sequential_with_same_key(self, how, expect_records):
+        left_records = RecordsCppImpl(
+            [
+                RecordCppImpl({'key': 1, 'stamp': 0}),
+                RecordCppImpl({'key': 2, 'stamp': 1}),
+                RecordCppImpl({'key': 1, 'stamp': 6}),
+                RecordCppImpl({'key': 2, 'stamp': 7}),
+            ],
+            [ColumnValue('key'), ColumnValue('stamp')]
+        )
+
+        right_records = RecordsCppImpl(
+            [
+                RecordCppImpl({'key': 2, 'sub_stamp': 2}),
+                RecordCppImpl({'key': 1, 'sub_stamp': 3}),
+                RecordCppImpl({'key': 1, 'sub_stamp': 4}),
+                RecordCppImpl({'key': 2, 'sub_stamp': 5}),
+            ],
+            [ColumnValue('key'), ColumnValue('sub_stamp')]
+        )
+
+        merged_records = left_records.merge_sequential(
+            right_records=right_records,
+            left_stamp_key='stamp',
+            right_stamp_key='sub_stamp',
+            join_left_key='key',
+            join_right_key='key',
+            columns=['key', 'stamp', 'sub_stamp'],
+            how=how,
+        )
+
+        assert merged_records.equals(expect_records)
+
+    def test_merge_sequential_validate(self):
+        left_records = RecordsCppImpl(
+            [
+                RecordCppImpl({column0: 0}),
+            ],
+            [ColumnValue(column0)]
+        )
+
+        right_records = RecordsCppImpl(
+            [
+                RecordCppImpl({column1: 1}),
+            ],
+            [ColumnValue(column1)]
+        )
+
+        with pytest.raises(InvalidArgumentError):
+            left_records.merge_sequential(
+                right_records=right_records,
+                left_stamp_key=column0,
+                right_stamp_key=column1,
+                join_left_key=None,
+                join_right_key=None,
+                columns=['not_exist'],
+                how='left',
+            )
+
+    @pytest.mark.parametrize(
+        'how, expect_records',
+        [
+            (
+                'inner',
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl({'key_left': 1, 'key_right': 1, 'stamp': 0, 'sub_stamp': 2}),
+                        RecordCppImpl({'key_left': 1, 'key_right': 1, 'stamp': 6, 'sub_stamp': 7}),
+                    ],
+                    [
+                        ColumnValue('key_left'),
+                        ColumnValue('stamp'),
+                        ColumnValue('key_right'),
+                        ColumnValue('sub_stamp'),
+                    ]
+                ),
+            ),
+            (
+                'left',
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl({'key_left': 1, 'key_right': 1, 'stamp': 0, 'sub_stamp': 2}),
+                        RecordCppImpl({'key_left': 1, 'stamp': 4}),
+                        RecordCppImpl({'key_left': 1, 'stamp': 5}),
+                        RecordCppImpl({'key_left': 1, 'key_right': 1, 'stamp': 6, 'sub_stamp': 7}),
+                    ],
+                    [
+                        ColumnValue('key_left'),
+                        ColumnValue('stamp'),
+                        ColumnValue('key_right'),
+                        ColumnValue('sub_stamp'),
+                    ]
+                ),
+            ),
+            (
+                'left_use_latest',
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl({'key_left': 1, 'key_right': 1,
+                                       'stamp': 0, 'sub_stamp': 2}),
+                        RecordCppImpl({'key_left': 1, 'key_right': 1,
+                                       'stamp': 0, 'sub_stamp': 3}),
+                        RecordCppImpl({'key_left': 1, 'stamp': 4}),
+                        RecordCppImpl({'key_left': 1, 'stamp': 5}),
+                        RecordCppImpl({'key_left': 1, 'key_right': 1,
+                                       'stamp': 6, 'sub_stamp': 7}),
+                    ],
+                    [
+                        ColumnValue('key_left'),
+                        ColumnValue('stamp'),
+                        ColumnValue('key_right'),
+                        ColumnValue('sub_stamp'),
+                    ]
+                ),
+            ),
+            (
+                'right',
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl({'key_left': 1, 'key_right': 1, 'stamp': 0, 'sub_stamp': 2}),
+                        RecordCppImpl({'key_right': 3, 'sub_stamp': 1}),
+                        RecordCppImpl({'key_right': 1, 'sub_stamp': 3}),
+                        RecordCppImpl({'key_left': 1, 'key_right': 1, 'stamp': 6, 'sub_stamp': 7}),
+                    ],
+                    [
+                        ColumnValue('key_left'),
+                        ColumnValue('stamp'),
+                        ColumnValue('key_right'),
+                        ColumnValue('sub_stamp'),
+                    ]
+                ),
+            ),
+            (
+                'outer',
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl({'key_left': 1, 'key_right': 1, 'stamp': 0, 'sub_stamp': 2}),
+                        RecordCppImpl({'key_right': 3, 'sub_stamp': 1}),
+                        RecordCppImpl({'key_right': 1, 'sub_stamp': 3}),
+                        RecordCppImpl({'key_left': 1, 'stamp': 4}),
+                        RecordCppImpl({'key_left': 1, 'stamp': 5}),
+                        RecordCppImpl({'key_left': 1, 'key_right': 1, 'stamp': 6, 'sub_stamp': 7}),
+                    ],
+                    [
+                        ColumnValue('key_left'),
+                        ColumnValue('stamp'),
+                        ColumnValue('key_right'),
+                        ColumnValue('sub_stamp'),
+                    ]
+                ),
+            ),
+        ],
+    )
+    def test_merge_sequential_with_drop(self, how, expect_records):
+        left_records = RecordsCppImpl(
+            [
+                RecordCppImpl({'key_left': 1, 'stamp': 0}),
+                RecordCppImpl({'key_left': 1, 'stamp': 4}),
+                RecordCppImpl({'key_left': 1, 'stamp': 5}),
+                RecordCppImpl({'key_left': 1, 'stamp': 6}),
+            ],
+            [ColumnValue('key_left'), ColumnValue('stamp')]
+        )
+
+        right_records = RecordsCppImpl(
+            [
+                RecordCppImpl({'key_right': 3, 'sub_stamp': 1}),
+                RecordCppImpl({'key_right': 1, 'sub_stamp': 2}),
+                RecordCppImpl({'key_right': 1, 'sub_stamp': 3}),
+                RecordCppImpl({'key_right': 1, 'sub_stamp': 7}),
+            ],
+            [ColumnValue('key_right'), ColumnValue('sub_stamp')]
+        )
+
+        merged = left_records.merge_sequential(
+            right_records=right_records,
+            left_stamp_key='stamp',
+            right_stamp_key='sub_stamp',
+            join_left_key='key_left',
+            join_right_key='key_right',
+            columns=['key_left', 'stamp', 'key_right', 'sub_stamp'],
+            how=how,
+        )
+
+        assert merged.equals(expect_records)
+
+    @pytest.mark.parametrize(
+        'how, expect_records',
+        [
+            (
+                'inner',
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl(
+                            {
+                                'other_stamp': 4,
+                                'other_stamp_': 2,
+                                'stamp': 1,
+                                'stamp_': 3,
+                                'value_left': 1,
+                                'value_right': 1,
+                            }
+                        ),
+                    ],
+                    [
+                        ColumnValue('other_stamp'),
+                        ColumnValue('stamp'),
+                        ColumnValue('value_left'),
+                        ColumnValue('other_stamp_'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_right'),
+                    ]
+                ),
+            ),
+            (
+                'left',
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl(
+                            {
+                                'other_stamp': 4,
+                                'other_stamp_': 2,
+                                'stamp': 1,
+                                'stamp_': 3,
+                                'value_left': 1,
+                                'value_right': 1,
+                            }
+                        ),
+                        RecordCppImpl({'other_stamp': 12, 'stamp': 9, 'value_left': 1}),
+                        RecordCppImpl({'other_stamp': 8}),
+                        RecordCppImpl({'other_stamp': 16}),
+                    ],
+                    [
+                        ColumnValue('other_stamp'),
+                        ColumnValue('stamp'),
+                        ColumnValue('value_left'),
+                        ColumnValue('other_stamp_'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_right'),
+                    ]
+                ),
+            ),
+            (
+                'left_use_latest',
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl(
+                            {
+                                'other_stamp': 4,
+                                'other_stamp_': 2,
+                                'stamp': 1,
+                                'stamp_': 3,
+                                'value_left': 1,
+                                'value_right': 1,
+                            }
+                        ),
+                        RecordCppImpl(
+                            {
+                                'other_stamp': 4,
+                                'other_stamp_': 6,
+                                'stamp': 1,
+                                'stamp_': 7,
+                                'value_left': 1,
+                                'value_right': 1,
+                            }
+                        ),
+                        RecordCppImpl({'other_stamp': 12, 'stamp': 9, 'value_left': 1}),
+                        RecordCppImpl({'other_stamp': 8}),
+                        RecordCppImpl({'other_stamp': 16}),
+                    ],
+                    [
+                        ColumnValue('other_stamp'),
+                        ColumnValue('stamp'),
+                        ColumnValue('value_left'),
+                        ColumnValue('other_stamp_'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_right'),
+                    ]
+                ),
+            ),
+            (
+                'right',
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl(
+                            {
+                                'other_stamp': 4,
+                                'other_stamp_': 2,
+                                'stamp': 1,
+                                'stamp_': 3,
+                                'value_left': 1,
+                                'value_right': 1,
+                            }
+                        ),
+                        RecordCppImpl(
+                            {
+                                'other_stamp_': 6,
+                                'stamp_': 7,
+                                'value_right': 1,
+                            }
+                        ),
+                        RecordCppImpl({'other_stamp_': 10, 'stamp_': 10}),
+                        RecordCppImpl({'other_stamp_': 14, 'value_right': 2}),
+                    ],
+                    [
+                        ColumnValue('other_stamp'),
+                        ColumnValue('stamp'),
+                        ColumnValue('value_left'),
+                        ColumnValue('other_stamp_'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_right'),
+                    ]
+                ),
+            ),
+            (
+                'outer',
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl(
+                            {
+                                'other_stamp': 4,
+                                'other_stamp_': 2,
+                                'stamp': 1,
+                                'stamp_': 3,
+                                'value_left': 1,
+                                'value_right': 1,
+                            }
+                        ),
+                        RecordCppImpl(
+                            {
+                                'other_stamp_': 6,
+                                'stamp_': 7,
+                                'value_right': 1,
+                            }
+                        ),
+                        RecordCppImpl({'other_stamp': 12, 'stamp': 9, 'value_left': 1}),
+                        RecordCppImpl({'other_stamp_': 10, 'stamp_': 10}),
+                        RecordCppImpl({'other_stamp': 8}),
+                        RecordCppImpl({'other_stamp': 16}),
+                        RecordCppImpl({'other_stamp_': 14, 'value_right': 2}),
+                    ],
+                    [
+                        ColumnValue('other_stamp'),
+                        ColumnValue('stamp'),
+                        ColumnValue('value_left'),
+                        ColumnValue('other_stamp_'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_right'),
+                    ]
+                ),
+            ),
+        ],
+    )
+    def test_merge_sequential_with_loss(self, how, expect_records):
+        left_records = RecordsCppImpl(
+            [
+                RecordCppImpl({'other_stamp': 4, 'stamp': 1, 'value_left': 1}),
+                RecordCppImpl({'other_stamp': 8}),
+                RecordCppImpl({'other_stamp': 12, 'stamp': 9, 'value_left': 1}),
+                RecordCppImpl({'other_stamp': 16}),
+            ],
+            [ColumnValue('other_stamp'), ColumnValue('stamp'), ColumnValue('value_left')]
+        )
+
+        right_records = RecordsCppImpl(
+            [
+                RecordCppImpl({'other_stamp_': 2, 'stamp_': 3, 'value_right': 1}),
+                RecordCppImpl({'other_stamp_': 6, 'stamp_': 7, 'value_right': 1}),
+                RecordCppImpl({'other_stamp_': 10, 'stamp_': 10}),
+                RecordCppImpl({'other_stamp_': 14, 'value_right': 2}),
+            ],
+            [ColumnValue('other_stamp_'), ColumnValue('stamp_'), ColumnValue('value_right')]
+        )
+
+        merged = left_records.merge_sequential(
+            right_records=right_records,
+            left_stamp_key='stamp',
+            right_stamp_key='stamp_',
+            join_left_key='value_left',
+            join_right_key='value_right',
+            columns=['other_stamp', 'stamp', 'value_left',
+                     'other_stamp_', 'stamp_', 'value_right'],
+            how=how,
+        )
+
+        assert merged.equals(expect_records) is True
+
+    def test_merge_sequential_for_addr_track(self):
+        source_records = RecordsCppImpl(
+            [
+                RecordCppImpl({'source_addr': 1, 'source_stamp': 0}),
+                RecordCppImpl({'source_addr': 1, 'source_stamp': 10}),
+                RecordCppImpl({'source_addr': 3, 'source_stamp': 20}),
+            ],
+            [ColumnValue('source_addr'), ColumnValue('source_stamp')]
+        )
+
+        copy_records = RecordsCppImpl(
+            [
+                RecordCppImpl({'addr_from': 1, 'addr_to': 13, 'copy_stamp': 1}),
+                RecordCppImpl({'addr_from': 1, 'addr_to': 13, 'copy_stamp': 11}),
+                RecordCppImpl({'addr_from': 3, 'addr_to': 13, 'copy_stamp': 21}),
+                RecordCppImpl({'addr_from': 13, 'addr_to': 23, 'copy_stamp': 22}),
+            ],
+            [ColumnValue('addr_from'), ColumnValue('addr_to'), ColumnValue('copy_stamp')]
+        )
+
+        sink_records = RecordsCppImpl(
+            [
+                RecordCppImpl({'sink_addr': 13, 'sink_stamp': 2}),
+                RecordCppImpl({'sink_addr': 1, 'sink_stamp': 3}),
+                RecordCppImpl({'sink_addr': 13, 'sink_stamp': 12}),
+                RecordCppImpl({'sink_addr': 13, 'sink_stamp': 23}),
+                RecordCppImpl({'sink_addr': 3, 'sink_stamp': 24}),
+                RecordCppImpl({'sink_addr': 13, 'sink_stamp': 25}),
+                RecordCppImpl({'sink_addr': 3, 'sink_stamp': 26}),
+                RecordCppImpl({'sink_addr': 23, 'sink_stamp': 27}),
+            ],
+            [ColumnValue('sink_addr'), ColumnValue('sink_stamp')]
+        )
+
+        expect_records = RecordsCppImpl(
+            [
+                RecordCppImpl({
+                    'source_addr': 1, 'source_stamp': 0, 'sink_stamp': 2}),
+                RecordCppImpl({
+                    'source_addr': 1, 'source_stamp': 0, 'sink_stamp': 3,
+                }),
+                RecordCppImpl({
+                    'source_addr': 1, 'source_stamp': 10, 'sink_stamp': 12,
+                }),
+                RecordCppImpl({
+                    'source_addr': 3, 'source_stamp': 20, 'sink_stamp': 23,
+                }),
+                RecordCppImpl({
+                    'source_addr': 3, 'source_stamp': 20, 'sink_stamp': 24,
+                }),
+                RecordCppImpl({
+                    'source_addr': 3, 'source_stamp': 20, 'sink_stamp': 27,
+                }),
+            ],
+            [ColumnValue('source_addr'), ColumnValue('source_stamp'), ColumnValue('sink_stamp')]
+        )
+
+        merged = source_records.merge_sequential_for_addr_track(
+            source_stamp_key='source_stamp',
+            source_key='source_addr',
+            copy_records=copy_records,
+            copy_stamp_key='copy_stamp',
+            copy_from_key='addr_from',
+            copy_to_key='addr_to',
+            sink_records=sink_records,
+            sink_stamp_key='sink_stamp',
+            sink_from_key='sink_addr',
+            columns=['source_addr', 'source_stamp', 'sink_stamp'],
+        )
+
+        merged.sort(key='sink_stamp')
+        expect_records.sort(key='sink_stamp')
+
+        assert source_records.columns == ['source_addr', 'source_stamp']
+        assert copy_records.columns == [
+            'addr_from', 'addr_to', 'copy_stamp']
+        assert sink_records.columns == ['sink_addr', 'sink_stamp']
+
+        assert merged.equals(expect_records)
+
+    def test_merge_sequential_for_addr_track_validate(self):
+        source_records = RecordsCppImpl(
+            [
+                RecordCppImpl({'source_addr': 1, 'source_stamp': 0}),
+            ],
+            [ColumnValue('source_addr'), ColumnValue('source_stamp')]
+        )
+
+        copy_records = RecordsCppImpl(
+            [
+                RecordCppImpl({'addr_from': 1, 'addr_to': 13, 'copy_stamp': 1}),
+            ],
+            [ColumnValue('addr_from'), ColumnValue('addr_to'), ColumnValue('copy_stamp')]
+        )
+
+        sink_records = RecordsCppImpl(
+            [
+                RecordCppImpl({'sink_addr': 13, 'sink_stamp': 2}),
+            ],
+            [ColumnValue('sink_addr'), ColumnValue('sink_stamp')]
+        )
+
+        with pytest.raises(InvalidArgumentError):
+            source_records.merge_sequential_for_addr_track(
+                source_stamp_key='source_stamp',
+                source_key='source_addr',
+                copy_records=copy_records,
+                copy_stamp_key='copy_stamp',
+                copy_from_key='addr_from',
+                copy_to_key='addr_to',
+                sink_records=sink_records,
+                sink_stamp_key='sink_stamp',
+                sink_from_key='sink_addr',
+                columns=['unknown'],
+            )
