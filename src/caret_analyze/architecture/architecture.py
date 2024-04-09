@@ -511,10 +511,13 @@ class Architecture(Summarizable):
 
         if callback_read.publish_topics:
             context_reader = AssignContextReader(node)
-            for publish_topic_name in callback_read.publish_topics:
-                if callback_write.subscribe_topic_name and publish_topic_name is not None:
+            for publish_topic in callback_read.publish_topics:
+                if callback_write.subscribe_topic_name and publish_topic is not None:
                     context_reader.remove_callback_chain(callback_write.subscribe_topic_name,
-                                                         publish_topic_name.topic_name)
+                                                         callback_write.
+                                                         subscription_construction_order,
+                                                         publish_topic.topic_name,
+                                                         publish_topic.construction_order)
             node.update_node_path(
                 NodeValuesLoaded._search_node_paths(
                                     node,
@@ -726,12 +729,26 @@ class AssignContextReader(ArchitectureReader):
                                    'subscription_topic_name': subscribe_topic_name,
                                    'publisher_topic_name': publish_topic_name})
 
-    def remove_callback_chain(self, subscribe_topic_name: str, publish_topic_name: str) -> None:
+    def remove_callback_chain(
+        self,
+        subscribe_topic_name: str,
+        subscription_construction_order: int | None,
+        publish_topic_name: str,
+        publisher_construction_order: int
+    ) -> None:
         self._contexts = [
             context for context in self._contexts
-            if (context['subscription_topic_name'], context['publisher_topic_name'],
-                context['context_type']) !=
-               (subscribe_topic_name, publish_topic_name, 'callback_chain')
+            if (context['subscription_topic_name'],
+                0 if 'subscription_construction_order' not in context else
+                context['subscription_construction_order'],
+                context['publisher_topic_name'],
+                0 if 'publisher_construction_order' not in context else
+                context['publisher_construction_order'],
+                context['context_type']) != (subscribe_topic_name,
+                                             subscription_construction_order,
+                                             publish_topic_name,
+                                             publisher_construction_order,
+                                             'callback_chain')
         ]
 
     def get_message_contexts(self, _) -> Sequence[dict]:

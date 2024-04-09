@@ -1135,11 +1135,12 @@ class NodeRecordsCallbackChain:
 
         if node_path.publish_topic_name is not None and \
                 tail_callback.publish_topics is not None:
-            b_val = False
-            for topics in tail_callback.publish_topics:
-                if node_path.publish_topic_name == topics.topic_name:
-                    b_val = True
-            if b_val is not True:
+            is_valid = False
+            for topic in tail_callback.publish_topics:
+                if node_path.publish_topic_name == topic.topic_name and \
+                   node_path.publisher_construction_order == topic.construction_order:
+                    is_valid = True
+            if is_valid is not True:
                 raise UnsupportedNodeRecordsError('')
 
         if node_path.subscribe_topic_name is not None:
