@@ -138,7 +138,7 @@ class TestRecords:
         column_values = [ColumnValue(c) for c in columns]
         records = RecordsCppImpl([], column_values)
         assert records.columns == columns
-        
+
     def test_data(self):
         expects = RecordsCppImpl(
             [
@@ -159,7 +159,7 @@ class TestRecords:
             [ColumnValue(column0), ColumnValue(column1)]
         )
         assert len(expects) == 2
-        
+
     def test_append(self):
         expects = RecordsCppImpl(
             [
@@ -183,7 +183,7 @@ class TestRecords:
         records.append(expects.data[2].data)
         assert records.equals(expects)
         assert records.columns == expects.columns
-        
+
     def test_drop_columns(self):
         records = RecordsCppImpl(
             [
@@ -217,7 +217,7 @@ class TestRecords:
 
     def test_rename_columns(self):
         column0_ = 'stamp_'
-        column1_ = 'value_'        
+        column1_ = 'value_'
         records = RecordsCppImpl(
             [
                 RecordCppImpl({column0: 0, column1: 1}),
@@ -257,7 +257,7 @@ class TestRecords:
 
     def test_rename_columns_validate_argument(self):
         column0_ = 'stamp_'
-        column1_ = 'value_'   
+        column1_ = 'value_'
         records = RecordsCppImpl(
             [
                 RecordCppImpl({column0: 0, column1: 0}),
@@ -943,7 +943,3 @@ class TestRecords:
         with pytest.raises(InvalidArgumentError):
             records_left.merge(
                 records_right, 'value_left', 'value_right', ['unknown'], how='inner')
-
-
-
-
