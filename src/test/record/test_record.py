@@ -38,80 +38,76 @@ except ModuleNotFoundError as e:
         'Failed to load RecordsCppImpl, ',
         'possibly due to missing information in the PYTHONPATH environment variable.') from e
 
-column0 = 'stamp'
-column1 = 'value'
-column2 = 'addr'
-
 
 class TestRecord:
 
     @pytest.mark.parametrize(
         'record, record_, expect',
         [
-            (RecordCppImpl({column0: 0}), RecordCppImpl({column0: 0}), True),
-            (RecordCppImpl({column0: 0}), RecordCppImpl({column0: 1}), False),
-            (RecordCppImpl({column0: 0, column1: 1}), RecordCppImpl(
-                {column0: 0, column1: 1}), True),
-            (RecordCppImpl({column0: 0, column1: 1}), RecordCppImpl(
-                {column1: 1, column0: 0}), True),
-            (RecordCppImpl({column0: 0, column1: 1}), RecordCppImpl(
-                {column0: 1, column1: 0}), False),
+            (RecordCppImpl({'stamp': 0}), RecordCppImpl({'stamp': 0}), True),
+            (RecordCppImpl({'stamp': 0}), RecordCppImpl({'stamp': 1}), False),
+            (RecordCppImpl({'stamp': 0, 'value': 1}), RecordCppImpl(
+                {'stamp': 0, 'value': 1}), True),
+            (RecordCppImpl({'stamp': 0, 'value': 1}), RecordCppImpl(
+                {'value': 1, 'stamp': 0}), True),
+            (RecordCppImpl({'stamp': 0, 'value': 1}), RecordCppImpl(
+                {'stamp': 1, 'value': 0}), False),
         ],
     )
     def test_equals(self, record, record_, expect):
         assert record.equals(record_) is expect
 
     def test_data(self):
-        dic = {column0: 0, column1: 18446744073709551615}
+        dic = {'stamp': 0, 'value': 18446744073709551615}
         record = RecordCppImpl(dic)
         assert record.data == dic
 
     def test_columns(self):
-        dic = {column0: 0, column1: 1}
+        dic = {'stamp': 0, 'value': 1}
         record = RecordCppImpl(dic)
         assert record.columns == set(dic.keys())
 
     def test_get(self):
-        dic = {column0: 0, column1: 1}
+        dic = {'stamp': 0, 'value': 1}
         record = RecordCppImpl(dic)
-        assert record.get(column0) == 0
-        assert record.get(column1) == 1
+        assert record.get('stamp') == 0
+        assert record.get('value') == 1
 
     def test_get_with_default(self):
-        dic = {column0: 0}
+        dic = {'stamp': 0}
         record = RecordCppImpl(dic)
-        assert record.get_with_default(column0, 0) == 0
-        assert record.get_with_default(column1, 0) == 0
-        assert record.get_with_default(column1, 1) == 1
+        assert record.get_with_default('stamp', 0) == 0
+        assert record.get_with_default('value', 0) == 0
+        assert record.get_with_default('value', 1) == 1
 
     def test_add(self):
-        expect = {column0: 0, column1: 1}
+        expect = {'stamp': 0, 'value': 1}
 
         record = RecordCppImpl()
-        record.add(column0, 0)
-        record.add(column1, 1)
+        record.add('stamp', 0)
+        record.add('value', 1)
         assert record.data == expect
         assert record.columns == expect.keys()
 
     def test_change_dict_key(self):
-        record = RecordCppImpl({'key_before': 0, column1: 1})
-        expect = RecordCppImpl({'key_after': 0, column1: 1})
+        record = RecordCppImpl({'key_before': 0, 'value': 1})
+        expect = RecordCppImpl({'key_after': 0, 'value': 1})
 
         record.change_dict_key('key_before', 'key_after')
         assert record.equals(expect)
         assert record.columns == expect.columns
 
     def test_drop_columns(self):
-        dic = {column0: 0, column1: 1}
+        dic = {'stamp': 0, 'value': 1}
         record = RecordCppImpl(dic)
         assert record.columns == set(dic.keys())
 
-        record.drop_columns([column0])
-        assert record.columns == {column1}
+        record.drop_columns(['stamp'])
+        assert record.columns == {'value'}
 
     def test_merge(self):
         left_dict = {'a': 1, 'b': 2}
-        right_dict = {column2: 3, 'd': 4}
+        right_dict = {'c': 3, 'd': 4}
         merged_dict = deepcopy(left_dict)
         merged_dict.update(right_dict)
 
@@ -128,13 +124,13 @@ class TestRecords:
     def test_init(self):
         RecordsCppImpl()
         with pytest.raises(InvalidArgumentError):
-            RecordsCppImpl([RecordCppImpl({column0: 1})], None)
+            RecordsCppImpl([RecordCppImpl({'stamp': 1})], None)
 
         with pytest.raises(InvalidArgumentError):
-            RecordsCppImpl(None, [ColumnValue(column0), ColumnValue(column0)])
+            RecordsCppImpl(None, [ColumnValue('stamp'), ColumnValue('stamp')])
 
     def test_columns(self):
-        columns = [column1, column0]
+        columns = ['stamp', 'value']
         column_values = [ColumnValue(c) for c in columns]
         records = RecordsCppImpl([], column_values)
         assert records.columns == columns
@@ -142,10 +138,10 @@ class TestRecords:
     def test_data(self):
         expects = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0, column1: 1}),
-                RecordCppImpl({column0: 2, column1: 4}),
+                RecordCppImpl({'stamp': 0, 'value': 1}),
+                RecordCppImpl({'stamp': 2, 'value': 4}),
             ],
-            [ColumnValue(column0), ColumnValue(column1)]
+            [ColumnValue('stamp'), ColumnValue('value')]
         )
         records = RecordsCppImpl(expects.data, expects._columns.to_value())
         assert records.equals(expects)
@@ -153,23 +149,25 @@ class TestRecords:
     def test_len(self):
         expects = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0, column1: 1}),
-                RecordCppImpl({column0: 2, column1: 4})
+                RecordCppImpl({'stamp': 0, 'value': 1}),
+                RecordCppImpl({'stamp': 2, 'value': 4})
             ],
-            [ColumnValue(column0), ColumnValue(column1)]
+            [ColumnValue('stamp'), ColumnValue('value')]
         )
         assert len(expects) == 2
 
     def test_append(self):
+        stamp = 'stamp'
+        value = 'value'
         expects = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0, column1: 1}),
-                RecordCppImpl({column0: 2, column1: 4}),
-                RecordCppImpl({column0: 3}),
+                RecordCppImpl({stamp: 0, value: 1}),
+                RecordCppImpl({stamp: 2, value: 4}),
+                RecordCppImpl({stamp: 3}),
             ],
-            [ColumnValue(column0), ColumnValue(column1)]
+            [ColumnValue(stamp), ColumnValue(value)]
         )
-        records = RecordsCppImpl(None, [ColumnValue(column0), ColumnValue(column1)])
+        records = RecordsCppImpl(None, [ColumnValue(stamp), ColumnValue(value)])
         records.append(expects.data[0])
         records.append(expects.data[1])
         records.append(expects.data[2])
@@ -177,7 +175,7 @@ class TestRecords:
         assert records._columns.to_value() == expects._columns.to_value()
 
         # tests for multimethod
-        records = RecordsCppImpl(None, [ColumnValue(column0), ColumnValue(column1)])
+        records = RecordsCppImpl(None, [ColumnValue(stamp), ColumnValue(value)])
         records.append(expects.data[0].data)
         records.append(expects.data[1].data)
         records.append(expects.data[2].data)
@@ -185,26 +183,28 @@ class TestRecords:
         assert records.columns == expects.columns
 
     def test_drop_columns(self):
+        stamp = 'stamp'
+        value = 'value'
         records = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0, column1: 3}),
-                RecordCppImpl({column0: 1, column1: 4}),
-                RecordCppImpl({column0: 2, column1: 5}),
-            ], [ColumnValue(column0), ColumnValue(column1)]
+                RecordCppImpl({stamp: 0, value: 3}),
+                RecordCppImpl({stamp: 1, value: 4}),
+                RecordCppImpl({stamp: 2, value: 5}),
+            ], [ColumnValue(stamp), ColumnValue(value)]
         )
 
-        columns_expect = [column1]
+        columns_expect = [value]
 
-        drop_keys = [column0]
+        drop_keys = [stamp]
         records.drop_columns(drop_keys)
         for record in records.data:
-            assert column0 not in record.columns
+            assert stamp not in record.columns
         assert records.columns == columns_expect
         for datum in records.data:
             assert datum.columns == set(columns_expect)
-        assert records.data[0].get(column1) == 3
-        assert records.data[1].get(column1) == 4
-        assert records.data[2].get(column1) == 5
+        assert records.data[0].get(value) == 3
+        assert records.data[1].get(value) == 4
+        assert records.data[2].get(value) == 5
 
         records_empty = RecordsCppImpl()
         assert records_empty.columns == []
@@ -216,103 +216,107 @@ class TestRecords:
             records.drop_columns('')
 
     def test_rename_columns(self):
-        column0_ = 'stamp_'
-        column1_ = 'value_'
+        stamp = 'stamp'
+        stamp_ = 'stamp_'
+        value = 'value'
+        value_ = 'value_'
         records = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0, column1: 1}),
+                RecordCppImpl({stamp: 0, value: 1}),
                 RecordCppImpl(),
-            ], [ColumnValue(column0), ColumnValue(column1)]
+            ], [ColumnValue(stamp), ColumnValue(value)]
         )
 
-        assert column0 in records.data[0].columns
-        assert column0_ not in records.data[0].columns
-        assert column0 not in records.data[1].columns
-        assert column0_ not in records.data[1].columns
+        assert stamp in records.data[0].columns
+        assert stamp_ not in records.data[0].columns
+        assert stamp not in records.data[1].columns
+        assert stamp_ not in records.data[1].columns
 
-        assert column1 in records.data[0].columns
-        assert column1_ not in records.data[0].columns
-        assert column1 not in records.data[1].columns
-        assert column1_ not in records.data[1].columns
+        assert value in records.data[0].columns
+        assert value_ not in records.data[0].columns
+        assert value not in records.data[1].columns
+        assert value_ not in records.data[1].columns
 
-        assert records.columns == [column0, column1]
+        assert records.columns == [stamp, value]
 
         rename_keys = {
-            column1: column1_,
-            column0: column0_,
+            value: value_,
+            stamp: stamp_,
         }
 
         records.rename_columns(rename_keys)
-        assert column0 not in records.data[0].columns
-        assert column0_ in records.data[0].columns
-        assert column0 not in records.data[1].columns
-        assert column0_ not in records.data[1].columns
+        assert stamp not in records.data[0].columns
+        assert stamp_ in records.data[0].columns
+        assert stamp not in records.data[1].columns
+        assert stamp_ not in records.data[1].columns
 
-        assert column1 not in records.data[0].columns
-        assert column1_ in records.data[0].columns
-        assert column1 not in records.data[1].columns
-        assert column1_ not in records.data[1].columns
+        assert value not in records.data[0].columns
+        assert value_ in records.data[0].columns
+        assert value not in records.data[1].columns
+        assert value_ not in records.data[1].columns
 
-        assert records.columns == [column0_, column1_]
+        assert records.columns == [stamp_, value_]
 
     def test_rename_columns_validate_argument(self):
-        column0_ = 'stamp_'
-        column1_ = 'value_'
+        stamp = 'stamp'
+        stamp_ = 'stamp_'
+        value = 'value'
+        value_ = 'value_'
         records = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0, column1: 0}),
-            ], [ColumnValue(column0), ColumnValue(column1)]
+                RecordCppImpl({stamp: 0, value: 0}),
+            ], [ColumnValue(stamp), ColumnValue(value)]
         )
 
-        rename_keys = {column0: column0_}
+        rename_keys = {stamp: stamp_}
         records.rename_columns(rename_keys)
 
         with pytest.raises(InvalidArgumentError):
-            rename_keys = {column0: column0}
+            rename_keys = {stamp: stamp}
             records.rename_columns(rename_keys)
 
         # overwrite columns
         with pytest.raises(InvalidArgumentError):
-            rename_keys = {column0: column0_, column1: column0}
+            rename_keys = {stamp: stamp_, value: stamp}
             records.rename_columns(rename_keys)
 
         with pytest.raises(InvalidArgumentError):
-            rename_keys = {column0: column1, column1: column1_}
+            rename_keys = {stamp: value, value: value_}
             records.rename_columns(rename_keys)
 
         # Duplicate columns after change
-        rename_keys = {column0: column0_, column1: column0_}
+        rename_keys = {stamp: stamp_, value: stamp_}
         with pytest.raises(InvalidArgumentError):
             records.rename_columns(rename_keys)
 
     def test_clone(self):
         records = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0}),
-            ], [ColumnValue(column0)]
+                RecordCppImpl({'stamp': 0}),
+            ], [ColumnValue('stamp')]
         )
 
         records_ = records.clone()
-        records_.append_column(ColumnValue(column1), [9])
-        assert records_.columns == [column0, column1]
-        assert records.columns == [column0]
+        records_.append_column(ColumnValue('value'), [9])
+        assert records_.columns == ['stamp', 'value']
+        assert records.columns == ['stamp']
 
     def test_filter_if(self):
         records = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0}),
-                RecordCppImpl({column0: 1}),
-                RecordCppImpl({column0: 2}),
-            ], [ColumnValue(column0)]
+                RecordCppImpl({'stamp': 0}),
+                RecordCppImpl({'stamp': 1}),
+                RecordCppImpl({'stamp': 2}),
+            ], [ColumnValue('stamp')]
         )
 
         assert len(records.data) == 3
         init_columns = records.columns
 
-        records.filter_if(lambda record: record.get(column0) == 1)
+        records.filter_if(lambda record: record.get('stamp') == 1)
         assert init_columns == records.columns
         assert len(records.data) == 1
-        assert records.data[0].get(column0) == 1
+        assert records.data[0].get('stamp') == 1
 
         records.filter_if(lambda _: False)
         assert init_columns == records.columns
@@ -321,53 +325,54 @@ class TestRecords:
     def test_concat(self):
         records_left = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0}),
-                RecordCppImpl({column0: 1}),
-            ], [ColumnValue(column0)]
+                RecordCppImpl({'stamp': 0}),
+                RecordCppImpl({'stamp': 1}),
+            ], [ColumnValue('stamp')]
         )
         records_right = RecordsCppImpl(
             [
-                RecordCppImpl({column1: 3}),
-                RecordCppImpl({column1: 4}),
-                RecordCppImpl({column1: 5}),
-            ], [ColumnValue(column1)]
+                RecordCppImpl({'value': 3}),
+                RecordCppImpl({'value': 4}),
+                RecordCppImpl({'value': 5}),
+            ], [ColumnValue('value')]
         )
 
         records_expect = RecordsCppImpl(
             records_left.data + records_right.data,
-            [ColumnValue(column0), ColumnValue(column1)]
+            [ColumnValue('stamp'), ColumnValue('value')]
         )
 
-        records_concat = RecordsCppImpl(None, [ColumnValue(column0), ColumnValue(column1)])
+        records_concat = RecordsCppImpl(None, [ColumnValue('stamp'), ColumnValue('value')])
         records_concat.concat(records_left)
         records_concat.concat(records_right)
         assert records_concat.equals(records_expect)
 
-        records_concat = RecordsCppImpl(None, [ColumnValue(column0)])
+        records_concat = RecordsCppImpl(None, [ColumnValue('stamp')])
         with pytest.raises(InvalidArgumentError):
             records_concat.concat(records_right)
 
     def test_bind_drop_as_delay(self):
         sort_key = 'sort_key'
-        column0_ = 'stamp_'
+        stamp = 'stamp'
+        stamp_ = 'stamp_'
         records = RecordsCppImpl(
             [
-                RecordCppImpl({sort_key: 1, column0: 0, column0_: 1}),
-                RecordCppImpl({sort_key: 2, column0: 2}),
-                RecordCppImpl({sort_key: 3, column0_: 5}),
-                RecordCppImpl({sort_key: 4, column0: 6}),
+                RecordCppImpl({sort_key: 1, stamp: 0, stamp_: 1}),
+                RecordCppImpl({sort_key: 2, stamp: 2}),
+                RecordCppImpl({sort_key: 3, stamp_: 5}),
+                RecordCppImpl({sort_key: 4, stamp: 6}),
                 RecordCppImpl({sort_key: 5}),
-            ], [ColumnValue(sort_key), ColumnValue(column0), ColumnValue(column0_)]
+            ], [ColumnValue(sort_key), ColumnValue(stamp), ColumnValue(stamp_)]
         )
         records.bind_drop_as_delay()
         records_expect = RecordsCppImpl(
             [
-                RecordCppImpl({sort_key: 1, column0: 0, column0_: 1}),
-                RecordCppImpl({sort_key: 2, column0: 2, column0_: 5}),
-                RecordCppImpl({sort_key: 3, column0: 6, column0_: 5}),
-                RecordCppImpl({sort_key: 4, column0: 6}),
+                RecordCppImpl({sort_key: 1, stamp: 0, stamp_: 1}),
+                RecordCppImpl({sort_key: 2, stamp: 2, stamp_: 5}),
+                RecordCppImpl({sort_key: 3, stamp: 6, stamp_: 5}),
+                RecordCppImpl({sort_key: 4, stamp: 6}),
                 RecordCppImpl({sort_key: 5}),
-            ], [ColumnValue(sort_key), ColumnValue(column0), ColumnValue(column0_)]
+            ], [ColumnValue(sort_key), ColumnValue(stamp), ColumnValue(stamp_)]
         )
 
         assert records.equals(records_expect)
@@ -375,16 +380,16 @@ class TestRecords:
     def test_to_dataframe(self):
         records = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0}),
-                RecordCppImpl({column1: 1, column0: 3}),
-                RecordCppImpl({column2: 2, column0: 5}),
+                RecordCppImpl({'stamp': 0}),
+                RecordCppImpl({'value': 1, 'stamp': 3}),
+                RecordCppImpl({'addr': 2, 'stamp': 5}),
             ],
-            [ColumnValue(column1), ColumnValue(column0), ColumnValue(column2)]
+            [ColumnValue('value'), ColumnValue('stamp'), ColumnValue('addr')]
         )
         expect_dict = [record.data for record in records.data]
         expect_df = pd.DataFrame.from_dict(
             expect_dict, dtype='Int64'
-        ).reindex(columns=[column1, column0, column2])
+        ).reindex(columns=['value', 'stamp', 'addr'])
 
         df = records.to_dataframe()
         assert df.equals(expect_df)
@@ -392,26 +397,26 @@ class TestRecords:
     def test_iter(self):
         records = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0}),
-                RecordCppImpl({column0: 3}),
-                RecordCppImpl({column0: 5}),
+                RecordCppImpl({'stamp': 0}),
+                RecordCppImpl({'stamp': 3}),
+                RecordCppImpl({'stamp': 5}),
             ],
-            [ColumnValue(column0)]
+            [ColumnValue('stamp')]
         )
         for i, record in enumerate(records):
-            assert record.get(column0) == records.data[i].get(column0)
+            assert record.get('stamp') == records.data[i].get('stamp')
 
     def test_get_column_series(self):
         records = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0, column1: 1}),
-                RecordCppImpl({column1: 3}),
-                RecordCppImpl({column0: 5}),
+                RecordCppImpl({'stamp': 0, 'value': 1}),
+                RecordCppImpl({'value': 3}),
+                RecordCppImpl({'stamp': 5}),
             ],
-            [ColumnValue(column0), ColumnValue(column1)]
+            [ColumnValue('stamp'), ColumnValue('value')]
         )
-        assert records.get_column_series(column0) == [0, None, 5]
-        assert records.get_column_series(column1) == [1, 3, None]
+        assert records.get_column_series('stamp') == [0, None, 5]
+        assert records.get_column_series('value') == [1, 3, None]
 
         with pytest.raises(InvalidArgumentError):
             records.get_column_series('x')
@@ -419,11 +424,11 @@ class TestRecords:
     def test_get_row_series(self):
         records = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0, column1: 1}),
-                RecordCppImpl({column1: 3}),
-                RecordCppImpl({column0: 5}),
+                RecordCppImpl({'stamp': 0, 'value': 1}),
+                RecordCppImpl({'value': 3}),
+                RecordCppImpl({'stamp': 5}),
             ],
-            [ColumnValue(column0), ColumnValue(column1)]
+            [ColumnValue('stamp'), ColumnValue('value')]
         )
         assert records.get_row_series(0).equals(records.data[0])
         assert records.get_row_series(1).equals(records.data[1])
@@ -433,31 +438,33 @@ class TestRecords:
             records.get_row_series(100)
 
     def test_groupby_1key(self):
+        stamp = 'stamp'
+        value = 'value'
         records = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0, column1: 1}),
-                RecordCppImpl({column0: 0, column1: 2}),
-                RecordCppImpl({column0: 5, column1: 3}),
+                RecordCppImpl({stamp: 0, value: 1}),
+                RecordCppImpl({stamp: 0, value: 2}),
+                RecordCppImpl({stamp: 5, value: 3}),
             ],
-            [ColumnValue(column0), ColumnValue(column1)]
+            [ColumnValue(stamp), ColumnValue(value)]
         )
         expect = {}
         expect[(0,)] = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0, column1: 1}),
-                RecordCppImpl({column0: 0, column1: 2}),
+                RecordCppImpl({stamp: 0, value: 1}),
+                RecordCppImpl({stamp: 0, value: 2}),
             ],
-            [ColumnValue(column0), ColumnValue(column1)]
+            [ColumnValue(stamp), ColumnValue(value)]
         )
 
         expect[(5,)] = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 5, column1: 3}),
+                RecordCppImpl({stamp: 5, value: 3}),
             ],
-            [ColumnValue(column0), ColumnValue(column1)]
+            [ColumnValue(stamp), ColumnValue(value)]
         )
 
-        group = records.groupby([column0])
+        group = records.groupby([stamp])
 
         assert group.keys() == expect.keys()
 
@@ -465,38 +472,41 @@ class TestRecords:
             assert v.equals(expect[k])
 
     def test_groupby_2key(self):
+        stamp = 'stamp'
+        value = 'value'
+        addr = 'addr'
         records = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0, column1: 1, column2: 2}),
-                RecordCppImpl({column0: 0, column1: 2, column2: 3}),
-                RecordCppImpl({column0: 5, column1: 3, column2: 3}),
-                RecordCppImpl({column0: 5, column1: 4, column2: 3}),
+                RecordCppImpl({stamp: 0, value: 1, addr: 2}),
+                RecordCppImpl({stamp: 0, value: 2, addr: 3}),
+                RecordCppImpl({stamp: 5, value: 3, addr: 3}),
+                RecordCppImpl({stamp: 5, value: 4, addr: 3}),
             ],
-            [ColumnValue(column0), ColumnValue(column1), ColumnValue(column2)]
+            [ColumnValue(stamp), ColumnValue(value), ColumnValue(addr)]
         )
 
         expect = {}
         expect[(0, 2)] = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0, column1: 1, column2: 2}),
+                RecordCppImpl({stamp: 0, value: 1, addr: 2}),
             ],
-            [ColumnValue(column0), ColumnValue(column1), ColumnValue(column2)]
+            [ColumnValue(stamp), ColumnValue(value), ColumnValue(addr)]
         )
         expect[(0, 3)] = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0, column1: 2, column2: 3}),
+                RecordCppImpl({stamp: 0, value: 2, addr: 3}),
             ],
-            [ColumnValue(column0), ColumnValue(column1), ColumnValue(column2)]
+            [ColumnValue(stamp), ColumnValue(value), ColumnValue(addr)]
         )
         expect[(5, 3)] = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 5, column1: 3, column2: 3}),
-                RecordCppImpl({column0: 5, column1: 4, column2: 3}),
+                RecordCppImpl({stamp: 5, value: 3, addr: 3}),
+                RecordCppImpl({stamp: 5, value: 4, addr: 3}),
             ],
-            [ColumnValue(column0), ColumnValue(column1), ColumnValue(column2)]
+            [ColumnValue(stamp), ColumnValue(value), ColumnValue(addr)]
         )
 
-        group = records.groupby([column0, column2])
+        group = records.groupby([stamp, addr])
 
         assert group.keys() == expect.keys()
 
@@ -504,43 +514,46 @@ class TestRecords:
             assert v.equals(expect[k])
 
     def test_groupby_3key(self):
+        stamp = 'stamp'
+        value = 'value'
+        addr = 'addr'
         records = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0, column1: 1, column2: 2}),
-                RecordCppImpl({column0: 0, column1: 2, column2: 3}),
-                RecordCppImpl({column0: 5, column1: 3, column2: 3}),
-                RecordCppImpl({column0: 5, column1: 4, column2: 3}),
+                RecordCppImpl({stamp: 0, value: 1, addr: 2}),
+                RecordCppImpl({stamp: 0, value: 2, addr: 3}),
+                RecordCppImpl({stamp: 5, value: 3, addr: 3}),
+                RecordCppImpl({stamp: 5, value: 4, addr: 3}),
             ],
-            [ColumnValue(column0), ColumnValue(column1), ColumnValue(column2)]
+            [ColumnValue(stamp), ColumnValue(value), ColumnValue(addr)]
         )
 
         expect = {}
         expect[(0, 1, 2)] = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0, column1: 1, column2: 2}),
+                RecordCppImpl({stamp: 0, value: 1, addr: 2}),
             ],
-            [ColumnValue(column0), ColumnValue(column1), ColumnValue(column2)]
+            [ColumnValue(stamp), ColumnValue(value), ColumnValue(addr)]
         )
         expect[(0, 2, 3)] = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0, column1: 2, column2: 3}),
+                RecordCppImpl({stamp: 0, value: 2, addr: 3}),
             ],
-            [ColumnValue(column0), ColumnValue(column1), ColumnValue(column2)]
+            [ColumnValue(stamp), ColumnValue(value), ColumnValue(addr)]
         )
         expect[(5, 3, 3)] = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 5, column1: 3, column2: 3}),
+                RecordCppImpl({stamp: 5, value: 3, addr: 3}),
             ],
-            [ColumnValue(column0), ColumnValue(column1), ColumnValue(column2)]
+            [ColumnValue(stamp), ColumnValue(value), ColumnValue(addr)]
         )
         expect[(5, 4, 3)] = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 5, column1: 4, column2: 3}),
+                RecordCppImpl({stamp: 5, value: 4, addr: 3}),
             ],
-            [ColumnValue(column0), ColumnValue(column1), ColumnValue(column2)]
+            [ColumnValue(stamp), ColumnValue(value), ColumnValue(addr)]
         )
 
-        group = records.groupby([column0, column1, column2])
+        group = records.groupby([stamp, value, addr])
 
         assert group.keys() == expect.keys()
 
@@ -548,49 +561,51 @@ class TestRecords:
             assert v.equals(expect[k])
 
     def test_append_column(self):
+        stamp = 'stamp'
         expects = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0}),
+                RecordCppImpl({stamp: 0}),
             ],
-            [ColumnValue(column0)]
+            [ColumnValue(stamp)]
         )
 
         records = RecordsCppImpl([RecordCppImpl()], [])
         assert records.columns == []
-        records.append_column(ColumnValue(column0), [0])
+        records.append_column(ColumnValue(stamp), [0])
         assert records.equals(expects)
 
     def test_sort(self):
+        stamp = 'stamp'
         records = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 2}),
-                RecordCppImpl({column0: 0}),
-                RecordCppImpl({column0: 1}),
+                RecordCppImpl({stamp: 2}),
+                RecordCppImpl({stamp: 0}),
+                RecordCppImpl({stamp: 1}),
             ],
-            [ColumnValue(column0)]
+            [ColumnValue(stamp)]
         )
         records_asc = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0}),
-                RecordCppImpl({column0: 1}),
-                RecordCppImpl({column0: 2}),
+                RecordCppImpl({stamp: 0}),
+                RecordCppImpl({stamp: 1}),
+                RecordCppImpl({stamp: 2}),
             ],
-            [ColumnValue(column0)]
+            [ColumnValue(stamp)]
         )
         records_desc = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 2}),
-                RecordCppImpl({column0: 1}),
-                RecordCppImpl({column0: 0}),
+                RecordCppImpl({stamp: 2}),
+                RecordCppImpl({stamp: 1}),
+                RecordCppImpl({stamp: 0}),
             ],
-            [ColumnValue(column0)]
+            [ColumnValue(stamp)]
         )
         records_ = records.clone()
-        records_.sort(column0, ascending=True)
+        records_.sort(stamp, ascending=True)
         assert records_.equals(records_asc)
 
         records_ = records.clone()
-        records_.sort(column0, ascending=False)
+        records_.sort(stamp, ascending=False)
         assert records_.equals(records_desc)
 
     def test_sort_column_order(self):
@@ -682,76 +697,76 @@ class TestRecords:
             (
                 RecordsCppImpl(
                     [
-                        RecordCppImpl({column0: 0}),
-                        RecordCppImpl({column0: 1}),
+                        RecordCppImpl({'stamp': 0}),
+                        RecordCppImpl({'stamp': 1}),
                     ],
-                    [ColumnValue(column0)]
+                    [ColumnValue('stamp')]
                 ),
                 RecordsCppImpl(
                     [
-                        RecordCppImpl({column0: 0}),
-                        RecordCppImpl({column0: 1}),
+                        RecordCppImpl({'stamp': 0}),
+                        RecordCppImpl({'stamp': 1}),
                     ],
-                    [ColumnValue(column0)]
+                    [ColumnValue('stamp')]
                 ),
                 True,
             ),
             (
                 RecordsCppImpl(
                     [
-                        RecordCppImpl({column0: 0, column1: 1}),
-                        RecordCppImpl({column0: 5, column1: 6}),
-                    ], [ColumnValue(column0), ColumnValue(column1)]
+                        RecordCppImpl({'stamp': 0, 'value': 1}),
+                        RecordCppImpl({'stamp': 5, 'value': 6}),
+                    ], [ColumnValue('stamp'), ColumnValue('value')]
                 ),
                 RecordsCppImpl(
                     [
-                        RecordCppImpl({column1: 1, column0: 0}),
-                        RecordCppImpl({column1: 6, column0: 5}),
-                    ], [ColumnValue(column1), ColumnValue(column0)]
-                ),
-                False,
-            ),
-            (
-                RecordsCppImpl(
-                    [
-                        RecordCppImpl({column0: 0, column1: 1}),
-                        RecordCppImpl({column0: 5, column1: 7}),
-                    ], [ColumnValue(column0), ColumnValue(column1)]
-                ),
-                RecordsCppImpl(
-                    [
-                        RecordCppImpl({column1: 1, column0: 0}),
-                        RecordCppImpl({column1: 6, column0: 5}),
-                    ], [ColumnValue(column0), ColumnValue(column1)]
+                        RecordCppImpl({'value': 1, 'stamp': 0}),
+                        RecordCppImpl({'value': 6, 'stamp': 5}),
+                    ], [ColumnValue('value'), ColumnValue('stamp')]
                 ),
                 False,
             ),
             (
                 RecordsCppImpl(
                     [
-                        RecordCppImpl({column0: 0, column1: 1}),
-                        RecordCppImpl({column0: 5, column1: 7}),
-                    ], [ColumnValue(column0), ColumnValue(column1), ColumnValue('stamp__')]
+                        RecordCppImpl({'stamp': 0, 'value': 1}),
+                        RecordCppImpl({'stamp': 5, 'value': 7}),
+                    ], [ColumnValue('stamp'), ColumnValue('value')]
                 ),
                 RecordsCppImpl(
                     [
-                        RecordCppImpl({column1: 1, column0: 0}),
-                        RecordCppImpl({column1: 6, column0: 5}),
-                    ], [ColumnValue(column0), ColumnValue(column1)]
+                        RecordCppImpl({'value': 1, 'stamp': 0}),
+                        RecordCppImpl({'value': 6, 'stamp': 5}),
+                    ], [ColumnValue('stamp'), ColumnValue('value')]
                 ),
                 False,
             ),
             (
                 RecordsCppImpl(
                     [
-                        RecordCppImpl({column0: 0, column1: 1}),
-                    ], [ColumnValue(column0), ColumnValue(column1)]
+                        RecordCppImpl({'stamp': 0, 'value': 1}),
+                        RecordCppImpl({'stamp': 5, 'value': 7}),
+                    ], [ColumnValue('stamp'), ColumnValue('value'), ColumnValue('stamp__')]
                 ),
                 RecordsCppImpl(
                     [
-                        RecordCppImpl({column0: 0, column1: 1}),
-                        RecordCppImpl({column0: 0, column1: 7}),
-                    ], [ColumnValue(column0), ColumnValue(column1)]
+                        RecordCppImpl({'value': 1, 'stamp': 0}),
+                        RecordCppImpl({'value': 6, 'stamp': 5}),
+                    ], [ColumnValue('stamp'), ColumnValue('value')]
+                ),
+                False,
+            ),
+            (
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl({'stamp': 0, 'value': 1}),
+                    ], [ColumnValue('stamp'), ColumnValue('value')]
+                ),
+                RecordsCppImpl(
+                    [
+                        RecordCppImpl({'stamp': 0, 'value': 1}),
+                        RecordCppImpl({'stamp': 0, 'value': 7}),
+                    ], [ColumnValue('stamp'), ColumnValue('value')]
                 ),
                 False,
             ),
@@ -1233,23 +1248,23 @@ class TestRecords:
     def test_merge_sequential_validate(self):
         left_records = RecordsCppImpl(
             [
-                RecordCppImpl({column0: 0}),
+                RecordCppImpl({'stamp': 0}),
             ],
-            [ColumnValue(column0)]
+            [ColumnValue('stamp')]
         )
 
         right_records = RecordsCppImpl(
             [
-                RecordCppImpl({column1: 1}),
+                RecordCppImpl({'value': 1}),
             ],
-            [ColumnValue(column1)]
+            [ColumnValue('value')]
         )
 
         with pytest.raises(InvalidArgumentError):
             left_records.merge_sequential(
                 right_records=right_records,
-                left_stamp_key=column0,
-                right_stamp_key=column1,
+                left_stamp_key='stamp',
+                right_stamp_key='value',
                 join_left_key=None,
                 join_right_key=None,
                 columns=['not_exist'],
