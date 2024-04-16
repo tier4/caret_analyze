@@ -30,10 +30,10 @@ from ..architecture import Architecture
 from ..common import Summarizable, Summary, Util
 from ..exceptions import Error, InvalidArgumentError, UnsupportedTypeError
 from ..infra import (InfraBase,
+                     Lttng,
                      RecordsProvider,
                      RecordsProviderLttng,
-                     RuntimeDataProvider,
-                     Lttng)
+                     RuntimeDataProvider)
 from ..value_objects import NodePathStructValue
 
 logger = getLogger(__name__)

@@ -28,10 +28,9 @@ from ...common import ClockConverter, Util
 from ...exceptions import (InvalidArgumentError,
                            UnsupportedNodeRecordsError,
                            UnsupportedTypeError)
-from ...infra.interface import RuntimeDataProvider
-from ...infra.lttng.column_names import COLUMN_NAME
-from ...record import (merge, merge_sequential, RecordsFactory, RecordsInterface)
-from ...record.column import Columns, ColumnValue
+from ...record import (Columns, ColumnValue,
+                       merge, merge_sequential,
+                       RecordsFactory, RecordsInterface)
 from ...value_objects import (CallbackChain,
                               CallbackStructValue,
                               CommunicationStructValue,

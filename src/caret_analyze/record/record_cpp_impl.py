@@ -15,19 +15,14 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-import pandas as pd
 
 import pandas as pd
 
 from record_cpp_impl import RecordBase, RecordsBase
 
 from .column import Column, Columns, ColumnValue
-<<<<<<< HEAD
 from .interface import RecordInterface, RecordsInterface
 from .record_operations import validate_rename_rule
-=======
-from .record import RecordInterface, RecordsInterface, validate_rename_rule
->>>>>>> 62e800f (Refactor: delete Records class)
 from ..exceptions import InvalidArgumentError
 
 
@@ -355,12 +350,6 @@ class RecordsCppImpl(RecordsInterface):
 
         RecordsCppImpl.__validate_duplicated_columns(columns)
 
-<<<<<<< HEAD
-=======
-    def __len__(self) -> int:
-        return len(self.data)
-
->>>>>>> 62e800f (Refactor: delete Records class)
     @staticmethod
     def _get_column_series_core(records: RecordsInterface, column_name: str):
         if column_name not in records.columns:
@@ -402,8 +391,4 @@ class RecordsCppImpl(RecordsInterface):
         missing_columns = list(set(columns) - set(df.columns))
         df_miss = pd.DataFrame(columns=missing_columns)
         df = pd.concat([df, df_miss])
-<<<<<<< HEAD
         return df[columns]
-=======
-        return df[columns]
->>>>>>> 62e800f (Refactor: delete Records class)

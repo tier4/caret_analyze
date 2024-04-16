@@ -20,8 +20,8 @@ from logging import getLogger, WARN
 
 
 from .reader_interface import ArchitectureReader, UNDEFINED_STR
-from .struct import (CallbackGroupStruct,
-                     CallbackChainStruct,
+from .struct import (CallbackChainStruct,
+                     CallbackGroupStruct,
                      CallbackStruct,
                      CommunicationStruct,
                      ExecutorStruct,

@@ -21,6 +21,7 @@ from ..exceptions import InvalidArgumentError
 from ..value_objects import (CallbackGroupStructValue,
                              CallbackGroupType)
 
+
 class CallbackGroup(Summarizable):
     """A class that represents the callback group."""
 

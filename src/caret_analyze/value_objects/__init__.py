@@ -39,7 +39,7 @@ from .message_context import (CallbackChain,
                               MessageContextType,
                               Tilde,
                               UseLatestMessage)
-from .node import DiffNode,NodeStructValue, NodeValue, NodeValueWithId
+from .node import DiffNode, NodeStructValue, NodeValue, NodeValueWithId
 from .node_path import NodePathStructValue, NodePathValue
 from .path import PathStructValue, PathValue
 from .publisher import PublisherStructValue, PublisherValue

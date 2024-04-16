@@ -30,8 +30,8 @@ from .value_objects import (CallbackGroupAddr,
                             ServiceCallbackValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng,
-                            TimerInit,
-                            TimerControl)
+                            TimerControl,
+                            TimerInit)
 from ..trace_point_data import TracePointData, TracePointIntermediateData
 from ...common import Util
 from ...exceptions import InvalidArgumentError
