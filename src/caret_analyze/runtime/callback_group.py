@@ -14,12 +14,12 @@
 
 from __future__ import annotations
 
-from caret_analyze.value_objects import (CallbackGroupStructValue,
-                                         CallbackGroupType)
 
 from .callback import CallbackBase
 from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError
+from ..value_objects import (CallbackGroupStructValue,
+                             CallbackGroupType)
 
 
 class CallbackGroup(Summarizable):

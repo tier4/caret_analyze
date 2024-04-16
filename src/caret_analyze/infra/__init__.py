@@ -14,9 +14,12 @@
 
 from .infra_base import InfraBase
 from .interface import RecordsProvider, RuntimeDataProvider
-from .lttng import Lttng, RecordsProviderLttng
+from .lttng import ArchitectureReaderLttng, Lttng, RecordsProviderLttng
+from .yaml import ArchitectureReaderYaml
 
 __all__ = [
+    'ArchitectureReaderLttng',
+    'ArchitectureReaderYaml',
     'InfraBase',
     'Lttng',
     'RecordsProvider',

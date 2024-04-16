@@ -15,10 +15,9 @@
 
 """Module for ROS 2 data model."""
 
-from caret_analyze.record.column import ColumnValue
-from caret_analyze.record.record_factory import RecordsFactory
 
 from ...trace_point_data import TracePointIntermediateData
+from ....record import ColumnValue, RecordsFactory
 
 
 class Ros2DataModel():

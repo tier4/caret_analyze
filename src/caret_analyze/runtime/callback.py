@@ -19,7 +19,7 @@ from .publisher import Publisher
 from .subscription import Subscription
 from .timer import Timer
 from ..common import Summarizable, Summary
-from ..infra.interface import RecordsProvider
+from ..infra import RecordsProvider
 from ..record import RecordsInterface
 from ..value_objects import (CallbackStructValue,
                              CallbackType,

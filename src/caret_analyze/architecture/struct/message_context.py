@@ -18,14 +18,14 @@ from __future__ import annotations
 from abc import abstractmethod
 from logging import getLogger
 
-from caret_analyze.value_objects.message_context import (CallbackChain, InheritUniqueStamp,
-                                                         MessageContext, MessageContextType,
-                                                         Tilde, UseLatestMessage)
 
 from .callback import CallbackStruct
 from .publisher import PublisherStruct
 from .subscription import SubscriptionStruct
 from ...exceptions import UnsupportedTypeError
+from ...value_objects import (CallbackChain, InheritUniqueStamp,
+                              MessageContext, MessageContextType,
+                              Tilde, UseLatestMessage)
 
 logger = getLogger(__name__)
 

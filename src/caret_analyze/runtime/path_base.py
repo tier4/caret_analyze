@@ -22,8 +22,10 @@ import numpy as np
 import pandas as pd
 
 from ..exceptions import Error, InvalidRecordsError
-from ..record import RecordsFactory, RecordsInterface
-from ..record.data_frame_shaper import DataFrameShaper, Strip
+from ..record import (DataFrameShaper,
+                      RecordsFactory,
+                      RecordsInterface,
+                      Strip)
 
 logger = getLogger(__name__)
 

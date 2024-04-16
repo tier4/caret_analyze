@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from .callback import CallbackStruct
 
-from ...value_objects.callback_group import CallbackGroupStructValue, CallbackGroupType
+from ...value_objects import CallbackGroupStructValue, CallbackGroupType
 
 
 class CallbackGroupStruct():

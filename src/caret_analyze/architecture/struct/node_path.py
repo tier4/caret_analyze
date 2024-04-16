@@ -22,8 +22,7 @@ from .publisher import PublisherStruct
 from .subscription import SubscriptionStruct
 from .variable_passing import VariablePassingStruct
 from ...common import Util
-from ...value_objects import NodePathStructValue
-from ...value_objects.message_context import MessageContextType
+from ...value_objects import MessageContextType, NodePathStructValue
 
 logger = getLogger(__name__)
 
