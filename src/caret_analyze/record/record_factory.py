@@ -20,30 +20,21 @@ from collections.abc import Sequence
 from multimethod import multimethod as singledispatchmethod
 
 from .column import ColumnValue
-from .record import Record, RecordInterface, Records, RecordsInterface
+from .interface import RecordInterface, RecordsInterface
 
 try:
     import caret_analyze.record.record_cpp_impl as cpp_impl
 
-    use_cpp_impl = True
     print('Succeed to find record_cpp_impl. the C++ version will be used.')
 except ModuleNotFoundError:
-    use_cpp_impl = False
-    print('Failed to find record_cpp_impl. the Python version will be used.')
+    raise ModuleNotFoundError('Failed to find record_cpp_impl.')
 
 
 class RecordFactory:
 
     @classmethod
-    def is_cpp_impl_valid(cls) -> bool:
-        return use_cpp_impl
-
-    @classmethod
     def create_instance(cls, init: dict | None = None) -> RecordInterface:
-        if use_cpp_impl:
-            return cls._create_cpp_instance(init)
-        else:
-            return Record(init)
+        return cls._create_cpp_instance(init)
 
     @classmethod
     def _create_cpp_instance(cls, init: dict | None = None) -> RecordInterface:
@@ -54,10 +45,6 @@ class RecordFactory:
 
 
 class RecordsFactory:
-
-    @staticmethod
-    def is_cpp_impl_valid() -> bool:
-        return use_cpp_impl
 
     @singledispatchmethod
     def create_instance(args) -> RecordsInterface:
@@ -74,10 +61,7 @@ class RecordsFactory:
         init: Sequence[RecordInterface],
         columns: Sequence[ColumnValue] | None
     ) -> RecordsInterface:
-        if use_cpp_impl:
-            return RecordsFactory._create_cpp_instance(init, columns)
-        else:
-            return Records(init, columns)
+        return RecordsFactory._create_cpp_instance(init, columns)
 
     @staticmethod
     @create_instance.register
@@ -90,11 +74,7 @@ class RecordsFactory:
             for record
             in init or []
         ]
-
-        if use_cpp_impl:
-            return RecordsFactory._create_cpp_instance(records, columns)
-        else:
-            return Records(records, columns)
+        return RecordsFactory._create_cpp_instance(records, columns)
 
     @staticmethod
     def _create_cpp_instance(

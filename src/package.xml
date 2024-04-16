@@ -13,6 +13,7 @@
   <depend>python3-setuptools</depend>
   <depend>python3-colorcet</depend>
   <depend>python3-graphviz</depend>
+  <depend>caret_analyze_cpp_impl</depend>
   <exec_depend>python3-tqdm</exec_depend>
   <exec_depend>python3-yaml</exec_depend>
   <test_depend>ament_copyright</test_depend>

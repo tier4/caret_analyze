@@ -13,8 +13,8 @@
 # limitations under the License.
 
 from caret_analyze.infra import RecordsProvider
-from caret_analyze.record import Record, Records
 from caret_analyze.record.column import ColumnValue
+from caret_analyze.record.record_cpp_impl import RecordCppImpl, RecordsCppImpl
 from caret_analyze.runtime.node_path import NodePath
 from caret_analyze.value_objects import NodePathStructValue
 
@@ -34,9 +34,9 @@ class TestNodePath:
 
         mocker.patch.object(
             records_provider, 'path_beginning_records',
-            return_value=Records(
+            return_value=RecordsCppImpl(
                 [
-                    Record({
+                    RecordCppImpl({
                         'callback_start/0': 0, 'pub/0': 1
                     }),
                 ],
@@ -47,9 +47,9 @@ class TestNodePath:
             )
         )
         records = node_path.to_path_beginning_records()
-        expected = Records(
+        expected = RecordsCppImpl(
             [
-                Record({
+                RecordCppImpl({
                     'callback_start/0': 0, 'pub/0': 1
                 }),
             ],
@@ -74,9 +74,9 @@ class TestNodePath:
 
         mocker.patch.object(
             records_provider, 'path_end_records',
-            return_value=Records(
+            return_value=RecordsCppImpl(
                 [
-                    Record({
+                    RecordCppImpl({
                         'callback_start/0': 0, 'callback_end/0': 1
                     }),
                 ],
@@ -88,9 +88,9 @@ class TestNodePath:
         )
         records = node_path.to_path_end_records()
 
-        expected = Records(
+        expected = RecordsCppImpl(
             [
-                Record({
+                RecordCppImpl({
                     'callback_start/0': 0, 'callback_end/0': 1
                 }),
             ],
@@ -114,9 +114,9 @@ class TestNodePath:
 
         mocker.patch.object(
             records_provider, 'node_records',
-            return_value=Records(
+            return_value=RecordsCppImpl(
                 [
-                    Record({
+                    RecordCppImpl({
                         'callback_start': 0, 'xxx': 1, 'pub': 2
                     }),
                 ],
@@ -129,9 +129,9 @@ class TestNodePath:
         )
         records = node_path.to_records()
 
-        expected = Records(
+        expected = RecordsCppImpl(
                 [
-                    Record({
+                    RecordCppImpl({
                         'callback_start': 0, 'xxx': 1, 'pub': 2
                     }),
                 ],
@@ -155,7 +155,7 @@ class TestNodePath:
             callbacks=None
         )
 
-        records_mock = mocker.Mock(spec=Records)
+        records_mock = mocker.Mock(spec=RecordsCppImpl)
         mocker.patch.object(node_path,
                             '_to_records_core', return_value=records_mock)
         mocker.patch.object(node_path,

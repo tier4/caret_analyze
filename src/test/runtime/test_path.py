@@ -14,9 +14,9 @@
 
 from caret_analyze.exceptions import InvalidArgumentError
 from caret_analyze.infra import RecordsProvider
-from caret_analyze.record import Record, Records
 from caret_analyze.record.column import ColumnValue
 from caret_analyze.record.interface import RecordsInterface
+from caret_analyze.record.record_cpp_impl import RecordCppImpl, RecordsCppImpl
 from caret_analyze.runtime.callback import CallbackBase
 from caret_analyze.runtime.communication import Communication
 from caret_analyze.runtime.node_path import NodePath
@@ -129,7 +129,7 @@ class TestPath:
             callbacks=None
         )
 
-        records_mock = mocker.Mock(spec=Records)
+        records_mock = mocker.Mock(spec=RecordsCppImpl)
         mocker.patch.object(path, '_to_records_core', return_value=records_mock)
 
         path.to_records()
@@ -231,9 +231,9 @@ class TestRecordsMerged:
         node_path = mocker.Mock(spec=NodePath)
         mocker.patch.object(
             node_path, 'to_records',
-            return_value=Records(
+            return_value=RecordsCppImpl(
                 [
-                    Record({
+                    RecordCppImpl({
                         'callback_start': 0, 'xxx': 1, 'pub': 2
                     }),
                 ],
@@ -248,10 +248,10 @@ class TestRecordsMerged:
         comm_path = mocker.Mock(spec=Communication)
         mocker.patch.object(
             comm_path, 'to_records',
-            return_value=Records(
+            return_value=RecordsCppImpl(
                 [
-                    Record({'pub': 2, 'write': 4,
-                            'read': 5, 'callback_start': 6}),
+                    RecordCppImpl({'pub': 2, 'write': 4,
+                                   'read': 5, 'callback_start': 6}),
                 ],
                 [
                     ColumnValue('pub'),
@@ -262,7 +262,7 @@ class TestRecordsMerged:
             )
         )
 
-        # cb_mock = mocker.Mock(spec=Records)
+        # cb_mock = mocker.Mock(spec=RecordsCppImpl)
         # comm_mock = mocker.Mock(spec=PathElement)
 
         # mocker.patch.object(cb_mock, 'to_records', side_effect=lambda: cb_records.clone())
@@ -290,9 +290,9 @@ class TestRecordsMerged:
 
         merged = RecordsMerged([node_path, comm_path])
         records = merged.data
-        expected = Records(
+        expected = RecordsCppImpl(
             [
-                Record({
+                RecordCppImpl({
                     'callback_start/0': 0, 'xxx/0': 1, 'pub/0': 2,
                     'write/0': 4, 'read/0': 5, 'callback_start/1': 6
                 }),
@@ -313,15 +313,15 @@ class TestRecordsMerged:
         node_path = mocker.Mock(spec=NodePath)
         mocker.patch.object(
             node_path, 'to_records',
-            return_value=Records(
+            return_value=RecordsCppImpl(
                 None
             )
         )
         mocker.patch.object(
             node_path, 'to_path_beginning_records',
-            return_value=Records(
+            return_value=RecordsCppImpl(
                 [
-                    Record({
+                    RecordCppImpl({
                         'callback_start': 0, 'fff': 1, 'pub': 2
                     }),
                 ],
@@ -336,10 +336,10 @@ class TestRecordsMerged:
         comm_path = mocker.Mock(spec=Communication)
         mocker.patch.object(
             comm_path, 'to_records',
-            return_value=Records(
+            return_value=RecordsCppImpl(
                 [
-                    Record({'pub': 2, 'write': 4,
-                            'read': 5, 'callback_start': 6}),
+                    RecordCppImpl({'pub': 2, 'write': 4,
+                                   'read': 5, 'callback_start': 6}),
                 ],
                 [
                     ColumnValue('pub'),
@@ -371,9 +371,9 @@ class TestRecordsMerged:
 
         merged = RecordsMerged([node_path, comm_path], include_first_callback=True)
         records = merged.data
-        expected = Records(
+        expected = RecordsCppImpl(
             [
-                Record({
+                RecordCppImpl({
                     'callback_start/0': 0, 'fff/0': 1, 'pub/0': 2,
                     'write/0': 4, 'read/0': 5, 'callback_start/1': 6
                 }),
@@ -394,15 +394,15 @@ class TestRecordsMerged:
         node_path = mocker.Mock(spec=NodePath)
         mocker.patch.object(
             node_path, 'to_records',
-            return_value=Records(
+            return_value=RecordsCppImpl(
                 None
             )
         )
         mocker.patch.object(
             node_path, 'to_path_end_records',
-            return_value=Records(
+            return_value=RecordsCppImpl(
                 [
-                    Record({
+                    RecordCppImpl({
                         'callback_start': 3, 'callback_end': 4
                     }),
                 ],
@@ -416,10 +416,10 @@ class TestRecordsMerged:
         comm_path = mocker.Mock(spec=Communication)
         mocker.patch.object(
             comm_path, 'to_records',
-            return_value=Records(
+            return_value=RecordsCppImpl(
                 [
-                    Record({'pub': 0, 'write': 1,
-                            'read': 2, 'callback_start': 3}),
+                    RecordCppImpl({'pub': 0, 'write': 1,
+                                   'read': 2, 'callback_start': 3}),
                 ],
                 [
                     ColumnValue('pub'),
@@ -452,9 +452,9 @@ class TestRecordsMerged:
 
         merged = RecordsMerged([comm_path, node_path], include_last_callback=True)
         records = merged.data
-        expected = Records(
+        expected = RecordsCppImpl(
             [
-                Record({
+                RecordCppImpl({
                     'pub/0': 0, 'write/0': 1, 'read/0': 2,
                     'callback_start/1': 3, 'callback_end/1': 4
                 }),
@@ -471,14 +471,14 @@ class TestRecordsMerged:
         assert records.equals(expected)
 
     def test_loop_case(self, mocker):
-        cb_records = Records(
+        cb_records = RecordsCppImpl(
             [
-                Record(
+                RecordCppImpl(
                     {'callback_start': 0, 'xxx': 1, 'pub': 2}),
-                Record(
+                RecordCppImpl(
                     {'callback_start': 6, 'xxx': 7, 'pub': 8}),
-                Record({'callback_start': 12,
-                        'xxx': 13, 'pub': 14}),
+                RecordCppImpl({'callback_start': 12,
+                               'xxx': 13, 'pub': 14}),
             ],
             [
                 ColumnValue('callback_start'),
@@ -501,12 +501,12 @@ class TestRecordsMerged:
         comm_path = mocker.Mock(spec=Communication)
         mocker.patch.object(
             comm_path, 'to_records',
-            return_value=Records(
+            return_value=RecordsCppImpl(
                 [
-                    Record({'pub': 2, 'write': 4,
-                            'read': 5, 'callback_start': 6}),
-                    Record({'pub': 8, 'write': 10,
-                            'read': 11, 'callback_start': 12}),
+                    RecordCppImpl({'pub': 2, 'write': 4,
+                                   'read': 5, 'callback_start': 6}),
+                    RecordCppImpl({'pub': 8, 'write': 10,
+                                   'read': 11, 'callback_start': 12}),
                 ],
                 [
                     ColumnValue('pub'),
@@ -545,19 +545,19 @@ class TestRecordsMerged:
 
         merged = RecordsMerged([node_path_0, comm_path, node_path_1])
         records = merged.data
-        expected = Records(
+        expected = RecordsCppImpl(
             [
-                Record({
+                RecordCppImpl({
                     'callback_start/0': 0, 'xxx/0': 1, 'pub/0': 2,
                     'write/0': 4, 'read/0': 5,
                     'callback_start/1': 6, 'xxx/1': 7, 'pub/1': 8
                 }),
-                Record({
+                RecordCppImpl({
                     'callback_start/0': 6, 'xxx/0': 7, 'pub/0': 8,
                     'write/0': 10, 'read/0': 11,
                     'callback_start/1': 12, 'xxx/1': 13, 'pub/1': 14
                 }),
-                Record({
+                RecordCppImpl({
                     'callback_start/0': 12, 'xxx/0': 13, 'pub/0': 14
                 }),
             ],
