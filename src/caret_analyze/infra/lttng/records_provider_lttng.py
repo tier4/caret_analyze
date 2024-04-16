@@ -18,13 +18,12 @@ from collections.abc import Sequence
 from functools import cached_property
 from logging import getLogger
 
-
-from caret_analyze.value_objects.message_context import MessageContext, MessageContextType
-
+from .column_names import COLUMN_NAME
 from .lttng import Lttng
 from .value_objects import (PublisherValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng)
+from ..interface import RuntimeDataProvider
 from ...common import ClockConverter, Util
 from ...exceptions import (InvalidArgumentError,
                            UnsupportedNodeRecordsError,
@@ -37,6 +36,8 @@ from ...value_objects import (CallbackChain,
                               CallbackStructValue,
                               CommunicationStructValue,
                               InheritUniqueStamp,
+                              MessageContext,
+                              MessageContextType,
                               NodePathStructValue,
                               PublisherStructValue,
                               Qos,

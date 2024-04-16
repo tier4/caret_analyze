@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ..infra.lttng.architecture_reader_lttng import ArchitectureReaderLttng
-from ..infra.yaml.architecture_reader_yaml import ArchitectureReaderYaml
+from ..infra.lttng import ArchitectureReaderLttng
+from ..infra.yaml import ArchitectureReaderYaml
 
 
 class ArchitectureReaderFactory:

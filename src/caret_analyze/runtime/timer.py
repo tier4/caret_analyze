@@ -14,12 +14,11 @@
 
 from __future__ import annotations
 
-from caret_analyze.value_objects.timer import TimerStructValue
-
 from .path_base import PathBase
 from ..common import Summarizable, Summary
 from ..infra.interface import RecordsProvider, RuntimeDataProvider
 from ..record import RecordsInterface
+from ..value_objects import TimerStructValue
 
 
 class Timer(PathBase, Summarizable):

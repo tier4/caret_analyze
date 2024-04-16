@@ -17,7 +17,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 
 from ..common import ClockConverter
-from ..record.interface import RecordsInterface
+from ..record import RecordsInterface
 from ..value_objects import (CallbackStructValue, CommunicationStructValue,
                              NodePathStructValue, PublisherStructValue, Qos,
                              SubscriptionCallbackStructValue,

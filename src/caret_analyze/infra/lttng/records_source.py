@@ -25,9 +25,10 @@ from .value_objects import TimerCallbackValueLttng, TimerControl, TimerInit
 from ...common import Util
 from ...record import (merge, merge_sequential,
                        merge_sequential_for_addr_track,
+                       Columns,
+                       ColumnValue,
                        RecordsFactory,
                        RecordsInterface)
-from ...record.column import Columns, ColumnValue
 
 
 class RecordsSource():

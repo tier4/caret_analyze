@@ -14,12 +14,11 @@
 
 from __future__ import annotations
 
-from caret_analyze.common import Summarizable, Summary, Util
-from caret_analyze.exceptions import InvalidArgumentError
-from caret_analyze.value_objects import ExecutorStructValue, ExecutorType
-
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
+from ..common import Summarizable, Summary, Util
+from ..exceptions import InvalidArgumentError
+from ..value_objects import ExecutorStructValue, ExecutorType
 
 
 class Executor(Summarizable):

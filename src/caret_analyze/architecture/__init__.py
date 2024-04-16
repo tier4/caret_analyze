@@ -13,10 +13,12 @@
 # limitations under the License.
 
 from .architecture import Architecture, DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
+from .reader_interface import ArchitectureReader
 from .util import check_procedure
 
 __all__ = [
     'Architecture',
+    'ArchitectureReader',
     'check_procedure',
     'DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING'
 ]

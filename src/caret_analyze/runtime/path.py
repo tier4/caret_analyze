@@ -23,8 +23,10 @@ from .node_path import NodePath
 from .path_base import PathBase
 from ..common import Summarizable, Summary, Util
 from ..exceptions import Error, InvalidArgumentError, InvalidRecordsError
-from ..record import Columns, RecordsFactory
-from ..record.interface import RecordsInterface
+from ..record import (merge, merge_sequential,
+                      Columns,
+                      RecordsInterface,
+                      RecordsFactory)
 from ..record.record_operations import merge, merge_sequential
 from ..value_objects import CallbackChain, PathStructValue
 

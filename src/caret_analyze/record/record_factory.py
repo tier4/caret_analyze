@@ -20,14 +20,23 @@ from collections.abc import Sequence
 from multimethod import multimethod as singledispatchmethod
 
 from .column import ColumnValue
+<<<<<<< HEAD
 from .interface import RecordInterface, RecordsInterface
+=======
+from .record import Record, RecordInterface, RecordsInterface
+>>>>>>> 62e800f (Refactor: delete Records class)
 
 try:
     import caret_analyze.record.record_cpp_impl as cpp_impl
 
     print('Succeed to find record_cpp_impl. the C++ version will be used.')
 except ModuleNotFoundError:
+<<<<<<< HEAD
     raise ModuleNotFoundError('Failed to find record_cpp_impl.')
+=======
+    use_cpp_impl = False
+    raise('Failed to find record_cpp_impl.')
+>>>>>>> 62e800f (Refactor: delete Records class)
 
 
 class RecordFactory:
