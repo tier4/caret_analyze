@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABCMeta, abstractmethod
 from collections.abc import Iterable, Iterator, Sequence, Sized
 from datetime import datetime
 from functools import cached_property
@@ -145,7 +145,8 @@ class IterableEvents(Iterable, Sized, metaclass=ABCMeta):
     def __len__(self) -> int:
         pass
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def events(self) -> list[dict]:
         pass
 

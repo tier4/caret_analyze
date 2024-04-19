@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from abc import ABCMeta, abstractproperty
+from abc import ABCMeta, abstractmethod
 from collections import UserDict
 from typing import Any
 
@@ -80,7 +80,8 @@ class Summary(UserDict):
 class Summarizable(metaclass=ABCMeta):
     """Abstract base class that have summary property."""
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def summary(self) -> Summary:
         """
         Get summary.
