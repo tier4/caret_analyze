@@ -20,6 +20,8 @@ from collections.abc import Callable, Iterator, Sequence
 from multimethod import multimethod as singledispatchmethod
 import pandas as pd
 
+from record_cpp_impl import RecordBase
+
 from .column import ColumnValue
 from ..exceptions import InvalidArgumentError
 
@@ -176,18 +178,6 @@ class RecordInterface:
 
         """
         pass
-
-
-try:
-    from record_cpp_impl import RecordBase
-    # RecordBase in C++ implementation cannot inherit RecordInterface,
-    # so RecordBase case should be written separately.
-except ModuleNotFoundError as e:
-    import os
-    if 'GITHUB_ACTION' in os.environ:
-        RecordBase = RecordInterface
-    else:
-        raise e
 
 
 class RecordsInterface:

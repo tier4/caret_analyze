@@ -16,11 +16,10 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from caret_analyze.record import Frequency, Latency, Period, ResponseTime
-
 from .histogram_plot import HistogramPlot
 from ..visualize_lib import VisualizeLibInterface
 from ...exceptions import UnsupportedTypeError
+from ...record import Frequency, Latency, Period, ResponseTime
 from ...runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
 MetricsType = Frequency | Latency | Period | ResponseTime

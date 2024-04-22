@@ -31,7 +31,7 @@ from ..architecture import Architecture
 from ..common import Util
 from ..exceptions import (Error, ItemNotFoundError, MultipleItemFoundError,
                           UnsupportedTypeError)
-from ..infra.interface import RecordsProvider, RuntimeDataProvider
+from ..infra import RecordsProvider, RuntimeDataProvider
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
                              NodePathStructValue, NodeStructValue,

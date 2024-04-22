@@ -39,7 +39,7 @@ from .message_context import (CallbackChain,
                               MessageContextType,
                               Tilde,
                               UseLatestMessage)
-from .node import NodeStructValue, NodeValue, NodeValueWithId
+from .node import DiffNode, NodeStructValue, NodeValue, NodeValueWithId
 from .node_path import NodePathStructValue, NodePathValue
 from .path import PathStructValue, PathValue
 from .publish_topic_info import PublishTopicInfoValue
@@ -61,6 +61,7 @@ __all__ = [
     'CallbackType',
     'CallbackValue',
     'CommunicationStructValue',
+    'DiffNode',
     'ExecutorStructValue',
     'ExecutorType',
     'ExecutorValue',

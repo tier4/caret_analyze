@@ -15,7 +15,7 @@
 
 from __future__ import annotations
 
-from caret_analyze.record import Records, RecordsInterface
+from caret_analyze.record.record_cpp_impl import RecordsCppImpl, RecordsInterface
 from caret_analyze.runtime.path_base import PathBase
 
 
@@ -25,7 +25,7 @@ class PathSample(PathBase):
         super().__init__()
 
     def _to_records_core(self) -> RecordsInterface:
-        return Records()
+        return RecordsCppImpl()
 
     @property
     def column_names(self) -> list[str]:
@@ -37,7 +37,7 @@ class TestPathBase:
     def test_cache(self, mocker):
         path = PathSample()
 
-        records_mock = mocker.Mock(spec=Records)
+        records_mock = mocker.Mock(spec=RecordsCppImpl)
         mocker.patch.object(path, '_to_records_core', return_value=records_mock)
 
         path.to_records()

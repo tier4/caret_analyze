@@ -22,17 +22,15 @@ from .architecture_loaded import NodeValuesLoaded
 from .combine_path import CombinePath
 
 from .reader_interface import ArchitectureReader, IGNORE_TOPICS
-from .struct import (CommunicationStruct, ExecutorStruct,
-                     NodePathStruct, NodeStruct, PathStruct)
-from .struct.callback import (
-    CallbackStruct, ServiceCallbackStruct, SubscriptionCallbackStruct, TimerCallbackStruct)
+from .struct import (CallbackStruct, CommunicationStruct, ExecutorStruct,
+                     NodePathStruct, NodeStruct, PathStruct,
+                     ServiceCallbackStruct, SubscriptionCallbackStruct, TimerCallbackStruct)
 from ..common import Summarizable, Summary, type_check_decorator, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError, UnsupportedTypeError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
-                             CommunicationStructValue, ExecutorStructValue,
+                             CommunicationStructValue, DiffNode, ExecutorStructValue,
                              NodePathStructValue, NodeStructValue, PathStructValue,
                              PublisherStructValue, ServiceStructValue, SubscriptionStructValue)
-from ..value_objects.node import DiffNode
 
 logger = logging.getLogger(__name__)
 

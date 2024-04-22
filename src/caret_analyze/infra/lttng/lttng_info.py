@@ -36,11 +36,12 @@ from .value_objects import (CallbackGroupAddr,
                             ServiceCallbackValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng,
-                            TimerControl)
+                            TimerControl,
+                            TimerInit)
 from ..trace_point_data import TracePointData, TracePointIntermediateData
 from ...common import Util
 from ...exceptions import InvalidArgumentError
-from ...value_objects import ExecutorValue, NodeValue, Qos
+from ...value_objects import ExecutorValue, NodeValue, Qos, TimerValue
 
 
 logger = getLogger(__name__)

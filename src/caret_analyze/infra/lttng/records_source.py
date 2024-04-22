@@ -23,11 +23,12 @@ from .lttng_info import LttngInfo
 from .ros2_tracing.data_model import Ros2DataModel
 from .value_objects import TimerCallbackValueLttng, TimerControl, TimerInit
 from ...common import Util
-from ...record import (merge, merge_sequential,
+from ...record import (Columns,
+                       ColumnValue,
+                       merge, merge_sequential,
                        merge_sequential_for_addr_track,
                        RecordsFactory,
                        RecordsInterface)
-from ...record.column import Columns, ColumnValue
 
 
 class RecordsSource():

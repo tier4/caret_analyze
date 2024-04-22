@@ -18,11 +18,11 @@ from collections.abc import Sequence
 from itertools import product
 from logging import getLogger, WARN
 
-from caret_analyze.architecture.struct.message_context import CallbackChainStruct
-
 
 from .reader_interface import ArchitectureReader, UNDEFINED_STR
-from .struct import (CallbackGroupStruct, CallbackStruct,
+from .struct import (CallbackChainStruct,
+                     CallbackGroupStruct,
+                     CallbackStruct,
                      CommunicationStruct,
                      ExecutorStruct,
                      MessageContextStruct,

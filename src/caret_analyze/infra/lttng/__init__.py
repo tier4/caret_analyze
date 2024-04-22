@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from .architecture_reader_lttng import ArchitectureReaderLttng
 from .lttng import Lttng
 from .lttng_event_filter import LttngEventFilter
 from .records_provider_lttng import RecordsProviderLttng
 
 __all__ = [
+    'ArchitectureReaderLttng',
     'Lttng',
     'LttngEventFilter',
     'RecordsProviderLttng'
