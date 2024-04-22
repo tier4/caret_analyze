@@ -36,12 +36,11 @@ from .value_objects import (CallbackGroupAddr,
                             ServiceCallbackValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng,
-                            TimerControl,
-                            TimerInit)
+                            TimerControl)
 from ..trace_point_data import TracePointData, TracePointIntermediateData
 from ...common import Util
 from ...exceptions import InvalidArgumentError
-from ...value_objects import ExecutorValue, NodeValue, Qos, TimerValue
+from ...value_objects import ExecutorValue, NodeValue, Qos
 
 
 logger = getLogger(__name__)
@@ -787,12 +786,12 @@ class LttngInfo:
 
         tim.merge(time_cbs, ['timer_handle'], how='left')
 
-        tims_info = []
+        times_info = []
         for _, row in tim.df.iterrows():
             if row['node_id'] != node_id:
                 continue
 
-            tims_info.append(
+            times_info.append(
                 TimerValue(
                     node_name=row['node_name'],
                     period=row['period'],
@@ -802,7 +801,7 @@ class LttngInfo:
                 )
             )
 
-        return tims_info
+        return times_info
 
     def get_timer_controls(self) -> Sequence[TimerControl]:
         timer_controls = self._formatted.timer_controls.clone()

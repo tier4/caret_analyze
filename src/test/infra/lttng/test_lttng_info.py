@@ -820,12 +820,12 @@ class TestLttngInfo:
         data.finalize()
         info = LttngInfo(data)
 
-        tims_info = info.get_timers(NodeValue('/node', 'node_id'))
-        assert len(tims_info) == 1
-        assert tims_info[0] == tim_info_expect
+        times_info = info.get_timers(NodeValue('/node', 'node_id'))
+        assert len(times_info) == 1
+        assert times_info[0] == tim_info_expect
 
-        tims_info = info.get_timers(NodeValue('/node_', 'node_id_'))
-        assert len(tims_info) == 0
+        times_info = info.get_timers(NodeValue('/node_', 'node_id_'))
+        assert len(times_info) == 0
 
 
 class TestDataFrameFormatted:
