@@ -60,7 +60,6 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
         node_name: str,
         symbol: str,
         subscribe_topic_name: str,
-        subscription_construction_order: int,
         subscription_handle: int,
         publish_topics: tuple[PublishTopicInfoValue] | None,
         callback_object: int,
@@ -74,7 +73,6 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
             node_name=node_name,
             symbol=symbol,
             subscribe_topic_name=subscribe_topic_name,
-            subscription_construction_order=subscription_construction_order,
             publish_topics=publish_topics,
             construction_order=construction_order
         )

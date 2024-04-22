@@ -252,7 +252,7 @@ class SubscriptionCallbackBindCondition:
             value.callback_type == struct_value.callback_type and \
             value.symbol == struct_value.symbol and \
             value.subscribe_topic_name == struct_value.subscribe_topic_name and \
-            value.subscription_construction_order == struct_value.subscription_construction_order
+            value.construction_order == struct_value.construction_order
 
     def __str__(self):
         return str(self._target)

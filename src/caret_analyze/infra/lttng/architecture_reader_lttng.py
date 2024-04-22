@@ -14,7 +14,6 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
 from collections.abc import Sequence
 
 
@@ -118,41 +117,10 @@ class ArchitectureReaderLttng(ArchitectureReader):
         self,
         node: NodeValue
     ) -> Sequence[SubscriptionValue]:
-        info: list[SubscriptionValue] = []
-        construction_order_counter: dict[tuple[str, str], int] = defaultdict(int)
-
-        for sub_cb in self.get_subscription_callbacks(node):
-            topic_name = sub_cb.subscribe_topic_name
-            node_name = sub_cb.node_name
-            construction_order = construction_order_counter[node_name, topic_name]
-            construction_order_counter[node_name, topic_name] += 1
-
-            info.append(SubscriptionValue(
-                topic_name=topic_name,
-                node_name=node_name,
-                node_id=sub_cb.node_id,
-                callback_id=sub_cb.callback_id,
-                construction_order=construction_order
-            ))
-        return info
+        return self._lttng.get_subscriptions(node)
 
     def get_services(
         self,
         node: NodeValue
     ) -> Sequence[ServiceValue]:
-        info: list[ServiceValue] = []
-        construction_order_counter: dict[tuple[str, str], int] = defaultdict(int)
-        for srv_cb in self.get_service_callbacks(node):
-            service_name = srv_cb.service_name
-            node_name = srv_cb.node_name
-            construction_order = construction_order_counter[node_name, service_name]
-            construction_order_counter[node_name, service_name] += 1
-
-            info.append(ServiceValue(
-                service_name=service_name,
-                node_name=srv_cb.node_name,
-                node_id=srv_cb.node_id,
-                callback_id=srv_cb.callback_id,
-                construction_order=construction_order
-            ))
-        return info
+        return self._lttng.get_services(node)

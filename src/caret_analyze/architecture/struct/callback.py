@@ -32,7 +32,6 @@ class CallbackStruct(metaclass=ABCMeta):
         node_name: str,
         symbol: str,
         subscribe_topic_name: str | None,
-        subscription_construction_order: int | None,
         service_name: str | None,
         publish_topics: list[PublishTopicInfoValue] | None,
         construction_order: int,
@@ -42,7 +41,6 @@ class CallbackStruct(metaclass=ABCMeta):
         self._callback_name = callback_name
         self._symbol = symbol
         self._subscribe_topic_name = subscribe_topic_name
-        self._subscription_construction_order = subscription_construction_order
 
         self._service_name = service_name
         self._publish_topics = publish_topics
@@ -116,19 +114,6 @@ class CallbackStruct(metaclass=ABCMeta):
     @property
     def service_name(self) -> str | None:
         return self._service_name
-
-    @property
-    def subscription_construction_order(self) -> int | None:
-        """
-        Get subscription construction order.
-
-        Returns
-        -------
-        int
-            construction order
-
-        """
-        return self._subscription_construction_order
 
     @property
     def publish_topics(self) -> list[PublishTopicInfoValue] | None:
@@ -215,7 +200,6 @@ class TimerCallbackStruct(CallbackStruct):
             node_name=node_name,
             symbol=symbol,
             subscribe_topic_name=None,
-            subscription_construction_order=None,
             service_name=None,
             publish_topics=publish_topics,
             construction_order=construction_order,
@@ -245,7 +229,6 @@ class SubscriptionCallbackStruct(CallbackStruct):
         node_name: str,
         symbol: str,
         subscribe_topic_name: str,
-        subscription_construction_order: int,
         publish_topics: list[PublishTopicInfoValue] | None,
         construction_order: int,
         callback_name: str,
@@ -254,13 +237,11 @@ class SubscriptionCallbackStruct(CallbackStruct):
             node_name=node_name,
             symbol=symbol,
             subscribe_topic_name=subscribe_topic_name,
-            subscription_construction_order=subscription_construction_order,
             service_name=None,
             publish_topics=publish_topics,
             construction_order=construction_order,
             callback_name=callback_name)
         self.__subscribe_topic_name = subscribe_topic_name
-        self.__subscription_construction_order = subscription_construction_order
 
     @property
     def callback_type(self) -> CallbackType:
@@ -270,15 +251,10 @@ class SubscriptionCallbackStruct(CallbackStruct):
     def subscribe_topic_name(self) -> str:
         return self.__subscribe_topic_name
 
-    @property
-    def subscription_construction_order(self) -> int:
-        return self.__subscription_construction_order
-
     def to_value(self) -> SubscriptionCallbackStructValue:
         return SubscriptionCallbackStructValue(
             self.node_name, self.symbol,
             self.subscribe_topic_name,
-            self.subscription_construction_order,
             None if self.publish_topics is None else tuple(self.publish_topics),
             self.construction_order, self.callback_name)
 
@@ -308,7 +284,6 @@ class ServiceCallbackStruct(CallbackStruct):
             node_name=node_name,
             symbol=symbol,
             subscribe_topic_name=None,
-            subscription_construction_order=None,
             service_name=service_name,
             publish_topics=publish_topics,
             construction_order=construction_order,

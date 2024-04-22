@@ -90,7 +90,6 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         node_id: str,
         symbol: str,
         subscribe_topic_name: str | None,
-        subscription_construction_order: int | None,
         service_name: str | None,
         publish_topics: tuple[PublishTopicInfoValue, ...] | None,
         construction_order: int,
@@ -114,8 +113,6 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
             Symbol name of the callback.
         subscribe_topic_name : str | None
             Topic name which the callback subscribes.
-        subscription_construction_order: int
-            A construction order of subscription.
         service_name : str | None
             Service name which the callback service.
         publish_topics : tuple[PublishTopicInfoValue] | None
@@ -132,7 +129,6 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         self._callback_name = callback_name
         self._symbol = symbol
         self._subscribe_topic_name = subscribe_topic_name
-        self._subscription_construction_order = subscription_construction_order
         self._service_name = service_name
         self._publish_topics = publish_topics
         self._construction_order = construction_order
@@ -226,19 +222,6 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
 
         """
         return self._subscribe_topic_name
-
-    @property
-    def subscription_construction_order(self) -> int | None:
-        """
-        Get subscription construction_order.
-
-        Returns
-        -------
-        int | None
-            A construction order of subscription..
-
-        """
-        return self._subscription_construction_order
 
     @property
     def service_name(self) -> str | None:
@@ -351,7 +334,6 @@ class TimerCallbackValue(CallbackValue):
             node_id=node_id,
             symbol=symbol,
             subscribe_topic_name=None,
-            subscription_construction_order=None,
             service_name=None,
             publish_topics=publish_topics,
             construction_order=construction_order,
@@ -395,7 +377,6 @@ class SubscriptionCallbackValue(CallbackValue):
         node_id: str,
         symbol: str,
         subscribe_topic_name: str,
-        subscription_construction_order: int,
         publish_topics: tuple[PublishTopicInfoValue, ...] | None,
         construction_order: int,
         *,  # for yaml reader only.
@@ -418,8 +399,6 @@ class SubscriptionCallbackValue(CallbackValue):
             Symbol name of the callback.
         subscribe_topic_name : str
             Topic name which the callback subscribes.
-        subscription_construction_order : int
-            A construction order of subscription.
         publish_topics : tuple[PublishTopicInfoValue, ...] | None
             Topic information which the callback publishes.
         construction_order : int
@@ -429,14 +408,12 @@ class SubscriptionCallbackValue(CallbackValue):
 
         """
         self.__subscribe_topic_name = subscribe_topic_name
-        self.__subscription_construction_order = subscription_construction_order
         super().__init__(
             callback_id=callback_id,
             node_name=node_name,
             node_id=node_id,
             symbol=symbol,
             subscribe_topic_name=subscribe_topic_name,
-            subscription_construction_order=subscription_construction_order,
             service_name=None,
             publish_topics=publish_topics,
             construction_order=construction_order,
@@ -467,19 +444,6 @@ class SubscriptionCallbackValue(CallbackValue):
 
         """
         return self.__subscribe_topic_name
-
-    @property
-    def subscription_construction_order(self) -> int:
-        """
-        Get subscription construction_order.
-
-        Returns
-        -------
-        int
-            A construction order of subscription..
-
-        """
-        return self.__subscription_construction_order
 
 
 class ServiceCallbackValue(CallbackValue):
@@ -530,7 +494,6 @@ class ServiceCallbackValue(CallbackValue):
             node_id=node_id,
             symbol=symbol,
             subscribe_topic_name=None,
-            subscription_construction_order=None,
             service_name=service_name,
             publish_topics=publish_topics,
             construction_order=construction_order,
@@ -571,7 +534,6 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         node_name: str,
         symbol: str,
         subscribe_topic_name: str | None,
-        subscription_construction_order: int | None,
         service_name: str | None,
         publish_topics: tuple[PublishTopicInfoValue, ...] | None,
         construction_order: int,
@@ -588,8 +550,6 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
             Symbol name of the callback.
         subscribe_topic_name : str | None
             Topic name which the callback subscribes.
-        subscription_construction_order: int | None
-            Order of instance creation within the identical subscribes.
         service_name : str | None
             Service name which the service callback service.
         publish_topics : tuple[PublishTopicInfoValue, ...] | None
@@ -604,7 +564,6 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         self._callback_name = callback_name
         self._symbol = symbol
         self._subscribe_topic_name = subscribe_topic_name
-        self._subscription_construction_order = subscription_construction_order
         self._service_name = service_name
         self._publish_topics = publish_topics
         self._construction_order = construction_order
@@ -687,19 +646,6 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
 
         """
         return self._subscribe_topic_name
-
-    @property
-    def subscription_construction_order(self) -> int | None:
-        """
-        Get subscription construction order.
-
-        Returns
-        -------
-        int | None
-            A construction order of subscription.
-
-        """
-        return self._subscription_construction_order
 
     @property
     def service_name(self) -> str | None:
@@ -790,7 +736,6 @@ class TimerCallbackStructValue(CallbackStructValue, ValueObject):
             node_name=node_name,
             symbol=symbol,
             subscribe_topic_name=None,
-            subscription_construction_order=None,
             service_name=None,
             publish_topics=publish_topics,
             construction_order=construction_order,
@@ -849,7 +794,6 @@ class SubscriptionCallbackStructValue(CallbackStructValue, ValueObject):
         node_name: str,
         symbol: str,
         subscribe_topic_name: str,
-        subscription_construction_order: int,
         publish_topics: tuple[PublishTopicInfoValue, ...] | None,
         construction_order: int,
         callback_name: str
@@ -865,8 +809,6 @@ class SubscriptionCallbackStructValue(CallbackStructValue, ValueObject):
             Symbol name of the callback.
         subscribe_topic_name : str
             Topic name which the callback subscribes.
-        subscription_construction_order: int
-            Order of instance creation within the identical subscribes.
         publish_topics : tuple[PublishTopicInfoValue, ...] | None
             Topic information which the callback publishes.
         construction_order: int
@@ -879,7 +821,6 @@ class SubscriptionCallbackStructValue(CallbackStructValue, ValueObject):
             node_name=node_name,
             symbol=symbol,
             subscribe_topic_name=subscribe_topic_name,
-            subscription_construction_order=subscription_construction_order,
             service_name=None,
             publish_topics=publish_topics,
             construction_order=construction_order,
@@ -967,7 +908,6 @@ class ServiceCallbackStructValue(CallbackStructValue, ValueObject):
             node_name=node_name,
             symbol=symbol,
             subscribe_topic_name=None,
-            subscription_construction_order=None,
             service_name=service_name,
             publish_topics=publish_topics,
             construction_order=construction_order,

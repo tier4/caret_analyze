@@ -513,11 +513,11 @@ class Architecture(Summarizable):
             context_reader = AssignContextReader(node)
             for publish_topic in callback_read.publish_topics:
                 if callback_write.subscribe_topic_name and publish_topic is not None:
-                    context_reader.remove_callback_chain(callback_write.subscribe_topic_name,
-                                                         callback_write.
-                                                         subscription_construction_order,
-                                                         publish_topic.topic_name,
-                                                         publish_topic.construction_order)
+                    context_reader.remove_callback_chain(
+                        callback_write.subscribe_topic_name,
+                        callback_write.construction_order,
+                        publish_topic.topic_name,
+                        publish_topic.construction_order)
             node.update_node_path(
                 NodeValuesLoaded._search_node_paths(
                                     node,
@@ -732,18 +732,16 @@ class AssignContextReader(ArchitectureReader):
     def remove_callback_chain(
         self,
         subscribe_topic_name: str,
-        subscription_construction_order: int | None,
+        subscription_construction_order: int,
         publish_topic_name: str,
         publisher_construction_order: int
     ) -> None:
         self._contexts = [
             context for context in self._contexts
             if (context['subscription_topic_name'],
-                0 if 'subscription_construction_order' not in context else
-                context['subscription_construction_order'],
+                context.get('subscription_construction_order', 0),
                 context['publisher_topic_name'],
-                0 if 'publisher_construction_order' not in context else
-                context['publisher_construction_order'],
+                context.get('publisher_construction_order', 0),
                 context['context_type']) != (subscribe_topic_name,
                                              subscription_construction_order,
                                              publish_topic_name,

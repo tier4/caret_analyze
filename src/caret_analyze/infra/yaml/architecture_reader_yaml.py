@@ -297,7 +297,6 @@ class ArchitectureReaderYaml(ArchitectureReader):
                     node_name=node_name,
                     symbol=self._get_value(val, 'symbol'),
                     subscribe_topic_name=subscribe_info[0][0],
-                    subscription_construction_order=subscribe_info[0][1],
                     publish_topics=tuple(publish_topic_infos),
                     callback_name=callback_name,
                     construction_order=construction_order

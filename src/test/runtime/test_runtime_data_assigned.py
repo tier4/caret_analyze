@@ -721,7 +721,7 @@ class TestCallbacksLoaded:
         mocker.patch.object(sub_loaded_mock, 'get_subscription', return_value=sub_mock)
 
         cb_info = SubscriptionCallbackStructValue(
-            node_name, symbol, sub_topic, 0, pub_topics, 0, cb_name
+            node_name, symbol, sub_topic, pub_topics, 0, cb_name
         )
 
         cb = CallbacksLoaded._to_runtime(

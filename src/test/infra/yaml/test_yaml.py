@@ -221,15 +221,16 @@ nodes:
             read_data=architecture_text))
         reader = ArchitectureReaderYaml('file_name')
 
+        construction_order = [0, 1]
         timer_cbs = reader.get_timer_callbacks(NodeValue('/node', None))
         assert len(timer_cbs) == 2
-        for timer_cb in timer_cbs:
+        for i, timer_cb in enumerate(timer_cbs):
             assert isinstance(timer_cb, TimerCallbackValue)
             assert timer_cb.callback_type == CallbackType.TIMER
             assert timer_cb.symbol == 'timer_symbol'
             assert timer_cb.node_id == '/node'
             assert timer_cb.subscribe_topic_name is None
-            assert timer_cb.subscription_construction_order is None
+            assert timer_cb.construction_order == construction_order[i]
             assert timer_cb.publish_topics[0].topic_name == '/chatter'
             assert timer_cb.publish_topics[0].construction_order == 0
             assert timer_cb.period_ns == 1
