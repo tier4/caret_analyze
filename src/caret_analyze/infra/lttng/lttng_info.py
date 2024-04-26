@@ -468,7 +468,7 @@ class LttngInfo:
                 tilde_subscription = None
             callback_id = row['callback_id']
             if callback_id is pd.NA:
-                callback_id = None
+                continue
 
             subs_info.append(
                 SubscriptionValue(
@@ -537,7 +537,7 @@ class LttngInfo:
 
             callback_id = row['callback_id']
             if callback_id is pd.NA:
-                callback_id = None
+                continue
 
             srvs_info.append(
                 ServiceValue(

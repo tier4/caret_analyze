@@ -18,10 +18,10 @@ from abc import ABCMeta, abstractmethod
 
 from ...exceptions import MultipleItemFoundError
 from ...value_objects import (CallbackStructValue, CallbackType,
+                              PublishTopicInfoValue,
                               ServiceCallbackStructValue,
                               SubscriptionCallbackStructValue,
                               TimerCallbackStructValue)
-from ...value_objects.publish_topic_info import PublishTopicInfoValue
 
 
 class CallbackStruct(metaclass=ABCMeta):
@@ -41,7 +41,6 @@ class CallbackStruct(metaclass=ABCMeta):
         self._callback_name = callback_name
         self._symbol = symbol
         self._subscribe_topic_name = subscribe_topic_name
-
         self._service_name = service_name
         self._publish_topics = publish_topics
         self._construction_order = construction_order

@@ -24,8 +24,7 @@ from .timer import TimerStruct
 from .variable_passing import VariablePassingStruct
 from ...common import Util
 from ...exceptions import ItemNotFoundError
-from ...value_objects import NodeStructValue
-from ...value_objects.publish_topic_info import PublishTopicInfoValue
+from ...value_objects import (NodeStructValue, PublishTopicInfoValue)
 
 
 class NodeStruct():
