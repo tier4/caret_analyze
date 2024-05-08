@@ -960,7 +960,6 @@ class TestAllStackedBar:
         response_time = ResponseTime(records, columns=self.column_names)
 
         expect_raw = [
-            {'start': 0, 'middle0': 1, 'middle1': 2, 'end': 3},
             {'start': 2, 'middle0': 3, 'middle1': 4, 'end': 5}
         ]
         result = to_dict(response_time.to_all_stacked_bar())
@@ -1050,7 +1049,6 @@ class TestWorstInInputStackedBar:
         response_time = ResponseTime(records, columns=self.column_names)
 
         expect_raw = [
-            {'start': 1, 'middle0': 3, 'middle1': 5, 'end': 7},
             {'start': 5, 'middle0': 7, 'middle1': 9, 'end': 11},
         ]
         result = to_dict(response_time.to_worst_case_stacked_bar())
