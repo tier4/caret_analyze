@@ -170,11 +170,11 @@ class CallbackBase(PathBase, Summarizable):
         """
         if self.__val.publish_topics is None:
             return None
-        list_info = []
+        topic_names = []
         for vals in self.__val.publish_topics:
             if vals is not None:
-                list_info.append(vals.topic_name)
-        return sorted(list_info)
+                topic_names.append(vals.topic_name)
+        return sorted(topic_names)
 
     @property
     def subscribe_topic_name(self) -> str | None:

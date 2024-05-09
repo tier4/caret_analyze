@@ -322,14 +322,13 @@ class LttngInfo:
 
             self._id_to_service[row['callback_id']] = row['service_name']
 
-            service_name = row['service_name']
             srv_cbs_info[node_id].append(
                 ServiceCallbackValueLttng(
                     callback_id=row['callback_id'],
                     node_id=node_id,
                     node_name=node_name,
                     symbol=row['symbol'],
-                    service_name=service_name,
+                    service_name=row['service_name'],
                     service_handle=row['service_handle'],
                     publish_topics=None,
                     callback_object=row['callback_object'],
@@ -1169,7 +1168,6 @@ class DataFrameFormatted:
             return f'timer_{timer_handle}'
 
         timers.add_column('timer_id', to_timer_id)
-        timers.set_columns(columns)
         timers.drop_duplicate()
 
         timers.set_columns(columns)

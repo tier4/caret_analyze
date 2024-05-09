@@ -907,7 +907,7 @@ $contexts
 
         with pytest.raises(ItemNotFoundError):
             arch.remove_publisher_callback('/pong_node', '/not_exist_topic',
-                                           'timer_callback_1', 1)
+                                           'timer_callback_1', 0)
         with pytest.raises(ItemNotFoundError):
             arch.remove_publisher_callback('/not_exist_node', '/ping', 'timer_callback_1', 0)
         with pytest.raises(ItemNotFoundError):

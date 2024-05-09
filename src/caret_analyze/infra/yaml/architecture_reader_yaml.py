@@ -89,13 +89,13 @@ class ArchitectureReaderYaml(ArchitectureReader):
 
         publishes = self._get_value(node_dict, 'publishes')
         topic_names = []
-        for p in publishes:
-            if callback_name in self._get_value(p, 'callback_names'):
-                if 'construction_order' in p.keys():
-                    construction_order = self._get_value(p, 'construction_order')
+        for pub in publishes:
+            if callback_name in self._get_value(pub, 'callback_names'):
+                if 'construction_order' in pub.keys():
+                    construction_order = self._get_value(pub, 'construction_order')
                 else:
                     construction_order = 0
-                pub_info = PublishTopicInfoValue(self._get_value(p, 'topic_name'),
+                pub_info = PublishTopicInfoValue(self._get_value(pub, 'topic_name'),
                                                  construction_order)
                 topic_names.append(pub_info)
 
@@ -112,13 +112,13 @@ class ArchitectureReaderYaml(ArchitectureReader):
 
         subscribes = self._get_value(node_dict, 'subscribes')
         topic_names = []
-        for p in subscribes:
-            if callback_name in self._get_value(p, 'callback_name'):
-                if 'construction_order' in p.keys():
-                    construction_order = self._get_value(p, 'construction_order')
+        for sub in subscribes:
+            if callback_name in self._get_value(sub, 'callback_name'):
+                if 'construction_order' in sub.keys():
+                    construction_order = self._get_value(sub, 'construction_order')
                 else:
                     construction_order = 0
-                sub_info = ((self._get_value(p, 'topic_name'), construction_order))
+                sub_info = ((self._get_value(sub, 'topic_name'), construction_order))
                 topic_names.append(sub_info)
 
         return topic_names
@@ -289,14 +289,13 @@ class ArchitectureReaderYaml(ArchitectureReader):
             callback_id = callback_name
             node_name = self._get_value(node_dict, 'node_name')
             construction_order = self._get_value_with_default(val, 'construction_order', 0)
-            subscribe_info = self._get_subscribe_topic_infos(node.node_name, callback_name)
             callbacks.append(
                 SubscriptionCallbackValue(
                     callback_id=callback_id,
                     node_id=node_name,
                     node_name=node_name,
                     symbol=self._get_value(val, 'symbol'),
-                    subscribe_topic_name=subscribe_info[0][0],
+                    subscribe_topic_name=self._get_value(val, 'topic_name'),
                     publish_topics=tuple(publish_topic_infos),
                     callback_name=callback_name,
                     construction_order=construction_order

@@ -1032,8 +1032,8 @@ class TestCallbacksLoaded:
         callback_name = ['callback_name0', 'callback_name1', 'callback_name2']
         period_ns = 4
         topic_name = '/topic_name'
-        topic_names = (('/topic_name', 0),)
-        topic_names_value = ('/topic_name', 0)
+        pub_info = PublishTopicInfoValue(topic_name, 0)
+        pub_infos = (pub_info,)
         service_name = '/service_name'
         symbol = ['symbol0', 'symbol1', 'symbol2']
         callback_id = ['5', '6', '7', '8']
@@ -1041,7 +1041,7 @@ class TestCallbacksLoaded:
 
         timer_cb = TimerCallbackValue(
             callback_id[0], node.node_name, node.node_id, symbol[0], period_ns,
-            topic_names, callback_name=callback_name[0], construction_order=0)
+            pub_infos, callback_name=callback_name[0], construction_order=0)
 
         sub_cb = SubscriptionCallbackValue(
             callback_id[1], node.node_name, node.node_id, symbol[1],
@@ -1068,7 +1068,7 @@ class TestCallbacksLoaded:
         assert cb.node_name == timer_cb.node_id
         assert cb.callback_name == timer_cb.callback_name
         assert cb.callback_type == timer_cb.callback_type
-        assert cb.publish_topics == [topic_names_value]
+        assert cb.publish_topics == [pub_info]
         assert cb.subscribe_topic_name is None
 
         cb = loaded.find_callback(callback_id[1])

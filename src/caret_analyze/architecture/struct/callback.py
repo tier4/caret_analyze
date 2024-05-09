@@ -163,9 +163,9 @@ class CallbackStruct(metaclass=ABCMeta):
 
     def remove_publisher(self, publish_topic_info: PublishTopicInfoValue) -> None:
         if self.publish_topics is not None:
-            for count in range(len(self.publish_topics)):
-                if self.publish_topics[count] == publish_topic_info:
-                    self.publish_topics.remove(self.publish_topics[count])
+            for publish_topic in self.publish_topics:
+                if publish_topic == publish_topic_info:
+                    self.publish_topics.remove(publish_topic)
 
     def rename_node(self, src: str, dst: str) -> None:
         if self.node_name == src:

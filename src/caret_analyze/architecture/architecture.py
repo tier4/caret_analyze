@@ -712,6 +712,7 @@ class AssignContextReader(ArchitectureReader):
 
     def __init__(self, node: NodeStruct) -> None:
         contexts = [path.message_context for path in node.paths]
+        self._node = node
         self._contexts = \
             [context.to_dict() for context in contexts if context is not None]
 
@@ -721,11 +722,20 @@ class AssignContextReader(ArchitectureReader):
             if (context['subscription_topic_name'], context['publisher_topic_name']) ==\
                (subscribe_topic_name, publish_topic_name):
                 context['context_type'] = context_type
-                break
-        else:
-            self._contexts.append({'context_type': context_type,
-                                   'subscription_topic_name': subscribe_topic_name,
-                                   'publisher_topic_name': publish_topic_name})
+        for path in self._node.paths:
+            if path.message_context is not None:
+                # already processed by the above self._contexts process
+                continue
+            else:
+                if (path.subscribe_topic_name, path.publish_topic_name) ==\
+                        (subscribe_topic_name, publish_topic_name):
+                    self._contexts.append({'context_type': context_type,
+                                           'subscription_topic_name': subscribe_topic_name,
+                                           'publisher_topic_name': publish_topic_name,
+                                           'publisher_construction_order':
+                                           path.publisher_construction_order,
+                                           'subscription_construction_order':
+                                           path.subscription_construction_order})
 
     def remove_callback_chain(
         self,

@@ -801,8 +801,9 @@ class PublishersLoaded:
         for callback in callbacks:
             if callback.publish_topics is None or len(callback.publish_topics) == 0:
                 continue
-            for count in range(len(callback.publish_topics)):
-                if publisher_value.topic_name == callback.publish_topics[count].topic_name and \
+
+            for publish_topic in callback.publish_topics:
+                if publisher_value.topic_name == publish_topic.topic_name and \
                         callback not in pub_callbacks:
                     pub_callbacks.append(callback)
 
