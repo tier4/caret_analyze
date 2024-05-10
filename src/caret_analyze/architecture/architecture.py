@@ -41,7 +41,7 @@ class Architecture(Summarizable):
     def __init__(
         self,
         file_type: str,
-        file_path: str,
+        file_path: str | list[str],
         max_callback_construction_order_on_path_searching: int =
             DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
     ) -> None:

@@ -28,6 +28,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from .events_factory import EventsFactory
+from .id_remapper import IDRemapperCollection
 from .lttng_event_filter import LttngEventFilter, SameAddressFilter
 from .ros2_tracing.data_model import Ros2DataModel
 from .ros2_tracing.data_model_service import DataModelService
@@ -38,7 +39,7 @@ from .value_objects import (CallbackGroupId,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng)
 from ..infra_base import InfraBase
-from ...common import ClockConverter
+from ...common import ClockConverter, Util
 from ...exceptions import InvalidArgumentError
 from ...record import RecordsInterface
 from ...value_objects import  \
@@ -259,6 +260,43 @@ class CtfEventCollection(IterableEvents):
         return events
 
 
+class MultiHostIdRemapper:
+    """Class for remapping pid/tid of LTTng event to make it unique across multiple hosts."""
+
+    def __init__(self, id_key: str):
+        self._id_key = id_key
+        self._other_host_ids: set[int] = set()
+        self._current_host_remapped_ids: set[int] = set()
+        self._current_host_not_remapped_ids: set[int] = set()
+        self._current_host_id_map: dict[int, int] = {}
+        self._next_id = 1000000000
+
+    def remap(self, event: dict):
+        target_id = get_field(event, self._id_key)
+        if target_id in self._other_host_ids or target_id in self._current_host_remapped_ids:
+            if target_id in self._current_host_id_map:
+                event[self._id_key] = self._current_host_id_map[target_id]
+            else:
+                while self._next_id in self._other_host_ids or \
+                        self._next_id in self._current_host_remapped_ids or \
+                        self._next_id in self._current_host_not_remapped_ids:
+                    self._next_id += 1
+                remapped_id = self._next_id
+                self._next_id += 1
+                self._current_host_id_map[target_id] = remapped_id
+                self._current_host_remapped_ids.add(remapped_id)
+                event[self._id_key] = remapped_id
+        else:
+            self._current_host_not_remapped_ids.add(target_id)
+
+    def change_host(self):
+        self._other_host_ids |= self._current_host_remapped_ids
+        self._other_host_ids |= self._current_host_not_remapped_ids
+        self._current_host_remapped_ids.clear()
+        self._current_host_not_remapped_ids.clear()
+        self._current_host_id_map.clear()
+
+
 class Lttng(InfraBase):
     """
     Lttng data container class.
@@ -318,7 +356,7 @@ class Lttng(InfraBase):
 
     def __init__(
         self,
-        trace_dir_or_events: str | list[dict],
+        trace_dir_or_events: str | list[dict] | list[str],
         force_conversion: bool = False,
         *,
         event_filters: list[LttngEventFilter] | None = None,
@@ -329,6 +367,10 @@ class Lttng(InfraBase):
         from .lttng_info import LttngInfo
         from .records_source import RecordsSource
         from .event_counter import EventCounter
+
+        if isinstance(trace_dir_or_events, list) and validate:
+            logger.warning('Validation of multiple LTTng log is not supported.')
+            validate = False
 
         # Add SameAddressFilter(10) by default
         modified_event_filters = []
@@ -354,7 +396,7 @@ class Lttng(InfraBase):
 
     @staticmethod
     def _parse_lttng_data(
-        trace_dir_or_events: str | list[dict],
+        trace_dir_or_events: str | list[dict] | list[str],
         force_conversion: bool,
         event_filters: list[LttngEventFilter],
         store_events: bool,
@@ -371,79 +413,102 @@ class Lttng(InfraBase):
             for f in event_filters:
                 f.reset()
 
-        # TODO(hsgwa): Same implementation duplicated. Refactoring required.
         if isinstance(trace_dir_or_events, str):
-            event_collection = EventCollection(
-                trace_dir_or_events, force_conversion)
-            print('{} events found.'.format(len(event_collection)))
+            trace_dir_or_events = [trace_dir_or_events]
 
-            common = LttngEventFilter.Common()
-            begin, end = event_collection.time_range()
-            common.start_time, common.end_time = begin, end
+        if len(trace_dir_or_events) == 0:
+            raise InvalidArgumentError('trace_dir_or_events should not be an empty list.')
 
-            # Offset is obtained for conversion from the monotonic clock time to the system time.
-            for event in event_collection:
-                event_name = event[LttngEventFilter.NAME]
-                if event_name == 'ros2_caret:caret_init':
-                    offset = Ros2Handler.get_monotonic_to_system_offset(event)
-                    break
+        # validate list[str] case
+        first_element_type = type(trace_dir_or_events[0])
+        if len(trace_dir_or_events) != len(Util.filter_items(
+                lambda x: isinstance(x, first_element_type), trace_dir_or_events)):
+            raise InvalidArgumentError(f'all elements of {trace_dir_or_events} \
+                                         must be same type: {first_element_type}.')
 
-            handler = Ros2Handler(data, offset)
+        # TODO(hsgwa): Same implementation duplicated. Refactoring required.
+        if isinstance(trace_dir_or_events[0], str):
+            tid_remapper = MultiHostIdRemapper(LttngEventFilter.VTID)
+            pid_remapper = MultiHostIdRemapper(LttngEventFilter.VPID)
+            event_remapper = IDRemapperCollection()
+            for trace_dir in trace_dir_or_events:
+                event_collection = EventCollection(
+                    trace_dir, force_conversion)  # type: ignore
+                print('{} events found.'.format(len(event_collection)))
 
-            init_events = []
-            run_events = []
-            filtered_event_count = 0
+                common = LttngEventFilter.Common()
+                begin, end = event_collection.time_range()
+                common.start_time, common.end_time = begin, end
 
-            # distribute all trace events to init_events and run_events
-            init_event_names = set(Lttng._prioritized_init_events)
-            for event in event_collection:
-                event_name = event[LttngEventFilter.NAME]
-                if len(event_filters) > 0 and \
-                        any(not f.accept(event, common) for f in event_filters):
-                    continue
-                if event_name in init_event_names:
-                    init_events.append(event)
-                else:
-                    run_events.append(event)
-                filtered_event_count += 1
+                # Offset is obtained for conversion from
+                # the monotonic clock time to the system time.
+                for event in event_collection:
+                    event_name = event[LttngEventFilter.NAME]
+                    if event_name == 'ros2_caret:caret_init':
+                        offset = Ros2Handler.get_monotonic_to_system_offset(event)
+                        break
 
-            Lttng.apply_init_timestamp(init_events, offset)
+                handler = Ros2Handler(data, event_remapper, offset)
 
-            import functools
-            init_events.sort(key=functools.cmp_to_key(Lttng._compare_init_event))
-            handler.create_init_handler_map()
-            for event in tqdm(
-                    iter(init_events),
-                    total=len(init_events),
-                    desc='loading',
-                    mininterval=1.0):
-                event_name = event[LttngEventFilter.NAME]
-                handler_ = handler.handler_map[event_name]
-                handler_(event)
+                init_events = []
+                run_events = []
+                filtered_event_count = 0
 
-            handler.create_runtime_handler_map()
-            for event in tqdm(
-                    iter(run_events),
-                    total=len(run_events),
-                    desc='loading',
-                    mininterval=1.0):
-                if store_events:
-                    event_dict = {
-                        k: get_field(event, k) for k in event
-                    }
-                    events.append(event_dict)
-                event_name = event[LttngEventFilter.NAME]
-                handler_ = handler.handler_map[event_name]
-                handler_(event)
+                # distribute all trace events to init_events and run_events
+                init_event_names = set(Lttng._prioritized_init_events)
+                for event in event_collection:
+                    event_name = event[LttngEventFilter.NAME]
+                    if len(event_filters) > 0 and \
+                            any(not f.accept(event, common) for f in event_filters):
+                        continue
+                    if event_name in init_event_names:
+                        init_events.append(event)
+                    else:
+                        run_events.append(event)
+                    filtered_event_count += 1
 
+                Lttng.apply_init_timestamp(init_events, offset)
+
+                import functools
+                init_events.sort(key=functools.cmp_to_key(Lttng._compare_init_event))
+                handler.create_init_handler_map()
+                for event in tqdm(
+                        iter(init_events),
+                        total=len(init_events),
+                        desc='loading',
+                        mininterval=1.0):
+                    tid_remapper.remap(event)
+                    pid_remapper.remap(event)
+                    event_name = event[LttngEventFilter.NAME]
+                    handler_ = handler.handler_map[event_name]
+                    handler_(event)
+
+                handler.create_runtime_handler_map()
+                for event in tqdm(
+                        iter(run_events),
+                        total=len(run_events),
+                        desc='loading',
+                        mininterval=1.0):
+                    if store_events:
+                        event_dict = {
+                            k: get_field(event, k) for k in event
+                        }
+                        events.append(event_dict)
+                    tid_remapper.remap(event)
+                    pid_remapper.remap(event)
+                    event_name = event[LttngEventFilter.NAME]
+                    handler_ = handler.handler_map[event_name]
+                    handler_(event)
+                tid_remapper.change_host()
+                pid_remapper.change_host()
+                if len(event_filters) > 0:
+                    print('filtered to {} events.'.format(filtered_event_count))
             data.finalize()
-            if len(event_filters) > 0:
-                print('filtered to {} events.'.format(filtered_event_count))
         else:
             # Note: giving events as arguments is used only for debugging.
             common = LttngEventFilter.Common()
             filtered_event_count = 0
-            events = trace_dir_or_events
+            events = trace_dir_or_events  # type: ignore
 
             # Offset is obtained for conversion from the monotonic clock time to the system time.
             for event in events:
@@ -452,7 +517,8 @@ class Lttng(InfraBase):
                     offset = Ros2Handler.get_monotonic_to_system_offset(event)
                     break
 
-            handler = Ros2Handler(data, offset)
+            event_remapper = IDRemapperCollection()
+            handler = Ros2Handler(data, event_remapper, offset)
 
             begin = events[0][LttngEventFilter.TIMESTAMP]
             end = events[-1][LttngEventFilter.TIMESTAMP]
