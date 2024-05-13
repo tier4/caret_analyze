@@ -20,11 +20,6 @@ from functools import cached_property, lru_cache
 from logging import getLogger, WARN
 
 
-from caret_analyze.infra.lttng.value_objects.timer_control import TimerInit
-from caret_analyze.value_objects.service import ServiceValue
-from caret_analyze.value_objects.subscription import SubscriptionValue
-from caret_analyze.value_objects.timer import TimerValue
-
 import pandas as pd
 
 from .ros2_tracing.data_model import Ros2DataModel
@@ -36,11 +31,13 @@ from .value_objects import (CallbackGroupAddr,
                             ServiceCallbackValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng,
-                            TimerControl)
+                            TimerControl,
+                            TimerInit)
 from ..trace_point_data import TracePointData, TracePointIntermediateData
 from ...common import Util
 from ...exceptions import InvalidArgumentError
-from ...value_objects import ExecutorValue, NodeValue, Qos
+from ...value_objects import (ExecutorValue, NodeValue, Qos,
+                              ServiceValue, SubscriptionValue, TimerValue)
 
 
 logger = getLogger(__name__)
@@ -242,14 +239,13 @@ class LttngInfo:
                 callback_object_intra = int(record_callback_object_intra)
             self._id_to_topic[row['callback_id']] = row['topic_name']
 
-            topic_name = row['topic_name']
             sub_cbs_info[node_id].append(
                 SubscriptionCallbackValueLttng(
                     callback_id=row['callback_id'],
                     node_id=node_id,
                     node_name=node_name,
                     symbol=row['symbol'],
-                    subscribe_topic_name=topic_name,
+                    subscribe_topic_name=row['topic_name'],
                     publish_topics=None,
                     subscription_handle=row['subscription_handle'],
                     callback_object=row['callback_object'],

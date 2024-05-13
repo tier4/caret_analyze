@@ -101,28 +101,6 @@ class ArchitectureReaderYaml(ArchitectureReader):
 
         return topic_names
 
-    def _get_subscribe_topic_infos(
-        self,
-        node_name: str,
-        callback_name: str
-    ) -> list[Any]:
-        node_dict = self._get_node_dict(node_name)
-        if 'subscribes' not in node_dict.keys():
-            return []
-
-        subscribes = self._get_value(node_dict, 'subscribes')
-        topic_names = []
-        for sub in subscribes:
-            if callback_name in self._get_value(sub, 'callback_name'):
-                if 'construction_order' in sub.keys():
-                    construction_order = self._get_value(sub, 'construction_order')
-                else:
-                    construction_order = 0
-                sub_info = ((self._get_value(sub, 'topic_name'), construction_order))
-                topic_names.append(sub_info)
-
-        return topic_names
-
     def get_timer_callbacks(
         self,
         node: NodeValue,

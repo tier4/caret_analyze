@@ -42,12 +42,12 @@ from caret_analyze.value_objects import (CallbackGroupStructValue,
                                          ExecutorStructValue, ExecutorType,
                                          NodePathStructValue, NodeStructValue,
                                          PathStructValue, PublisherStructValue,
+                                         PublishTopicInfoValue,
                                          SubscriptionCallbackStructValue,
                                          SubscriptionStructValue,
                                          TimerCallbackStructValue,
                                          TimerStructValue,
                                          VariablePassingStructValue)
-from caret_analyze.value_objects.publish_topic_info import PublishTopicInfoValue
 
 import pytest
 

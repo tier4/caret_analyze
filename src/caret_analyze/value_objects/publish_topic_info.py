@@ -21,13 +21,42 @@ class PublishTopicInfoValue(ValueObject):
     """PublishTopic info."""
 
     def __init__(self, topic_name: str, construction_order: int):
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        topic_name : str
+            Topic name.
+        construction_order : int
+            Construction order of the publisher..
+
+        """
         self._topic_name = topic_name
         self._construction_order = construction_order
 
     @property
     def topic_name(self) -> str:
+        """
+        Get topic name.
+
+        Returns
+        -------
+        str
+            Topic name.
+
+        """
         return self._topic_name
 
     @property
     def construction_order(self) -> int:
+        """
+        Get construction order.
+
+        Returns
+        -------
+        int
+            Construction order.
+
+        """
         return self._construction_order

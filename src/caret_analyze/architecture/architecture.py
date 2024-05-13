@@ -729,13 +729,13 @@ class AssignContextReader(ArchitectureReader):
             else:
                 if (path.subscribe_topic_name, path.publish_topic_name) ==\
                         (subscribe_topic_name, publish_topic_name):
-                    self._contexts.append({'context_type': context_type,
-                                           'subscription_topic_name': subscribe_topic_name,
-                                           'publisher_topic_name': publish_topic_name,
-                                           'publisher_construction_order':
-                                           path.publisher_construction_order,
-                                           'subscription_construction_order':
-                                           path.subscription_construction_order})
+                    self._contexts.append({
+                        'context_type': context_type,
+                        'subscription_topic_name': subscribe_topic_name,
+                        'publisher_topic_name': publish_topic_name,
+                        'publisher_construction_order': path.publisher_construction_order,
+                        'subscription_construction_order': path.subscription_construction_order
+                    })
 
     def remove_callback_chain(
         self,

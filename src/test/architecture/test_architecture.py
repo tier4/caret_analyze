@@ -31,8 +31,8 @@ from caret_analyze.architecture.struct import (CommunicationStruct,
                                                NodeStruct, PathStruct,
                                                TimerCallbackStruct
                                                )
-from caret_analyze.exceptions \
-    import InvalidArgumentError, ItemNotFoundError, MultipleItemFoundError
+from caret_analyze.exceptions import (InvalidArgumentError, ItemNotFoundError,
+                                      MultipleItemFoundError)
 from caret_analyze.value_objects import (CommunicationStructValue, NodePathStructValue,
                                          NodeStructValue, PathStructValue,
                                          PublisherStructValue, SubscriptionStructValue)
