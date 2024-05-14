@@ -271,9 +271,9 @@ class CommValuesLoaded():
             match = self._subscription.topic_name == callback.subscribe_topic_name
             if self._subscription.callback_name:
                 match &= self._subscription.callback_name == callback.callback_name
-                if self._subscription.callback is not None:
-                    match &= self._subscription.callback.construction_order == \
-                        callback.construction_order
+            if self._subscription.callback:
+                match &= self._subscription.callback.construction_order == \
+                    callback.construction_order
 
             return match
 

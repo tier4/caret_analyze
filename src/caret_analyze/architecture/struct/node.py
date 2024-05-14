@@ -124,7 +124,8 @@ class NodeStruct():
             return Util.find_one(is_target, self._subscriptions)
         except ItemNotFoundError:
             msg = 'Failed to find subscription info. '
-            msg += f'topic_name: {subscribe_topic_name}'
+            msg += f'topic_name: {subscribe_topic_name} '
+            msg += f'construction_order: {construction_order}'
             raise ItemNotFoundError(msg)
 
     def get_service(
@@ -143,7 +144,8 @@ class NodeStruct():
             return Util.find_one(is_target, self._services)
         except ItemNotFoundError:
             msg = 'Failed to find service info. '
-            msg += f'service_name: {service_name}'
+            msg += f'service_name: {service_name} '
+            msg += f'construction_order: {construction_order}'
             raise ItemNotFoundError(msg)
 
     def get_publisher(
