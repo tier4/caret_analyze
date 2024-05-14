@@ -29,7 +29,7 @@ class PublishTopicInfoValue(ValueObject):
         topic_name : str
             Topic name.
         construction_order : int
-            Construction order of the publisher..
+            Construction order of the publisher.
 
         """
         self._topic_name = topic_name
