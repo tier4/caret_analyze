@@ -431,6 +431,9 @@ class Lttng(InfraBase):
             tid_remapper = MultiHostIdRemapper(LttngEventFilter.VTID)
             pid_remapper = MultiHostIdRemapper(LttngEventFilter.VPID)
             event_remapper = IDRemapperCollection()
+            event_collections = []
+            begins = []
+            ends = []
             for trace_dir in trace_dir_or_events:
                 event_collection = EventCollection(
                     trace_dir, force_conversion)  # type: ignore
@@ -438,7 +441,13 @@ class Lttng(InfraBase):
 
                 common = LttngEventFilter.Common()
                 begin, end = event_collection.time_range()
-                common.start_time, common.end_time = begin, end
+
+                event_collections.append(event_collection)
+                begins.append(begin)
+                ends.append(end)
+
+            for event_collection in event_collections:
+                common.start_time, common.end_time = max(begins), min(ends)
 
                 # Offset is obtained for conversion from
                 # the monotonic clock time to the system time.
