@@ -14,8 +14,8 @@
 
 from __future__ import annotations
 
-from ....value_objects import ServiceCallbackValue, SubscriptionCallbackValue, TimerCallbackValue
-from ....value_objects.publish_topic_info import PublishTopicInfoValue
+from ....value_objects import (PublishTopicInfoValue, ServiceCallbackValue,
+                               SubscriptionCallbackValue, TimerCallbackValue)
 
 
 class TimerCallbackValueLttng(TimerCallbackValue):
