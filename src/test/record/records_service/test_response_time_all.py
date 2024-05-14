@@ -249,8 +249,8 @@ class TestResponseTimeAll:
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
             warning_message =\
-                'Record data is invalid. '\
-                'The end time of the path is recorded before the start time.'
+                'Trace data has records with reversed timestamps. ' \
+                'These record entries are ignored for accurate analysis.'
 
             response_time = ResponseTime(records)
 
@@ -436,8 +436,8 @@ class TestResponseTimeBest:
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
             warning_message =\
-                'Record data is invalid. '\
-                'The end time of the path is recorded before the start time.'
+                'Trace data has records with reversed timestamps. ' \
+                'These record entries are ignored for accurate analysis.'
 
             response_time = ResponseTime(records)
 
@@ -646,8 +646,8 @@ class TestResponseTimeWorstWithExternalLatency:
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
             warning_message =\
-                'Record data is invalid. '\
-                'The end time of the path is recorded before the start time.'
+                'Trace data has records with reversed timestamps. ' \
+                'These record entries are ignored for accurate analysis.'
 
             response_time = ResponseTime(records)
 
@@ -852,9 +852,8 @@ class TestResponseTimeWorst:
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
             warning_message =\
-                'Record data is invalid. '\
-                'The end time of the path is recorded before the start time.'
-
+                'Trace data has records with reversed timestamps. ' \
+                'These record entries are ignored for accurate analysis.'
             response_time = ResponseTime(records)
 
             assert issubclass(w[0].category, UserWarning)
@@ -950,6 +949,22 @@ class TestAllStackedBar:
         result = to_dict(response_time.to_all_stacked_bar())
         assert result == expect_raw
 
+    def test_invalid_value_case(self):
+        records_raw = [
+            {'start': 0, 'middle0': 1, 'middle1': 2, 'end': 3},
+            {'start': 1, 'middle0': 3, 'middle1': 2, 'end': 4},
+            {'start': 2, 'middle0': 3, 'middle1': 4, 'end': 5}
+        ]
+        records = create_records(records_raw, self.columns)
+
+        response_time = ResponseTime(records, columns=self.column_names)
+
+        expect_raw = [
+            {'start': 2, 'middle0': 3, 'middle1': 4, 'end': 5}
+        ]
+        result = to_dict(response_time.to_all_stacked_bar())
+        assert result == expect_raw
+
 
 class TestWorstInInputStackedBar:
 
@@ -1019,6 +1034,22 @@ class TestWorstInInputStackedBar:
 
         expect_raw = [
             {'start': 2, 'middle0': 3, 'middle1': 4, 'end': 6},
+        ]
+        result = to_dict(response_time.to_worst_case_stacked_bar())
+        assert result == expect_raw
+
+    def test_invalid_value_case(self):
+        records_raw = [
+            {'start': 1, 'middle0': 3, 'middle1': 5, 'end': 7},
+            {'start': 2, 'middle0': 5, 'middle1': 4, 'end': 7},
+            {'start': 5, 'middle0': 7, 'middle1': 9, 'end': 11},
+        ]
+        records = create_records(records_raw, self.columns)
+
+        response_time = ResponseTime(records, columns=self.column_names)
+
+        expect_raw = [
+            {'start': 5, 'middle0': 7, 'middle1': 9, 'end': 11},
         ]
         result = to_dict(response_time.to_worst_case_stacked_bar())
         assert result == expect_raw

@@ -127,6 +127,9 @@ class ResponseMap():
 
             input_time, output_time = data.get(self.input_column), data.get(self.output_column)
 
+            if self._has_reversed_timestamp(data):
+                continue
+
             if input_min_time is None:
                 input_min_time = input_time
 
@@ -136,6 +139,19 @@ class ResponseMap():
                 new_data[output_time].update(data)
 
         self._data = new_data
+
+    def _has_reversed_timestamp(self, record: RecordInterface):
+        for prev, current in zip(self._columns[:-1], self._columns[1:]):
+            # skip drop case
+            if not (prev in record.columns and current in record.columns):
+                continue
+            prev_ts = record.get(prev)
+            current_ts = record.get(current)
+            if prev_ts > current_ts:
+                warn('Trace data has records with reversed timestamps. '
+                     'These record entries are ignored for accurate analysis.')
+                return True
+        return False
 
     def sorted_iter(self) -> Iterator[int]:
         """
@@ -255,10 +271,7 @@ class ResponseMapAll:
                 continue
             start_ts = record.get(self._start_column)
 
-            if end_ts < start_ts:
-                warn('Record data is invalid. '
-                     'The end time of the path is recorded before the start time.',
-                     UserWarning)
+            if self._has_reversed_timestamp(record):
                 continue
 
             if start_ts not in self._start_timestamps:
@@ -284,6 +297,19 @@ class ResponseMapAll:
         self._records = [
             v for i, v in enumerate(self._records) if i not in min_end_timestamp_idx
             ]
+
+    def _has_reversed_timestamp(self, record: RecordInterface):
+        for prev, current in zip(self._columns[:-1], self._columns[1:]):
+            # skip drop case
+            if not (prev in record.columns and current in record.columns):
+                continue
+            prev_ts = record.get(prev)
+            current_ts = record.get(current)
+            if prev_ts > current_ts:
+                warn('Trace data has records with reversed timestamps. '
+                     'These record entries are ignored for accurate analysis.')
+                return True
+        return False
 
     def to_worst_with_external_latency_case_records(
         self,
@@ -313,7 +339,8 @@ class ResponseMapAll:
                                                          key=lambda x: x[0]):
             if converter:
                 record = {
-                    self._start_column: round(converter.convert(start_ts - worst_to_best_ts)),
+                    self._start_column: round(
+                        converter.convert(start_ts - worst_to_best_ts)),
                     'response_time': end_ts - (start_ts - worst_to_best_ts)
                 }
             else:

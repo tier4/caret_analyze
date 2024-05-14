@@ -135,3 +135,108 @@ class IDRemapper():
                 return min_distance_item.remapped_id
         else:
             return addr
+
+
+class IDRemapperCollection:
+
+    def __init__(self):
+        self._context_handle_remapper = IDRemapper()
+        self._node_handle_remapper = IDRemapper()
+        self._rmw_node_handle_remapper = IDRemapper()
+        self._publisher_handle_remapper = IDRemapper()
+        self._rmw_publisher_handle_remapper = IDRemapper()
+        self._subscription_handle_remapper = IDRemapper()
+        self._rmw_subscription_handle_remapper = IDRemapper()
+        self._subscription_remapper = IDRemapper()
+        self._service_handle_remapper = IDRemapper()
+        self._rmw_service_handle_remapper = IDRemapper()
+        self._client_handle_remapper = IDRemapper()
+        self._rmw_client_handle_remapper = IDRemapper()
+        self._callback_holder_id_remapper = IDRemapper()
+        self._state_machine_remapper = IDRemapper()
+        self._executor_addr_remapper = IDRemapper()
+        self._entities_collector_addr_remapper = IDRemapper()
+        self._callback_group_addr_remapper = IDRemapper()
+        self._callback_remapper = IDRemapper()
+        self._buffer_remapper = IDRemapper()
+        self._ipb_remapper = IDRemapper()
+
+    @property
+    def context_handle_remapper(self):
+        return self._context_handle_remapper
+
+    @property
+    def node_handle_remapper(self):
+        return self._node_handle_remapper
+
+    @property
+    def rmw_node_handle_remapper(self):
+        return self._rmw_node_handle_remapper
+
+    @property
+    def publisher_handle_remapper(self):
+        return self._publisher_handle_remapper
+
+    @property
+    def rmw_publisher_handle_remapper(self):
+        return self._rmw_publisher_handle_remapper
+
+    @property
+    def subscription_handle_remapper(self):
+        return self._subscription_handle_remapper
+
+    @property
+    def rmw_subscription_handle_remapper(self):
+        return self._rmw_subscription_handle_remapper
+
+    @property
+    def subscription_remapper(self):
+        return self._subscription_remapper
+
+    @property
+    def service_handle_remapper(self):
+        return self._service_handle_remapper
+
+    @property
+    def rmw_service_handle_remapper(self):
+        return self._rmw_service_handle_remapper
+
+    @property
+    def client_handle_remapper(self):
+        return self._client_handle_remapper
+
+    @property
+    def rmw_client_handle_remapper(self):
+        return self._rmw_client_handle_remapper
+
+    @property
+    def callback_holder_id_remapper(self):
+        return self._callback_holder_id_remapper
+
+    @property
+    def state_machine_remapper(self):
+        return self._state_machine_remapper
+
+    @property
+    def executor_addr_remapper(self):
+        return self._executor_addr_remapper
+
+    @property
+    def entities_collector_addr_remapper(self):
+        return self._entities_collector_addr_remapper
+
+    @property
+    def callback_group_addr_remapper(self):
+        return self._callback_group_addr_remapper
+
+    @property
+    def callback_remapper(self):
+        return self._callback_remapper
+
+    @property
+    def buffer_remapper(self):
+        return self._buffer_remapper
+
+    @property
+    def ipb_remapper(self):
+        return self._ipb_remapper
