@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from caret_analyze.exceptions import (UnsupportedNodeRecordsError)
+from caret_analyze.exceptions import UnsupportedNodeRecordsError
 from caret_analyze.infra.lttng import Lttng, RecordsProviderLttng
 from caret_analyze.infra.lttng.bridge import LttngBridge
 from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
