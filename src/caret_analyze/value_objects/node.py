@@ -535,7 +535,7 @@ class NodeStructValue(ValueObject, Summarizable):
 
     def get_timer(
         self,
-        timer_period: str,
+        timer_period: int,
         construction_order: int | None
     ) -> TimerStructValue:
         """
@@ -543,7 +543,7 @@ class NodeStructValue(ValueObject, Summarizable):
 
         Parameters
         ----------
-        timer_period: str
+        timer_period: int
             Timer period to get.
         construction_order : int | None
             Construction order to get.
@@ -561,11 +561,11 @@ class NodeStructValue(ValueObject, Summarizable):
         """
         try:
             def is_target_timer(timer: TimerStructValue):
-                timer_node_name_match = timer.node_name == timer_period
+                timer_period_match = timer.period_ns == timer_period
                 construction_order_match = True
                 if construction_order is not None:
                     construction_order_match = timer.construction_order == construction_order
-                return timer_node_name_match and construction_order_match
+                return timer_period_match and construction_order_match
 
             return Util.find_one(is_target_timer, self._timers)
         except ItemNotFoundError:

@@ -36,7 +36,7 @@ class TestNodeStructValue:
         mocker.patch.object(service_info_mock, 'construction_order', 1)
 
         timer_info_mock = mocker.Mock(spec=TimerStructValue)
-        mocker.patch.object(timer_info_mock, 'node_name', 'node_name')
+        mocker.patch.object(timer_info_mock, 'period_ns', 1001)
         mocker.patch.object(timer_info_mock, 'construction_order', 1)
 
         node_pub_mock1 = mocker.Mock(spec=NodePathStructValue)
@@ -85,9 +85,9 @@ class TestNodeStructValue:
         with pytest.raises(ItemNotFoundError):
             node_info.get_service('service_name', 0)
 
-        node = node_info.get_timer('node_name', None)
+        node = node_info.get_timer(1001, None)
         assert node == timer_info_mock
-        node = node_info.get_timer('node_name', 1)
+        node = node_info.get_timer(1001, 1)
         assert node == timer_info_mock
         with pytest.raises(ItemNotFoundError):
-            node_info.get_timer('node_name', 0)
+            node_info.get_timer(1001, 0)
