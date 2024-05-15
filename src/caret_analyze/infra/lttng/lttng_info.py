@@ -859,6 +859,7 @@ class DataFrameFormatted:
             - callback_group_addr
             - period_ns,
             - symbol
+            - construction_order
             - callback_id
 
         """
@@ -884,6 +885,7 @@ class DataFrameFormatted:
             - callback_group_addr
             - topic_name
             - symbol
+            - construction_order
             - callback_id
             - depth
 
@@ -910,6 +912,7 @@ class DataFrameFormatted:
             - service_handle
             - service_name
             - symbol
+            - construction_order
 
         """
         return self._srv_callbacks
@@ -946,6 +949,7 @@ class DataFrameFormatted:
             - node_handle
             - topic_name
             - depth
+            - construction_order
 
         """
         return self._pub
@@ -963,6 +967,7 @@ class DataFrameFormatted:
             - node_handle
             - topic_name
             - depth
+            - construction_order
 
         """
         return self._sub
@@ -979,6 +984,7 @@ class DataFrameFormatted:
             - service_handle
             - node_handle
             - service_name
+            - construction_order
 
         """
         return self._srv
@@ -995,6 +1001,7 @@ class DataFrameFormatted:
             - timer_handle
             - node_handle
             - period
+            - construction_order
 
         """
         return self._tim
