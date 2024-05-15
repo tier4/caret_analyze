@@ -369,8 +369,9 @@ class Lttng(InfraBase):
         from .event_counter import EventCounter
 
         if isinstance(trace_dir_or_events, list) and validate:
-            logger.warning('Validation of multiple LTTng log is not supported.')
-            validate = False
+            if len(trace_dir_or_events) >= 2 and isinstance(trace_dir_or_events[0], str):
+                logger.warning('Validation of multiple LTTng log is not supported.')
+                validate = False
 
         # Add SameAddressFilter(10) by default
         modified_event_filters = []
