@@ -25,7 +25,7 @@ from ...common import Util
 from ...exceptions import InvalidYamlFormatError
 from ...value_objects import (CallbackGroupValue, CallbackType, ExecutorValue,
                               NodePathValue, NodeValue, NodeValueWithId,
-                              PathValue, PublisherValue,
+                              PathValue, PublisherValue, PublishTopicInfoValue,
                               ServiceCallbackValue, ServiceValue,
                               SubscriptionCallbackValue, SubscriptionValue,
                               TimerCallbackValue, TimerValue, VariablePassingValue)
@@ -78,21 +78,27 @@ class ArchitectureReaderYaml(ArchitectureReader):
     ):
         return obj.get(key_name, default)
 
-    def _get_publish_topic_names(
+    def _get_publish_topic_infos(
         self,
         node_name: str,
         callback_name: str
-    ) -> list[str]:
+    ) -> list[PublishTopicInfoValue]:
         node_dict = self._get_node_dict(node_name)
         if 'publishes' not in node_dict.keys():
             return []
 
         publishes = self._get_value(node_dict, 'publishes')
-        topic_names = [
-            self._get_value(p, 'topic_name')
-            for p
-            in publishes
-            if callback_name in self._get_value(p, 'callback_names')]
+        topic_names = []
+        for pub in publishes:
+            if callback_name in self._get_value(pub, 'callback_names'):
+                if 'construction_order' in pub.keys():
+                    construction_order = self._get_value(pub, 'construction_order')
+                else:
+                    construction_order = 0
+                pub_info = PublishTopicInfoValue(self._get_value(pub, 'topic_name'),
+                                                 construction_order)
+                topic_names.append(pub_info)
+
         return topic_names
 
     def get_timer_callbacks(
@@ -113,7 +119,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         callbacks = []
         for _, info in enumerate(cbs_dict):
             callback_name = self._get_value(info, 'callback_name')
-            publish_topic_names = self._get_publish_topic_names(node.node_name, callback_name)
+            publish_topic_names = self._get_publish_topic_infos(node.node_name, callback_name)
             callback_id = callback_name
             node_name = self._get_value(node_dict, 'node_name')
             construction_order = self._get_value_with_default(info, 'construction_order', 0)
@@ -125,7 +131,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
                     node_id=node_name,
                     symbol=self._get_value(info, 'symbol'),
                     period_ns=self._get_value(info, 'period_ns'),
-                    publish_topic_names=tuple(publish_topic_names),
+                    publish_topics=tuple(publish_topic_names),
                     construction_order=construction_order,
                     callback_name=callback_name)
             )
@@ -257,7 +263,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         callbacks = []
         for val in callback_values:
             callback_name = self._get_value(val, 'callback_name')
-            publish_topic_names = self._get_publish_topic_names(node.node_name, callback_name)
+            publish_topic_infos = self._get_publish_topic_infos(node.node_name, callback_name)
             callback_id = callback_name
             node_name = self._get_value(node_dict, 'node_name')
             construction_order = self._get_value_with_default(val, 'construction_order', 0)
@@ -268,7 +274,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
                     node_name=node_name,
                     symbol=self._get_value(val, 'symbol'),
                     subscribe_topic_name=self._get_value(val, 'topic_name'),
-                    publish_topic_names=tuple(publish_topic_names),
+                    publish_topics=tuple(publish_topic_infos),
                     callback_name=callback_name,
                     construction_order=construction_order
                 )

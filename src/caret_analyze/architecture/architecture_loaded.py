@@ -251,9 +251,13 @@ class CommValuesLoaded():
             self._publish = publish
 
         def __call__(self, callback: CallbackStruct) -> bool:
-            if callback.publish_topic_names is None:
+            if callback.publish_topics is None:
                 return False
-            return self._publish.topic_name in callback.publish_topic_names
+            for publish_info in callback.publish_topics:
+                if self._publish.topic_name == publish_info.topic_name and \
+                        self._publish.construction_order == publish_info.construction_order:
+                    return True
+            return False
 
     class IsTargetSubCallback:
 
@@ -267,6 +271,9 @@ class CommValuesLoaded():
             match = self._subscription.topic_name == callback.subscribe_topic_name
             if self._subscription.callback_name:
                 match &= self._subscription.callback_name == callback.callback_name
+            if self._subscription.callback:
+                match &= self._subscription.callback.construction_order == \
+                    callback.construction_order
 
             return match
 
@@ -792,11 +799,13 @@ class PublishersLoaded:
             pub_callbacks.append(callbacks[0])
 
         for callback in callbacks:
-            if callback.publish_topic_names is None:
+            if callback.publish_topics is None or len(callback.publish_topics) == 0:
                 continue
-            if publisher_value.topic_name in callback.publish_topic_names and \
-                    callback not in pub_callbacks:
-                pub_callbacks.append(callback)
+
+            for publish_topic in callback.publish_topics:
+                if publisher_value.topic_name == publish_topic.topic_name and \
+                        callback not in pub_callbacks:
+                    pub_callbacks.append(callback)
 
         return PublisherStruct(
             publisher_value.node_name,
@@ -1259,8 +1268,8 @@ class CallbacksLoaded():
                 node_name=callback.node_name,
                 symbol=callback.symbol,
                 period_ns=callback.period_ns,
-                publish_topic_names=None if callback.publish_topic_names is None
-                else list(callback.publish_topic_names),
+                publish_topics=None if callback.publish_topics is None
+                else list(callback.publish_topics),
                 callback_name=callback_name,
                 construction_order=callback.construction_order
             )
@@ -1276,8 +1285,8 @@ class CallbacksLoaded():
                 node_name=callback.node_name,
                 symbol=callback.symbol,
                 subscribe_topic_name=callback.subscribe_topic_name,
-                publish_topic_names=None if callback.publish_topic_names is None
-                else list(callback.publish_topic_names),
+                publish_topics=None if callback.publish_topics is None
+                else list(callback.publish_topics),
                 callback_name=callback_name,
                 construction_order=callback.construction_order
             )
@@ -1295,8 +1304,8 @@ class CallbacksLoaded():
                 node_name=callback.node_name,
                 symbol=callback.symbol,
                 service_name=callback.service_name,
-                publish_topic_names=None if callback.publish_topic_names is None
-                else list(callback.publish_topic_names),
+                publish_topics=None if callback.publish_topics is None
+                else list(callback.publish_topics),
                 callback_name=callback_name,
                 construction_order=callback.construction_order
             )

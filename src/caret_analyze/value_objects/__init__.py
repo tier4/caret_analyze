@@ -42,6 +42,7 @@ from .message_context import (CallbackChain,
 from .node import DiffNode, NodeStructValue, NodeValue, NodeValueWithId
 from .node_path import NodePathStructValue, NodePathValue
 from .path import PathStructValue, PathValue
+from .publish_topic_info import PublishTopicInfoValue
 from .publisher import PublisherStructValue, PublisherValue
 from .qos import Qos
 from .service import ServiceStructValue, ServiceValue
@@ -74,6 +75,7 @@ __all__ = [
     'NodeValueWithId',
     'PathStructValue',
     'PathValue',
+    'PublishTopicInfoValue',
     'PublisherStructValue',
     'PublisherValue',
     'Qos',

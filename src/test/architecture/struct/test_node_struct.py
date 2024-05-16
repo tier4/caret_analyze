@@ -42,6 +42,6 @@ class TestNodeStruct:
         assert pubs.topic_name == 'topic2'
         assert pubs.construction_order == 1
 
-        subs = node_struct.get_subscription_from_construction_order('topic2', 1)
+        subs = node_struct.get_subscription('topic2', 1)
         assert subs.topic_name == 'topic2'
         assert subs.construction_order == 1

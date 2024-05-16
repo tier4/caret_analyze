@@ -19,6 +19,7 @@ from collections.abc import Sequence
 from functools import cached_property, lru_cache
 from logging import getLogger, WARN
 
+
 import pandas as pd
 
 from .ros2_tracing.data_model import Ros2DataModel
@@ -35,7 +36,8 @@ from .value_objects import (CallbackGroupAddr,
 from ..trace_point_data import TracePointData, TracePointIntermediateData
 from ...common import Util
 from ...exceptions import InvalidArgumentError
-from ...value_objects import ExecutorValue, NodeValue, Qos, TimerValue
+from ...value_objects import (ExecutorValue, NodeValue, Qos,
+                              ServiceValue, SubscriptionValue, TimerValue)
 
 
 logger = getLogger(__name__)
@@ -134,7 +136,7 @@ class LttngInfo:
                     symbol=row['symbol'],
                     period_ns=row['period_ns'],
                     timer_handle=row['timer_handle'],
-                    publish_topic_names=None,
+                    publish_topics=None,
                     callback_object=row['callback_object'],
                     construction_order=row['construction_order'],
                 )
@@ -244,7 +246,7 @@ class LttngInfo:
                     node_name=node_name,
                     symbol=row['symbol'],
                     subscribe_topic_name=row['topic_name'],
-                    publish_topic_names=None,
+                    publish_topics=None,
                     subscription_handle=row['subscription_handle'],
                     callback_object=row['callback_object'],
                     callback_object_intra=callback_object_intra,
@@ -324,7 +326,7 @@ class LttngInfo:
                     symbol=row['symbol'],
                     service_name=row['service_name'],
                     service_handle=row['service_handle'],
-                    publish_topic_names=None,
+                    publish_topics=None,
                     callback_object=row['callback_object'],
                     construction_order=row['construction_order']
                 )
@@ -399,6 +401,150 @@ class LttngInfo:
 
         node_lttng = NodeValueLttng(node.node_name, node.node_id)
         return self._get_publishers(node_lttng)
+
+    @lru_cache
+    def get_subscriptions(self, node: NodeValueLttng) -> list[SubscriptionValue]:
+        """
+        Get subscriptions information.
+
+        Parameters
+        ----------
+        node: NodeValue
+            target node.
+
+        Returns
+        -------
+        list[SubscriptionValue]
+
+        """
+        node_id = node.node_id
+        return self._get_subscriptions(node_id)
+
+    def _get_subscriptions(self, node_id: str) -> list[SubscriptionValue]:
+        """
+        Get subscriptions information.
+
+        Parameters
+        ----------
+        node_id : str
+            node ID
+
+        Returns
+        -------
+        list[SubscriptionValue]
+
+        """
+        sub = self._formatted.subscriptions.clone()
+        # There is a construction_order column in both subscriptions and subscription_callbacks,
+        # but they have different meanings, so rename one.
+        sub.rename_column('construction_order', 'subscription_construction_order')
+
+        nodes = self._formatted.nodes.clone()
+        merge(sub, nodes, 'node_handle', how='left')
+        tilde_sub = self._formatted.tilde_subscriptions.clone()
+
+        sub.merge(tilde_sub, ['node_name', 'topic_name'], how='left')
+
+        sub_cbs = self._formatted.subscription_callbacks.clone()
+        # remove duplicated columns
+        sub_cbs.drop_column('topic_name')
+        sub_cbs.drop_column('depth')
+        sub_cbs.drop_column('node_handle')
+        sub_cbs.reset_index()
+
+        sub.merge(sub_cbs, ['subscription_handle'], how='left')
+
+        subs_info = []
+        for _, row in sub.df.iterrows():
+            if row['node_id'] != node_id:
+                continue
+            tilde_subscription = row['tilde_subscription']
+            if tilde_subscription is pd.NA:
+                tilde_subscription = None
+            callback_id = row['callback_id']
+            if callback_id is pd.NA:
+                continue
+
+            subs_info.append(
+                SubscriptionValue(
+                    node_name=row['node_name'],
+                    topic_name=row['topic_name'],
+                    node_id=row['node_id'],
+                    callback_id=callback_id,
+                    construction_order=row['subscription_construction_order']
+                )
+            )
+
+        return subs_info
+
+    @lru_cache
+    def get_services(self, node: NodeValueLttng) -> list[ServiceValue]:
+        """
+        Get services information.
+
+        Parameters
+        ----------
+        node: NodeValue
+            target node.
+
+        Returns
+        -------
+        list[ServiceValue]
+
+        """
+        node_id = node.node_id
+        return self._get_services(node_id)
+
+    def _get_services(self, node_id: str) -> list[ServiceValue]:
+        """
+        Get services information.
+
+        Parameters
+        ----------
+        node_id : str
+            node ID
+
+        Returns
+        -------
+        list[ServiceValue]
+
+        """
+        srv = self._formatted.services.clone()
+        # There is a construction_order column in both services and service_callbacks,
+        # but they have different meanings, so rename one.
+        srv.rename_column('construction_order', 'service_construction_order')
+
+        nodes = self._formatted.nodes.clone()
+        merge(srv, nodes, 'node_handle', how='left')
+
+        srv_cbs = self._formatted.service_callbacks.clone()
+        # remove duplicated columns
+        srv_cbs.drop_column('service_name')
+        srv_cbs.drop_column('node_handle')
+        srv_cbs.reset_index()
+
+        srv.merge(srv_cbs, ['service_handle'], how='left')
+
+        srvs_info = []
+        for _, row in srv.df.iterrows():
+            if row['node_id'] is pd.NA or row['node_id'] != node_id:
+                continue
+
+            callback_id = row['callback_id']
+            if callback_id is pd.NA:
+                continue
+
+            srvs_info.append(
+                ServiceValue(
+                    node_name=row['node_name'],
+                    service_name=row['service_name'],
+                    node_id=row['node_id'],
+                    callback_id=callback_id,
+                    construction_order=row['service_construction_order']
+                )
+            )
+
+        return srvs_info
 
     def _get_nodes(
         self,
@@ -587,24 +733,70 @@ class LttngInfo:
         depth = int(subscription.at('depth', 0))
         return Qos(depth)
 
-    def get_timers(self, node: NodeValue) -> Sequence[TimerValue]:
-        try:
-            callbacks = self.get_timer_callbacks(node)
-            timers = []
-            for callback in callbacks:
-                timers.append(
-                    TimerValue(
-                        period=callback.period_ns,
-                        node_name=callback.node_name,
-                        node_id=callback.node_id,
-                        callback_id=callback.callback_id,
-                        construction_order=callback.construction_order
-                    )
-                )
+    @lru_cache
+    def get_timers(self, node: NodeValueLttng) -> list[TimerValue]:
+        """
+        Get timers information.
 
-            return timers
-        except ValueError:
-            return []
+        Parameters
+        ----------
+        node: NodeValue
+            target node.
+
+        Returns
+        -------
+        list[TimerValue]
+
+        """
+        node_id = node.node_id
+        return self._get_timers(node_id)
+
+    def _get_timers(self, node_id: str) -> list[TimerValue]:
+        """
+        Get timers information.
+
+        Parameters
+        ----------
+        node_id : str
+            node ID
+
+        Returns
+        -------
+        list[TimerValue]
+
+        """
+        tim = self._formatted.timers.clone()
+        # There is a construction_order column in both timer and timer_callbacks,
+        # but they have different meanings, so rename one.
+        tim.rename_column('construction_order', 'timer_construction_order')
+
+        nodes = self._formatted.nodes.clone()
+        merge(tim, nodes, 'node_handle', how='left')
+
+        time_cbs = self._formatted.timer_callbacks.clone()
+        # remove duplicated columns
+        time_cbs.drop_column('period_ns')
+        time_cbs.drop_column('node_handle')
+        time_cbs.reset_index()
+
+        tim.merge(time_cbs, ['timer_handle'], how='left')
+
+        times_info = []
+        for _, row in tim.df.iterrows():
+            if row['node_id'] != node_id:
+                continue
+
+            times_info.append(
+                TimerValue(
+                    node_name=row['node_name'],
+                    period=row['period'],
+                    node_id=row['node_id'],
+                    callback_id=row['callback_id'],
+                    construction_order=row['timer_construction_order']
+                )
+            )
+
+        return times_info
 
     def get_timer_controls(self) -> Sequence[TimerControl]:
         timer_controls = self._formatted.timer_controls.clone()
@@ -633,6 +825,9 @@ class DataFrameFormatted:
         self._srv_callbacks = self._build_srv_callbacks(data)
         self._cbg = self._build_cbg(data)
         self._pub = self._build_publisher(data)
+        self._sub = self._build_subscription(data)
+        self._srv = self._build_service(data)
+        self._tim = self._build_timer(data)
         self._tilde_sub = self._build_tilde_subscription(data)
         self._tilde = self._build_tilde_publisher(data)
         self._tilde_sub_id_to_sub = self._build_tilde_sub_id(data, self._tilde_sub)
@@ -664,6 +859,7 @@ class DataFrameFormatted:
             - callback_group_addr
             - period_ns,
             - symbol
+            - construction_order
             - callback_id
 
         """
@@ -689,6 +885,7 @@ class DataFrameFormatted:
             - callback_group_addr
             - topic_name
             - symbol
+            - construction_order
             - callback_id
             - depth
 
@@ -715,6 +912,7 @@ class DataFrameFormatted:
             - service_handle
             - service_name
             - symbol
+            - construction_order
 
         """
         return self._srv_callbacks
@@ -751,9 +949,62 @@ class DataFrameFormatted:
             - node_handle
             - topic_name
             - depth
+            - construction_order
 
         """
         return self._pub
+
+    @property
+    def subscriptions(self) -> TracePointData:
+        """
+        Get subscription info table.
+
+        Returns
+        -------
+        pd.DataFrame
+            Columns
+            - subscription_handle
+            - node_handle
+            - topic_name
+            - depth
+            - construction_order
+
+        """
+        return self._sub
+
+    @property
+    def services(self) -> TracePointData:
+        """
+        Get service info table.
+
+        Returns
+        -------
+        pd.DataFrame
+            Columns
+            - service_handle
+            - node_handle
+            - service_name
+            - construction_order
+
+        """
+        return self._srv
+
+    @property
+    def timers(self) -> TracePointData:
+        """
+        Get timer info table.
+
+        Returns
+        -------
+        pd.DataFrame
+            Columns
+            - timer_handle
+            - node_handle
+            - period
+            - construction_order
+
+        """
+        return self._tim
 
     @property
     def executor(self) -> TracePointData:
@@ -845,6 +1096,86 @@ class DataFrameFormatted:
         publishers.drop_duplicate()
 
         return publishers
+
+    @staticmethod
+    def _build_subscription(
+        data: Ros2DataModel,
+    ) -> TracePointData:
+        columns = (
+            ['subscription_id', 'subscription_handle', 'node_handle',
+             'topic_name', 'depth', 'construction_order']
+        )
+        subscriptions = data.subscriptions.clone()
+        subscriptions.reset_index()
+
+        DataFrameFormatted._add_construction_order_publisher_or_subscription(
+            subscriptions, 'construction_order', 'timestamp', 'node_handle', 'topic_name')
+
+        def to_subscription_id(row: pd.Series):
+            subscription_handle = row['subscription_handle']
+            return f'subscription_{subscription_handle}'
+
+        subscriptions.add_column('subscription_id', to_subscription_id)
+        subscriptions.set_columns(columns)
+        subscriptions.drop_duplicate()
+
+        return subscriptions
+
+    @staticmethod
+    def _build_service(
+        data: Ros2DataModel,
+    ) -> TracePointData:
+        columns = [
+            'service_id', 'service_handle', 'node_handle',
+            'service_name', 'construction_order'
+        ]
+
+        services = data.services.clone()
+        services.reset_index()
+
+        DataFrameFormatted._add_construction_order_service(
+            services, 'construction_order', 'timestamp', 'node_handle', 'service_name')
+
+        def to_service_id(row: pd.Series):
+            service_handle = row['service_handle']
+            return f'service_{service_handle}'
+
+        services.add_column('service_id', to_service_id)
+        services.set_columns(columns)
+        services.drop_duplicate()
+
+        return services
+
+    @staticmethod
+    def _build_timer(
+        data: Ros2DataModel,
+    ) -> TracePointData:
+        columns = [
+            'timer_id', 'timer_handle', 'node_handle', 'period', 'construction_order'
+        ]
+
+        timers = data.timers.clone()
+        timers.reset_index()
+
+        merge_drop_columns = ['tid']
+        timer_node_links = data.timer_node_links.clone()
+        timer_node_links.reset_index()
+        timer_node_links.remove_column('timestamp')
+        merge(timers, timer_node_links, 'timer_handle', merge_drop_columns=merge_drop_columns)
+
+        DataFrameFormatted._add_construction_order_timer(
+            timers, 'construction_order', 'timestamp', 'node_handle', 'period')
+
+        def to_timer_id(row: pd.Series):
+            timer_handle = row['timer_handle']
+            return f'timer_{timer_handle}'
+
+        timers.add_column('timer_id', to_timer_id)
+        timers.drop_duplicate()
+
+        timers.set_columns(columns)
+
+        return timers
 
     @staticmethod
     def _build_timer_control(
@@ -1072,6 +1403,8 @@ class DataFrameFormatted:
         data.add_column(column_name, construct_order)
 
     KeyTypePubSub = tuple[int | str, str | int]
+    KeyTypeTopic = tuple[int | str, str | int]
+    KeyTypePeriod = tuple[int | str, int | str]
 
     @staticmethod
     def _add_construction_order_publisher_or_subscription(
@@ -1088,6 +1421,49 @@ class DataFrameFormatted:
         def construct_order(row: pd.Series) -> int:
             node = row[node_handle_column]
             key: DataFrameFormatted.KeyTypePubSub = node, row[topic_name]
+            order_ = int(order[key])
+            order[key] += 1
+            return order_
+
+        data.add_column(column_name, construct_order)
+
+    @staticmethod
+    def _add_construction_order_service(
+        data: TracePointData,
+        column_name: str,
+        timestamp_column: str,
+        node_handle_column: str,
+        service_name_column: str
+    ) -> None:
+
+        data.sort(timestamp_column)
+        order: dict[DataFrameFormatted.KeyTypePubSub, int] = defaultdict(int)
+
+        def construct_order(row: pd.Series) -> int:
+            node = row[node_handle_column]
+            key: DataFrameFormatted.KeyTypePubSub = node, row[service_name_column]
+            order_ = int(order[key])
+            order[key] += 1
+            return order_
+
+        data.add_column(column_name, construct_order)
+
+    @staticmethod
+    def _add_construction_order_timer(
+        data: TracePointData,
+        column_name: str,
+        timestamp_column: str,
+        node_handle_column: str,
+        period_ns_column: str,
+    ) -> None:
+
+        data.sort(timestamp_column)
+        order: dict[DataFrameFormatted.KeyTypePeriod, int] = defaultdict(int)
+
+        def construct_order(row: pd.Series) -> int:
+            node = row[node_handle_column]
+            timer_param = row[period_ns_column]
+            key: DataFrameFormatted.KeyTypePeriod = node, timer_param
             order_ = int(order[key])
             order[key] += 1
             return order_

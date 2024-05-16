@@ -257,7 +257,9 @@ class CombinePath():
     def __is_valid(
         node_path: NodePathStructValue,
         subscribe_topic_name: str | None,
-        publish_topic_name: str | None
+        subscription_construction_order: int | None,
+        publish_topic_name: str | None,
+        publisher_construction_order: int | None
     ) -> bool:
         """
         Check if the given NodePathStructValue matches.
@@ -268,8 +270,12 @@ class CombinePath():
             candidate node path
         subscribe_topic_name : str | None
             expected subscribe topic name
+        subscription_construction_order : int | None
+            expected subscribe construction order
         publish_topic_name : str | None
             expected publish topic name
+        publisher_construction_order : int | None
+            expected publish construction order
 
         Returns
         -------
@@ -278,7 +284,9 @@ class CombinePath():
 
         """
         return node_path.subscribe_topic_name == subscribe_topic_name and \
-            node_path.publish_topic_name == publish_topic_name
+            node_path.subscription_construction_order == subscription_construction_order and \
+            node_path.publish_topic_name == publish_topic_name and \
+            node_path.publisher_construction_order == publisher_construction_order
 
     @singledispatchmethod
     def _find_node_path_core(
@@ -323,7 +331,9 @@ class CombinePath():
             if self.__is_valid(
                     node_path,
                     left_last_child.subscribe_topic_name,
-                    right_first_child.publish_topic_name):
+                    left_last_child.subscription_construction_order,
+                    right_first_child.publish_topic_name,
+                    right_first_child.publisher_construction_order):
                 return node_path
         msg = 'No node path to combine.'
         raise InvalidArgumentError(msg)
@@ -362,7 +372,9 @@ class CombinePath():
             if self.__is_valid(
                     node_path,
                     left_last_child.subscribe_topic_name,
-                    right_first_child.topic_name):
+                    left_last_child.subscription_construction_order,
+                    right_first_child.topic_name,
+                    right_first_child.publisher_construction_order):
                 return node_path
         msg = 'No node path to combine.'
         raise InvalidArgumentError(msg)
@@ -401,7 +413,9 @@ class CombinePath():
             if self.__is_valid(
                     node_path,
                     left_last_child.topic_name,
-                    right_first_child.publish_topic_name):
+                    left_last_child.subscription_construction_order,
+                    right_first_child.publish_topic_name,
+                    right_first_child.publisher_construction_order):
                 return node_path
         msg = 'No node path to combine.'
         raise InvalidArgumentError(msg)

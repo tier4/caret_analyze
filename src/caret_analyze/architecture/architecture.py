@@ -398,7 +398,8 @@ class Architecture(Summarizable):
                             )
 
     def insert_publisher_callback(self, node_name: str,
-                                  publish_topic_name: str, callback_name: str) -> None:
+                                  publish_topic_name: str, callback_name: str,
+                                  publisher_construction_order: int) -> None:
         """
         Insert association of callback with publisher in "node_name" node.
 
@@ -410,11 +411,14 @@ class Architecture(Summarizable):
             topic name of target publisher into which callback is inserted
         callback_name : str
             name of callback to be inserted for publisher
+        publisher_construction_order : int
+            construction order of target publisher
 
         """
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
-        node.insert_publisher_callback(publish_topic_name, callback_name)
+        node.insert_publisher_callback(publish_topic_name,
+                                       callback_name, publisher_construction_order)
 
         node.update_node_path(
             NodeValuesLoaded._search_node_paths(
@@ -450,7 +454,8 @@ class Architecture(Summarizable):
                             )
 
     def remove_publisher_callback(self, node_name: str,
-                                  publish_topic_name: str, callback_name: str) -> None:
+                                  publish_topic_name: str, callback_name: str,
+                                  publisher_construction_order: int) -> None:
         """
         Remove association of callback with publisher in "node_name" node.
 
@@ -462,11 +467,14 @@ class Architecture(Summarizable):
             topic name of target publisher from which callback is removed
         callback_name : str
             name of callback to be removed for publisher
+        publisher_construction_order : int
+            construction order of target publisher
 
         """
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
-        node.remove_publisher_and_callback(publish_topic_name, callback_name)
+        node.remove_publisher_and_callback(publish_topic_name,
+                                           callback_name, publisher_construction_order)
 
         node.update_node_path(
             NodeValuesLoaded._search_node_paths(
@@ -499,13 +507,15 @@ class Architecture(Summarizable):
         callback_write: CallbackStructValue = \
             Util.find_one(lambda x: x.callback_name == callback_name_write, self.callbacks)
 
-        if callback_read.publish_topic_names:
+        if callback_read.publish_topics:
             context_reader = AssignContextReader(node)
-            for publish_topic_name in callback_read.publish_topic_names:
-                if callback_write.subscribe_topic_name:
-                    context_reader.remove_callback_chain(callback_write.subscribe_topic_name,
-                                                         publish_topic_name)
-
+            for publish_topic in callback_read.publish_topics:
+                if callback_write.subscribe_topic_name and publish_topic is not None:
+                    context_reader.remove_callback_chain(
+                        callback_write.subscribe_topic_name,
+                        callback_write.construction_order,
+                        publish_topic.topic_name,
+                        publish_topic.construction_order)
             node.update_node_path(
                 NodeValuesLoaded._search_node_paths(
                                     node,
@@ -702,6 +712,7 @@ class AssignContextReader(ArchitectureReader):
 
     def __init__(self, node: NodeStruct) -> None:
         contexts = [path.message_context for path in node.paths]
+        self._node = node
         self._contexts = \
             [context.to_dict() for context in contexts if context is not None]
 
@@ -711,18 +722,39 @@ class AssignContextReader(ArchitectureReader):
             if (context['subscription_topic_name'], context['publisher_topic_name']) ==\
                (subscribe_topic_name, publish_topic_name):
                 context['context_type'] = context_type
-                break
-        else:
-            self._contexts.append({'context_type': context_type,
-                                   'subscription_topic_name': subscribe_topic_name,
-                                   'publisher_topic_name': publish_topic_name})
+        for path in self._node.paths:
+            if path.message_context is not None:
+                # already processed by the above self._contexts process
+                continue
+            else:
+                if (path.subscribe_topic_name, path.publish_topic_name) ==\
+                        (subscribe_topic_name, publish_topic_name):
+                    self._contexts.append({
+                        'context_type': context_type,
+                        'subscription_topic_name': subscribe_topic_name,
+                        'publisher_topic_name': publish_topic_name,
+                        'publisher_construction_order': path.publisher_construction_order,
+                        'subscription_construction_order': path.subscription_construction_order
+                    })
 
-    def remove_callback_chain(self, subscribe_topic_name: str, publish_topic_name: str) -> None:
+    def remove_callback_chain(
+        self,
+        subscribe_topic_name: str,
+        subscription_construction_order: int,
+        publish_topic_name: str,
+        publisher_construction_order: int
+    ) -> None:
         self._contexts = [
             context for context in self._contexts
-            if (context['subscription_topic_name'], context['publisher_topic_name'],
-                context['context_type']) !=
-               (subscribe_topic_name, publish_topic_name, 'callback_chain')
+            if (context['subscription_topic_name'],
+                context.get('subscription_construction_order', 0),
+                context['publisher_topic_name'],
+                context.get('publisher_construction_order', 0),
+                context['context_type']) != (subscribe_topic_name,
+                                             subscription_construction_order,
+                                             publish_topic_name,
+                                             publisher_construction_order,
+                                             'callback_chain')
         ]
 
     def get_message_contexts(self, _) -> Sequence[dict]:

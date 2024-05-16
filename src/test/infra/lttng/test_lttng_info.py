@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from caret_analyze.infra.lttng.lttng_info import (DataFrameFormatted,
                                                   LttngInfo)
 from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
@@ -27,6 +26,8 @@ from caret_analyze.value_objects import (CallbackGroupType, ExecutorType,
                                          ExecutorValue)
 
 from caret_analyze.value_objects.node import NodeValue
+from caret_analyze.value_objects.service import ServiceValue
+from caret_analyze.value_objects.subscription import SubscriptionValue
 from caret_analyze.value_objects.timer import TimerValue
 
 
@@ -178,6 +179,95 @@ class TestLttngInfo:
 
         pubs_info = info.get_publishers(NodeValue('/node_', 'node_id_'))
         assert len(pubs_info) == 0
+
+    def test_get_subscriptions_info(self, mocker):
+        data = Ros2DataModel()
+
+        subscription_handle = 9
+        depth = 5
+        node_handle = 3
+        node_name = 'node_name'
+        tilde_subscription = 8
+
+        formatted_mock = mocker.Mock(spec=DataFrameFormatted)
+        mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
+                     return_value=formatted_mock)
+
+        sub = TracePointData(pd.DataFrame.from_dict(
+            [
+                {
+                    'subscription_handle': subscription_handle,
+                    'node_handle': node_handle,
+                    'topic_name': '/topic_name',
+                    'depth': depth,
+                    'construction_order': 0
+                }
+            ]
+        ))
+        mocker.patch.object(formatted_mock, 'subscriptions', sub)
+
+        tilde_sub = TracePointData(pd.DataFrame.from_dict(
+            [
+                {
+                    'tilde_subscription': tilde_subscription,
+                    'node_name': node_name,
+                    'topic_name': '/topic_name',
+                }
+            ]
+        ))
+        mocker.patch.object(formatted_mock, 'tilde_subscriptions', tilde_sub)
+
+        node = TracePointData(pd.DataFrame.from_dict(
+            [
+                {
+                    'node_id': 'node_id',
+                    'node_handle': node_handle,
+                    'node_name': '/node',
+                }
+            ]
+        ))
+        mocker.patch.object(formatted_mock, 'nodes', node)
+
+        cbg_addr = 11
+        symbol = 'some_callback'
+        callback_object = 2
+        callback_object_intra = 4
+        sub_cbs = TracePointData(pd.DataFrame.from_dict(
+            [
+                {
+                    'callback_object': callback_object,
+                    'callback_object_intra': callback_object_intra,
+                    'node_handle': node_handle,
+                    'subscription_handle': subscription_handle,
+                    'callback_group_addr': cbg_addr,
+                    'topic_name': '/topic_name',
+                    'symbol': symbol,
+                    'callback_id': 'subscription_callback_0',
+                    'depth': depth,
+                    'construction_order': 0,
+                },
+            ]
+        ))
+        mocker.patch.object(formatted_mock, 'subscription_callbacks', sub_cbs)
+        mocker.patch.object(LttngInfo, '_get_timer_cbs_without_pub', return_value={})
+
+        sub_info_expect = SubscriptionValue(
+            node_name='/node',
+            topic_name='/topic_name',
+            node_id='node_id',
+            callback_id='subscription_callback_0',
+            construction_order=0,
+        )
+
+        data.finalize()
+        info = LttngInfo(data)
+
+        subs_info = info.get_subscriptions(NodeValue('/node', 'node_id'))
+        assert len(subs_info) == 1
+        assert subs_info[0] == sub_info_expect
+
+        subs_info = info.get_subscriptions(NodeValue('/node_', 'node_id_'))
+        assert len(subs_info) == 0
 
     def test_get_timer_callbacks_info(self, mocker):
 
@@ -594,38 +684,148 @@ class TestLttngInfo:
 
         assert execs_info == [exec_info_expect]
 
-    def test_get_timers(self, mocker):
+    def test_get_services_info(self, mocker):
         data = Ros2DataModel()
+
+        service_handle = 9
+        node_handle = 3
+
+        formatted_mock = mocker.Mock(spec=DataFrameFormatted)
+        mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
+                     return_value=formatted_mock)
+
+        srv = TracePointData(pd.DataFrame.from_dict(
+            [
+                {
+                    'service_id': 'service_0',
+                    'service_handle': service_handle,
+                    'node_handle': node_handle,
+                    'service_name': '/service_name',
+                    'construction_order': 0
+                }
+            ]
+        ))
+        mocker.patch.object(formatted_mock, 'services', srv)
+
+        node = TracePointData(pd.DataFrame.from_dict(
+            [
+                {
+                    'node_id': 'node_id',
+                    'node_handle': node_handle,
+                    'node_name': '/node',
+                }
+            ]
+        ))
+        mocker.patch.object(formatted_mock, 'nodes', node)
+
+        cbg_addr = 11
+        symbol = 'some_callback'
+        callback_object = 2
+        srv_cbs = TracePointData(pd.DataFrame.from_dict(
+            [
+                {
+                    'callback_id': 'service_callback_0',
+                    'callback_object': callback_object,
+                    'node_handle': node_handle,
+                    'service_handle': service_handle,
+                    'callback_group_addr': cbg_addr,
+                    'service_name': '/service_name',
+                    'symbol': symbol,
+                    'construction_order': 0,
+                },
+            ]
+        ))
+        mocker.patch.object(formatted_mock, 'service_callbacks', srv_cbs)
+
+        srv_info_expect = ServiceValue(
+            node_name='/node',
+            service_name='/service_name',
+            node_id='node_id',
+            callback_id='service_callback_0',
+            construction_order=0,
+        )
+
         data.finalize()
         info = LttngInfo(data)
 
-        timer_cb_info_expect = TimerCallbackValueLttng(
-            'timer_callback_0',
-            'node_id',
-            '/node1',
-            'symbol',
-            8,
-            15,
-            None,
-            callback_object=11,
-            construction_order=1
-        )
-        mocker.patch.object(
-            LttngInfo,
-            'get_timer_callbacks',
-            return_value=[timer_cb_info_expect])
+        srvs_info = info.get_services(NodeValue('/node', 'node_id'))
+        assert len(srvs_info) == 1
+        assert srvs_info[0] == srv_info_expect
 
-        timer_value_expect = TimerValue(
-            period=8,
-            node_name='/node1',
+        srvs_info = info.get_services(NodeValue('/node_', 'node_id_'))
+        assert len(srvs_info) == 0
+
+    def test_get_timers_info(self, mocker):
+        data = Ros2DataModel()
+
+        timer_handle = 9
+        node_handle = 3
+        period = 1000
+
+        formatted_mock = mocker.Mock(spec=DataFrameFormatted)
+        mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
+                     return_value=formatted_mock)
+
+        tim = TracePointData(pd.DataFrame.from_dict(
+            [
+                {
+                    'timer_id': 'timer_0',
+                    'timer_handle': timer_handle,
+                    'node_handle': node_handle,
+                    'period': period,
+                    'construction_order': 0
+                }
+            ]
+        ))
+        mocker.patch.object(formatted_mock, 'timers', tim)
+
+        node = TracePointData(pd.DataFrame.from_dict(
+            [
+                {
+                    'node_id': 'node_id',
+                    'node_handle': node_handle,
+                    'node_name': '/node',
+                }
+            ]
+        ))
+        mocker.patch.object(formatted_mock, 'nodes', node)
+
+        cbg_addr = 11
+        symbol = 'some_callback'
+        callback_object = 2
+        tim_cbs = TracePointData(pd.DataFrame.from_dict(
+            [
+                {
+                    'callback_id': 'timer_callback_0',
+                    'callback_object': callback_object,
+                    'node_handle': node_handle,
+                    'timer_handle': timer_handle,
+                    'callback_group_addr': cbg_addr,
+                    'period_ns': period,
+                    'symbol': symbol,
+                    'construction_order': 0,
+                },
+            ]
+        ))
+        mocker.patch.object(formatted_mock, 'timer_callbacks', tim_cbs)
+
+        tim_info_expect = TimerValue(
+            node_name='/node',
+            period=1000,
             node_id='node_id',
             callback_id='timer_callback_0',
-            construction_order=1
+            construction_order=0,
         )
 
-        timers_info = info.get_timers(NodeValue('/node1', 'node_id'))
-        assert len(timers_info) == 1
-        assert timers_info[0] == timer_value_expect
+        data.finalize()
+        info = LttngInfo(data)
+
+        times_info = info.get_timers(NodeValue('/node', 'node_id'))
+        assert len(times_info) == 1
+        assert times_info[0] == tim_info_expect
+
+        times_info = info.get_timers(NodeValue('/node_', 'node_id_'))
+        assert len(times_info) == 0
 
 
 class TestDataFrameFormatted:
@@ -1022,10 +1222,13 @@ class TestDataFrameFormatted:
         node_mock = create_trace_point_data()
         timer_mock = create_trace_point_data()
         timer_control_mock = create_trace_point_data()
-        sub_mock = create_trace_point_data()
-        srv_mock = create_trace_point_data()
+        sub_cb_mock = create_trace_point_data()
+        srv_cb_mock = create_trace_point_data()
         cbg_mock = create_trace_point_data()
         pub_mock = create_trace_point_data()
+        sub_mock = create_trace_point_data()
+        srv_mock = create_trace_point_data()
+        tim_mock = create_trace_point_data()
         tilde_sub_mock = create_trace_point_data()
         tilde_pub_mock = create_trace_point_data()
         tilde_sub_id_mock = create_trace_point_data()
@@ -1039,13 +1242,19 @@ class TestDataFrameFormatted:
         mocker.patch.object(
             DataFrameFormatted, '_build_timer_control', return_value=timer_control_mock)
         mocker.patch.object(
-            DataFrameFormatted, '_build_sub_callbacks', return_value=sub_mock)
+            DataFrameFormatted, '_build_sub_callbacks', return_value=sub_cb_mock)
         mocker.patch.object(
-            DataFrameFormatted, '_build_srv_callbacks', return_value=srv_mock)
+            DataFrameFormatted, '_build_srv_callbacks', return_value=srv_cb_mock)
         mocker.patch.object(
             DataFrameFormatted, '_build_cbg', return_value=cbg_mock)
         mocker.patch.object(
             DataFrameFormatted, '_build_publisher', return_value=pub_mock)
+        mocker.patch.object(
+            DataFrameFormatted, '_build_subscription', return_value=sub_mock)
+        mocker.patch.object(
+            DataFrameFormatted, '_build_service', return_value=srv_mock)
+        mocker.patch.object(
+            DataFrameFormatted, '_build_timer', return_value=tim_mock)
         mocker.patch.object(
             DataFrameFormatted, '_build_tilde_subscription', return_value=tilde_sub_mock)
         mocker.patch.object(
@@ -1059,10 +1268,13 @@ class TestDataFrameFormatted:
         assert formatted.nodes == node_mock
         assert formatted.timer_callbacks == timer_mock
         assert formatted.timer_controls == timer_control_mock
-        assert formatted.subscription_callbacks == sub_mock
+        assert formatted.subscription_callbacks == sub_cb_mock
         assert formatted.callback_groups == cbg_mock
-        assert formatted.service_callbacks == srv_mock
+        assert formatted.service_callbacks == srv_cb_mock
         assert formatted.publishers == pub_mock
+        assert formatted.subscriptions == sub_mock
+        assert formatted.services == srv_mock
+        assert formatted.timers == tim_mock
 
     def test_tilde_subscription(self, mocker):
         data = Ros2DataModel()

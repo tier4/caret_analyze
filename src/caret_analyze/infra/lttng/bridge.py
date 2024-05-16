@@ -250,8 +250,9 @@ class SubscriptionCallbackBindCondition:
 
         return value.node_name == struct_value.node_name and \
             value.callback_type == struct_value.callback_type and \
+            value.symbol == struct_value.symbol and \
             value.subscribe_topic_name == struct_value.subscribe_topic_name and \
-            value.symbol == struct_value.symbol
+            value.construction_order == struct_value.construction_order
 
     def __str__(self):
         return str(self._target)
@@ -293,7 +294,8 @@ class PublisherBindCondition:
         struct_value: PublisherStructValue
     ) -> bool:
         return value.node_name == struct_value.node_name and \
-            value.topic_name == struct_value.topic_name
+            value.topic_name == struct_value.topic_name and \
+            value.construction_order == struct_value.construction_order
 
     def __str__(self):
         return self._target

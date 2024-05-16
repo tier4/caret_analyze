@@ -517,8 +517,10 @@ class TimersLoaded:
         node_name: str | None,
         callback_name: str | None,
         period_ns: int | None,
+        construction_order: int | None,
     ) -> list[Timer]:
-        is_target = TimersLoaded.IsTarget(node_name, callback_name, period_ns)
+        is_target = TimersLoaded.IsTarget(
+            node_name, callback_name, period_ns, construction_order)
         return Util.filter_items(is_target, self._timers)
 
     def get_timer(
@@ -526,9 +528,11 @@ class TimersLoaded:
         node_name: str | None,
         callback_name: str | None,
         period_ns: int | None,
+        construction_order: int | None,
     ) -> Timer:
         try:
-            is_target = TimersLoaded.IsTarget(node_name, callback_name, period_ns)
+            is_target = TimersLoaded.IsTarget(
+                node_name, callback_name, period_ns, construction_order)
             return Util.find_one(is_target, self._timers)
         except ItemNotFoundError:
             msg = 'Failed to find timer. '
@@ -543,10 +547,12 @@ class TimersLoaded:
             node_name: str | None,
             callback_name: str | None,
             period_ns: int | None,
+            construction_order: int | None,
         ) -> None:
             self._node_name = node_name
             self._callback_name = callback_name
             self._period_ns = period_ns
+            self._construction_order = construction_order
 
         def __call__(self, timer: Timer) -> bool:
             period_match = True
@@ -560,7 +566,12 @@ class TimersLoaded:
             callback_match = True
             if self._callback_name is not None:
                 callback_match = self._callback_name == timer.callback_name
-            return period_match and node_match and callback_match
+
+            construction_order_match = True
+            if self._construction_order is not None:
+                construction_order_match = \
+                    self._construction_order == timer.value.construction_order
+            return period_match and node_match and callback_match and construction_order_match
 
 
 class NodePathsLoaded:
@@ -834,13 +845,13 @@ class CallbacksLoaded:
     ) -> CallbackBase:
         publishers: list[Publisher] | None = None
 
-        if callback_value.publish_topic_names is not None:
+        if callback_value.publish_topics is not None:
             publishers = publishers_loaded.get_publishers(
                 None, callback_value.callback_name, None)
 
         if isinstance(callback_value, TimerCallbackStructValue):
             timer = timers_loaded.get_timer(
-                None, callback_value.callback_name, None)
+                None, callback_value.callback_name, None, None)
             return TimerCallback(
                 callback_value,
                 provider,

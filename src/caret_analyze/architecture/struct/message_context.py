@@ -79,7 +79,9 @@ class MessageContextStruct():
         return {
             'context_type': str(self.type_name),
             'subscription_topic_name': self.subscription_topic_name,
-            'publisher_topic_name': self.publisher_topic_name
+            'publisher_topic_name': self.publisher_topic_name,
+            'publisher_construction_order': self.publisher_construction_order,
+            'subscription_construction_order': self.subscription_construction_order
         }
 
     def is_applicable_path(
@@ -104,6 +106,18 @@ class MessageContextStruct():
         if self._sub is None:
             return None
         return self._sub.topic_name
+
+    @property
+    def publisher_construction_order(self) -> int | None:
+        if self._pub is None:
+            return None
+        return self._pub.construction_order
+
+    @property
+    def subscription_construction_order(self) -> int | None:
+        if self._sub is None:
+            return None
+        return self._sub.construction_order
 
     @staticmethod
     def create_instance(

@@ -168,9 +168,13 @@ class CallbackBase(PathBase, Summarizable):
             topic name list to be published by the callback.
 
         """
-        if self.__val.publish_topic_names is None:
+        if self.__val.publish_topics is None:
             return None
-        return sorted(self.__val.publish_topic_names)
+        topic_names = []
+        for vals in self.__val.publish_topics:
+            if vals is not None:
+                topic_names.append(vals.topic_name)
+        return sorted(topic_names)
 
     @property
     def subscribe_topic_name(self) -> str | None:

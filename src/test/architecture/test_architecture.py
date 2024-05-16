@@ -31,7 +31,8 @@ from caret_analyze.architecture.struct import (CommunicationStruct,
                                                NodeStruct, PathStruct,
                                                TimerCallbackStruct
                                                )
-from caret_analyze.exceptions import InvalidArgumentError, ItemNotFoundError
+from caret_analyze.exceptions import (InvalidArgumentError, ItemNotFoundError,
+                                      MultipleItemFoundError)
 from caret_analyze.value_objects import (CommunicationStructValue, NodePathStructValue,
                                          NodeStructValue, PathStructValue,
                                          PublisherStructValue, SubscriptionStructValue)
@@ -541,6 +542,7 @@ $passings
       callback_name: subscription_callback_0
   publishes:
     - topic_name: /ping
+      construction_order: 0
       callback_names:
         - $publisher_callback
 $contexts
@@ -663,7 +665,7 @@ $contexts
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
 
-        arch.insert_publisher_callback('/pong_node', '/ping', 'timer_callback_1')
+        arch.insert_publisher_callback('/pong_node', '/ping', 'timer_callback_1', 0)
 
         architecture_text_expected = \
             self.template_architecture.substitute(passings='',
@@ -685,7 +687,7 @@ $contexts
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
 
-        arch.insert_publisher_callback('/pong_node', '/ping', 'timer_callback_1')
+        arch.insert_publisher_callback('/pong_node', '/ping', 'timer_callback_1', 0)
 
         architecture_text_expected = \
             self.template_architecture.substitute(passings=self.passings_text,
@@ -708,12 +710,12 @@ $contexts
         arch = Architecture('yaml', 'architecture.yaml')
 
         with pytest.raises(ItemNotFoundError):
-            arch.insert_publisher_callback('/not_exist_node', '/ping', 'timer_callback_1')
+            arch.insert_publisher_callback('/not_exist_node', '/ping', 'timer_callback_1', 0)
         with pytest.raises(ItemNotFoundError):
             arch.insert_publisher_callback('/pong_node', '/not_exist_topic',
-                                           'timer_callback_1')
+                                           'timer_callback_1', 0)
         with pytest.raises(ItemNotFoundError):
-            arch.insert_publisher_callback('/pong_node', '/ping', 'not_exist_callback_1')
+            arch.insert_publisher_callback('/pong_node', '/ping', 'not_exist_callback_1', 0)
 
         # duplicated insert
         architecture_text = \
@@ -723,12 +725,8 @@ $contexts
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
 
-        arch.insert_publisher_callback('/pong_node', '/ping', 'timer_callback_1')
-
-        assert set(arch.nodes) == set(arch_expected.nodes)
-        assert set(arch.communications) == set(arch_expected.communications)
-        assert set(arch.executors) == set(arch_expected.executors)
-        assert set(arch.paths) == set(arch_expected.paths)
+        with pytest.raises(MultipleItemFoundError):
+            arch.insert_publisher_callback('/pong_node', '/ping', 'timer_callback_1', 0)
 
     def test_insert_variable_passing(self, mocker):
         # insert variable passing to minimum architecture
@@ -840,6 +838,7 @@ $passings
       callback_name: subscription_callback_0
   publishes:
     - topic_name: /ping
+      construction_order: 0
       callback_names:
         - $publisher_callback
 $contexts
@@ -867,7 +866,7 @@ $contexts
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
 
-        arch.remove_publisher_callback('/pong_node', '/ping', 'timer_callback_1')
+        arch.remove_publisher_callback('/pong_node', '/ping', 'timer_callback_1', 0)
 
         architecture_text_expected = \
             self.template_architecture.substitute(passings='',
@@ -884,7 +883,7 @@ $contexts
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
 
-        arch.remove_publisher_callback('/pong_node', '/ping', 'timer_callback_1')
+        arch.remove_publisher_callback('/pong_node', '/ping', 'timer_callback_1', 0)
 
         architecture_text_expected = \
             self.template_architecture.substitute(passings=self.passings_text,
@@ -908,11 +907,13 @@ $contexts
 
         with pytest.raises(ItemNotFoundError):
             arch.remove_publisher_callback('/pong_node', '/not_exist_topic',
-                                           'timer_callback_1')
+                                           'timer_callback_1', 0)
         with pytest.raises(ItemNotFoundError):
-            arch.remove_publisher_callback('/not_exist_node', '/ping', 'timer_callback_1')
+            arch.remove_publisher_callback('/not_exist_node', '/ping', 'timer_callback_1', 0)
         with pytest.raises(ItemNotFoundError):
-            arch.remove_publisher_callback('/pong_node', '/ping', 'not_exist_callback_1')
+            arch.remove_publisher_callback('/pong_node', '/ping', 'not_exist_callback_1', 0)
+        with pytest.raises(ItemNotFoundError):
+            arch.remove_publisher_callback('/pong_node', '/ping', 'timer_callback_1', 1)
 
     def test_remove_variable_passing(self, mocker):
         # remove variable passing to be minimum architecture
