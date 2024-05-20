@@ -452,7 +452,7 @@ class LttngInfo:
         sub_cbs.drop_column('node_handle')
         sub_cbs.reset_index()
         callback_groups = self._formatted.callback_groups.clone()
-        merge(sub_cbs, callback_groups, 'callback_group_addr',how='inner')
+        merge(sub_cbs, callback_groups, 'callback_group_addr', how='inner')
 
         sub.merge(sub_cbs, ['subscription_handle'], how='left')
 
