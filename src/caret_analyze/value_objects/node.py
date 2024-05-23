@@ -337,7 +337,7 @@ class NodeStructValue(ValueObject, Summarizable):
             Callbacks that the node contains.
 
         """
-        self._callbacks
+        return self._callbacks
 
     @property
     def callback_names(self) -> tuple[str, ...] | None:
