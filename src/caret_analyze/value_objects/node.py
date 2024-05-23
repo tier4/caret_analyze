@@ -138,6 +138,7 @@ class NodeStructValue(ValueObject, Summarizable):
     def __init__(
         self,
         node_name: str,
+        callbacks: tuple[CallbackStructValue],
         publishers: tuple[PublisherStructValue, ...],
         subscriptions_info: tuple[SubscriptionStructValue, ...],
         services_info: tuple[ServiceStructValue, ...],
@@ -170,6 +171,7 @@ class NodeStructValue(ValueObject, Summarizable):
 
         """
         self._node_name = node_name
+        self._callbacks = callbacks
         self._publishers = publishers
         self._subscriptions = subscriptions_info
         self._services = services_info
@@ -335,9 +337,7 @@ class NodeStructValue(ValueObject, Summarizable):
             Callbacks that the node contains.
 
         """
-        if self._callback_groups is None:
-            return None
-        return tuple(Util.flatten(cbg.callbacks for cbg in self._callback_groups))
+        self._callbacks
 
     @property
     def callback_names(self) -> tuple[str, ...] | None:
