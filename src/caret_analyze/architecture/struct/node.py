@@ -171,7 +171,6 @@ class NodeStruct():
     def to_value(self) -> NodeStructValue:
         return NodeStructValue(
             self.node_name,
-            tuple(v.to_value() for v in self.callbacks),
             tuple(v.to_value() for v in self.publishers),
             tuple(v.to_value() for v in self.subscriptions),
             tuple(v.to_value() for v in self.services),
