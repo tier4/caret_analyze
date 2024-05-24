@@ -486,8 +486,8 @@ class NodeValuesLoaded():
             reader, callbacks_loaded, node).data
 
         node_struct = NodeStruct(
-            node.node_name, callbacks_loaded.data, list(publishers), list(subscriptions),
-            list(services), list(timers), [], list(callback_groups), list(variable_passings)
+            node.node_name, list(publishers), list(subscriptions), list(services),
+            list(timers), [], list(callback_groups), list(variable_passings)
         )
 
         try:
@@ -498,9 +498,7 @@ class NodeValuesLoaded():
                         max_callback_construction_order_on_path_searching
                     )
             node_path_added = NodeStruct(
-                node_struct.node_name,
-                node_struct.callbacks,
-                node_struct.publishers,
+                node_struct.node_name, node_struct.publishers,
                 node_struct.subscriptions,
                 node_struct.services,
                 node_struct.timers,
