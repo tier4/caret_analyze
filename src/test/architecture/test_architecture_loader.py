@@ -418,7 +418,7 @@ class TestNodesInfoLoaded():
         assert node.timers == [timer]
         assert node.subscriptions == [subscription]
         assert node.services == [service]
-        assert node.callbacks == [callback]
+        assert node.callbacks == [service.callback, subscription.callback, timer.callback]
         assert node.callback_groups == [cbg]
         assert node.paths == [path, path_]
         assert node.variable_passings == [var_pass]
