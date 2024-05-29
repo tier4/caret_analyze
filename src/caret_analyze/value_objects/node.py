@@ -339,6 +339,8 @@ class NodeStructValue(ValueObject, Summarizable):
         subscription_callbacks = tuple(sub.callback for sub in self.subscriptions)
         timer_callbacks = tuple(timer.callback for timer in self.timers)
         callbacks = service_callbacks + subscription_callbacks + timer_callbacks
+        if not callbacks:
+            return None
         return callbacks
 
     @property
