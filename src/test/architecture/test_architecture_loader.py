@@ -314,7 +314,7 @@ class TestNodesInfoLoaded():
         assert node.publishers == []
         assert node.subscriptions == []
         assert node.services == []
-        assert node.callbacks == []
+        assert node.callbacks is None
         assert node.callback_groups == []
         assert node.paths == []
         assert node.variable_passings == []
