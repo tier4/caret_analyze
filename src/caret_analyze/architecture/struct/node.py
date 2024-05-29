@@ -84,6 +84,8 @@ class NodeStruct():
         subscription_callbacks = [sub.callback for sub in self.subscriptions]
         timer_callbacks = [timer.callback for timer in self.timers]
         callbacks = service_callbacks + subscription_callbacks + timer_callbacks
+        if not callbacks:
+            return None
         return callbacks
 
     @property
