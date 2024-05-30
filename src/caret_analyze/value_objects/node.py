@@ -335,9 +335,12 @@ class NodeStructValue(ValueObject, Summarizable):
             Callbacks that the node contains.
 
         """
-        service_callbacks = tuple(service.callback for service in self.services)
-        subscription_callbacks = tuple(sub.callback for sub in self.subscriptions)
-        timer_callbacks = tuple(timer.callback for timer in self.timers)
+        service_callbacks = tuple(service.callback for service in self.services
+                                  if service.callback is not None)
+        subscription_callbacks = tuple(sub.callback for sub in self.subscriptions
+                                       if sub.callback is not None)
+        timer_callbacks = tuple(timer.callback for timer in self.timers
+                                if timer.callback is not None)
         callbacks = service_callbacks + subscription_callbacks + timer_callbacks
         if not callbacks:
             return None
