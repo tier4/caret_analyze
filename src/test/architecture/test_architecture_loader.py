@@ -413,6 +413,13 @@ class TestNodesInfoLoaded():
             DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
         )
 
+        service_callback = mocker.Mock(spec=ServiceCallbackStruct)
+        subscription_callback = mocker.Mock(spec=SubscriptionCallbackStruct)
+        timer_callback = mocker.Mock(spec=TimerCallbackStruct)
+        mocker.patch.object(service, 'callback', service_callback)
+        mocker.patch.object(subscription, 'callback', subscription_callback)
+        mocker.patch.object(timer, 'callback', timer_callback)
+
         assert node.node_name == 'node'
         assert node.publishers == [publisher]
         assert node.timers == [timer]
