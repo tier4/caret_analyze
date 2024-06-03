@@ -544,7 +544,7 @@ class Architecture(Summarizable):
         for node in self._nodes:
             if node.callbacks is None:
                 continue
-            cb_s += [callback for callback in node.callbacks]
+            cb_s += node.callbacks
         c: CallbackStruct = Util.find_similar_one(src, cb_s, lambda x: x.callback_name)
         c.callback_name = dst
 
