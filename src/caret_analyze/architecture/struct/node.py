@@ -79,7 +79,7 @@ class NodeStruct():
         return self._timers
 
     @property
-    def callbacks(self) -> list[CallbackStruct] | None:
+    def callbacks(self) -> list[CallbackStruct]:
         callbacks: list[CallbackStruct] = []
         service_callbacks = [service.callback for service in self.services
                              if service.callback is not None]
@@ -90,14 +90,10 @@ class NodeStruct():
         callbacks += service_callbacks
         callbacks += subscription_callbacks
         callbacks += timer_callbacks
-        if not callbacks:
-            return None
         return callbacks
 
     @property
-    def callback_names(self) -> list[str] | None:
-        if self.callbacks is None:
-            return None
+    def callback_names(self) -> list[str]:
         return [_.callback_name for _ in self.callbacks]
 
     @property

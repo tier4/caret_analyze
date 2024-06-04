@@ -102,8 +102,6 @@ class Architecture(Summarizable):
     def callbacks(self) -> tuple[CallbackStructValue, ...]:
         callbacks = []
         for node in self._nodes:
-            if node.callbacks is None:
-                continue
             callbacks += [callback.to_value() for callback in node.callbacks]
         return tuple(callbacks)
 

@@ -331,14 +331,12 @@ class CallbackPathSearcher:
         callbacks = node.callbacks
         var_passes = node.variable_passings
 
-        if callbacks is None or var_passes is None:
+        if var_passes is None:
             return
 
         self._graph = Graph()
 
         for callback in callbacks:
-            if callback.callback_name is None:
-                continue
 
             write_name = self._to_node_point_name(callback.callback_name, 'write')
             read_name = self._to_node_point_name(callback.callback_name, 'read')

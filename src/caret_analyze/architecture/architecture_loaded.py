@@ -1602,36 +1602,35 @@ class CallbackPathSearched():
         callbacks = node.callbacks
         paths: list[NodePathStruct] = []
 
-        if callbacks is not None:
-            skip_count = 0
-            max_ignored_construction_order = 0
-            for write_callback, read_callback in product(callbacks, callbacks):
-                if max_callback_construction_order != 0:
-                    if write_callback.construction_order > max_callback_construction_order or \
-                       read_callback.construction_order > max_callback_construction_order:
-                        skip_count += 1
-                        max_ignored_construction_order = max(
-                            max_ignored_construction_order,
-                            write_callback.construction_order
-                        )
-                        continue
-                searched_paths = searcher.search(write_callback, read_callback, node)
-                for path in searched_paths:
-                    msg = 'Path Added: '
-                    msg += f'subscribe: {path.subscribe_topic_name}, '
-                    msg += f'publish: {path.publish_topic_name}, '
-                    msg += f'callbacks: {path.callback_names}'
-                    logger.info(msg)
-                paths += searched_paths
+        skip_count = 0
+        max_ignored_construction_order = 0
+        for write_callback, read_callback in product(callbacks, callbacks):
+            if max_callback_construction_order != 0:
+                if write_callback.construction_order > max_callback_construction_order or \
+                    read_callback.construction_order > max_callback_construction_order:
+                    skip_count += 1
+                    max_ignored_construction_order = max(
+                        max_ignored_construction_order,
+                        write_callback.construction_order
+                    )
+                    continue
+            searched_paths = searcher.search(write_callback, read_callback, node)
+            for path in searched_paths:
+                msg = 'Path Added: '
+                msg += f'subscribe: {path.subscribe_topic_name}, '
+                msg += f'publish: {path.publish_topic_name}, '
+                msg += f'callbacks: {path.callback_names}'
+                logger.info(msg)
+            paths += searched_paths
 
-            if skip_count:
-                logger.warn(
-                    f'{node.node_name} '
-                    f'contains callbacks whose construction_order are greater than '
-                    f'{max_callback_construction_order}. '
-                    f'{skip_count} paths are ignored as a result. '
-                    f'(max construction_order: {max_ignored_construction_order})'
-                )
+        if skip_count:
+            logger.warn(
+                f'{node.node_name} '
+                f'contains callbacks whose construction_order are greater than '
+                f'{max_callback_construction_order}. '
+                f'{skip_count} paths are ignored as a result. '
+                f'(max construction_order: {max_ignored_construction_order})'
+            )
 
         self._data = paths
 
