@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from itertools import product
-from logging import getLogger, INFO, WARN
+from logging import getLogger, INFO
 
 
 from .reader_interface import ArchitectureReader, UNDEFINED_STR
