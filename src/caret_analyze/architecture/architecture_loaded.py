@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from itertools import product
-from logging import getLogger, WARN
+from logging import getLogger, INFO
 
 
 from .reader_interface import ArchitectureReader, UNDEFINED_STR
@@ -1467,12 +1467,14 @@ class ExecutorValuesLoaded():
                         cbg_id, nodes_loaded)
                 )
             except Error as e:
+                # This is caused by the data missing after rclcpp_callback_group_add_xxx
+                # when filtering topics in "caret_trace".
                 logger.info(
                     f'Failed to load executor. executor_name: {executor_name}')
                 # This warning occurs frequently,
                 # but currently does not significantly affect behavior.
                 # Therefore, the log level is temporarily lowered.
-                logger.log(WARN-1, e)
+                logger.log(INFO, e)
 
         return ExecutorStruct(
             executor.executor_type,
