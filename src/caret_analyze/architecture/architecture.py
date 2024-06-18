@@ -78,8 +78,10 @@ class Architecture(Summarizable):
         return Util.find_one(lambda x: x.executor_name == executor_name, self.executors)
 
     def get_callback_group(self, callback_group_name: str) -> CallbackGroupStructValue:
-        return Util.find_one(lambda x: x.callback_group_name == callback_group_name,
-                             self.callback_groups)
+        cbgs: list[CallbackGroupStructValue] = []
+        for node in self.nodes:
+            cbgs += node.callback_groups
+        return tuple(set(cbgs))
 
     @property
     def callback_groups(self) -> tuple[CallbackGroupStructValue, ...]:
@@ -333,7 +335,7 @@ class Architecture(Summarizable):
         # verify callback parameter uniqueness
         for node in nodes:
             callbacks = node.callbacks
-            if callbacks is None:
+            if len(callbacks) == 0:
                 continue
 
             callback_params: list[tuple[str, str | int, str, int]] = []

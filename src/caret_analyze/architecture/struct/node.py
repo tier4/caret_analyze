@@ -46,7 +46,10 @@ class NodeStruct():
         self._subscriptions = subscriptions_info
         self._services = services
         self._timers = timers
-        self._callback_groups = callback_groups
+        if callback_groups:
+            self._callback_groups = callback_groups
+        else:
+            self._callback_groups = []
         self._node_paths = node_paths
         self._variable_passings_info = variable_passings
 
@@ -79,9 +82,9 @@ class NodeStruct():
         return self._timers
 
     @property
-    def callbacks(self) -> list[CallbackStruct] | None:
-        if self._callback_groups is None:
-            return None
+    def callbacks(self) -> list[CallbackStruct]:
+        if len(self.callback_groups)==0:
+            return []
         return list(Util.flatten(cbg.callbacks for cbg in self._callback_groups))
 
     @property
@@ -105,7 +108,7 @@ class NodeStruct():
         return self._node_paths
 
     @property
-    def variable_passings(self) -> list[VariablePassingStruct] | None:
+    def variable_passings(self) -> list[VariablePassingStruct]:
         return self._variable_passings_info
 
     def get_subscription(
@@ -174,6 +177,7 @@ class NodeStruct():
             tuple(v.to_value() for v in self.services),
             tuple(v.to_value() for v in self.timers),
             tuple(v.to_value() for v in self.paths),
+            tuple(v.to_value() for v in self.callback_groups),
             None if self.callback_groups is None
             else tuple(v.to_value() for v in self.callback_groups),
             None if self.variable_passings is None
@@ -273,7 +277,7 @@ class NodeStruct():
         for t in self._timers:
             t.rename_node(src, dst)
 
-        if self._callback_groups is not None:
+        if len(self._callback_groups) != 0:
             for c in self._callback_groups:
                 c.rename_node(src, dst)
 
@@ -294,7 +298,7 @@ class NodeStruct():
         for t in self._timers:
             t.rename_topic(src, dst)
 
-        if self._callback_groups is not None:
+        if len(self._callback_groups) != 0:
             for c in self._callback_groups:
                 c.rename_topic(src, dst)
 
