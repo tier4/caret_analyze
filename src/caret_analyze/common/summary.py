@@ -18,6 +18,8 @@ from abc import ABCMeta, abstractmethod
 from collections import UserDict
 from typing import Any
 
+from yaml import dump
+
 
 class Summary(UserDict):
     """
@@ -44,7 +46,6 @@ class Summary(UserDict):
 
     def __str__(self) -> str:
         """Return yaml-format string."""
-        from yaml import dump
         return dump(self._convert_safe(self.data))
 
     @staticmethod

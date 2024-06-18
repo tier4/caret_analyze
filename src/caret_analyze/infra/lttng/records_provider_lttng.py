@@ -18,6 +18,7 @@ from collections.abc import Sequence
 from functools import cached_property
 from logging import getLogger
 
+from .bridge import LttngBridge
 from .column_names import COLUMN_NAME
 from .lttng import Lttng
 from .value_objects import (PublisherValueLttng,
@@ -939,7 +940,6 @@ class RecordsProviderLttngHelper:
         self,
         lttng: Lttng
     ) -> None:
-        from .bridge import LttngBridge
         self._bridge = LttngBridge(lttng)
 
     def get_callback_objects(

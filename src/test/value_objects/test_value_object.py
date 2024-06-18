@@ -15,6 +15,7 @@
 from caret_analyze.value_objects.value_object import ValueObject
 
 import pytest
+from yaml import dump
 
 
 class SampleClassA(ValueObject):
@@ -93,7 +94,6 @@ class TestValueObject:
         assert hash(SampleClassA(1, '1', 1)) != hash(SampleClassB(1, '1', 1))
 
     def test_str(self):
-        from yaml import dump
         a = SampleClassA(1, '2', 3)
         assert str(a) == dump({'i': 1, 's': '2'})
 

@@ -16,9 +16,13 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 
+from itertools import groupby
+
 import pandas as pd
 
 from record_cpp_impl import RecordBase, RecordsBase
+
+import yaml
 
 from .column import Column, Columns, ColumnValue
 from .interface import RecordInterface, RecordsInterface
@@ -45,7 +49,6 @@ class RecordsCppImpl(RecordsInterface):
         self._records = RecordsBase(init_, column_names)
 
     def export_yaml(self, path: str) -> None:
-        import yaml
 
         data_dict = [dic.data for dic in self.data]
         s = yaml.dump(data_dict)
@@ -313,7 +316,6 @@ class RecordsCppImpl(RecordsInterface):
     @staticmethod
     def __validate_duplicated_columns(columns: Sequence[str]):
         if len(set(columns)) != len(columns):
-            from itertools import groupby
             msg = 'columns must be unique. '
             columns = sorted(columns)
             msg += 'duplicated columns: '

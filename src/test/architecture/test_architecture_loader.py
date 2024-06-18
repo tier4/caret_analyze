@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
+from logging import getLogger
+
 from caret_analyze.architecture.architecture import \
     DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
 from caret_analyze.architecture.architecture_loaded import (ArchitectureLoaded,
@@ -730,7 +733,7 @@ class TestNodePathLoaded:
 
     def test_empty(self, mocker):
         searcher_mock = mocker.Mock(spec=CallbackPathSearcher)
-        mocker.patch('caret_analyze.architecture.graph_search.CallbackPathSearcher',
+        mocker.patch('caret_analyze.architecture.architecture_loaded.CallbackPathSearcher',
                      return_value=searcher_mock)
         mocker.patch.object(searcher_mock, 'search', return_value=[])
         node_mock = mocker.Mock(spec=NodeStruct)
@@ -741,7 +744,7 @@ class TestNodePathLoaded:
 
     def test_full(self, mocker):
         searcher_mock = mocker.Mock(spec=CallbackPathSearcher)
-        mocker.patch('caret_analyze.architecture.graph_search.CallbackPathSearcher',
+        mocker.patch('caret_analyze.architecture.architecture_loaded.CallbackPathSearcher',
                      return_value=searcher_mock)
 
         callback_mock = mocker.Mock(spec=CallbackStruct)
@@ -759,7 +762,6 @@ class TestNodePathLoaded:
         searched = CallbackPathSearched(node_mock,
                                         DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
 
-        import itertools
         product = list(itertools.product(callbacks, callbacks))
         assert len(searched.data) == len(product)
 
@@ -1158,7 +1160,6 @@ class TestCallbacksLoaded:
         assert cb.callback_name == '/node_name/callback_3'
 
     def test_duplicated_callback_id(self, mocker, caplog):
-        from logging import getLogger
         logger = getLogger(__name__)
 
         reader_mock = mocker.Mock(spec=ArchitectureReader)
@@ -1202,7 +1203,6 @@ class TestCallbacksLoaded:
         assert 'Duplicated callback id.' in caplog.messages[0]
 
     def test_duplicated_callback_name_cl(self, mocker, caplog):
-        from logging import getLogger
         logger = getLogger(__name__)
 
         reader_mock = mocker.Mock(spec=ArchitectureReader)

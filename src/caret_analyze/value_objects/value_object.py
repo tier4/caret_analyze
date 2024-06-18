@@ -18,6 +18,8 @@ import inspect
 
 from typing import Any
 
+from yaml import dump
+
 
 class ValueObject():
     """
@@ -94,7 +96,6 @@ class ValueObject():
             Yaml format strings created by recursively access properties.
 
         """
-        from yaml import dump
         d = self._to_dict()
         return dump(d)
 

@@ -120,7 +120,7 @@ def create_arch(mocker):
         mocker.patch.object(loaded_mock, 'executors', [])
         mocker.patch.object(loaded_mock, 'paths', [])
         mocker.patch.object(loaded_mock, 'nodes', node_list)
-        mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
+        mocker.patch('caret_analyze.architecture.architecture.ArchitectureLoaded',
                      return_value=loaded_mock)
 
         arch = Architecture('file_type', 'file_path')
@@ -186,7 +186,7 @@ class TestArchitecture:
         mocker.patch.object(loaded_mock, 'communications', [])
         mocker.patch.object(loaded_mock, 'executors', [])
 
-        mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
+        mocker.patch('caret_analyze.architecture.architecture.ArchitectureLoaded',
                      return_value=loaded_mock)
 
         reader_mock = mocker.Mock(spec=ArchitectureReader)
@@ -194,7 +194,7 @@ class TestArchitecture:
                             'create_instance', return_value=reader_mock)
 
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
-        mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
+        mocker.patch('caret_analyze.architecture.architecture.ArchitectureLoaded',
                      return_value=loaded_mock)
 
         mocker.patch.object(loaded_mock, 'nodes', [])
@@ -214,7 +214,7 @@ class TestArchitecture:
                             'create_instance', return_value=reader_mock)
 
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
-        mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
+        mocker.patch('caret_analyze.architecture.architecture.ArchitectureLoaded',
                      return_value=loaded_mock)
 
         node_mock = mocker.Mock(spec=NodeStruct)
@@ -255,7 +255,7 @@ class TestArchitecture:
         mocker.patch.object(loaded_mock, 'executors', [executor_mock])
         mocker.patch.object(path_mock, 'path_name', 'path')
 
-        mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
+        mocker.patch('caret_analyze.architecture.architecture.ArchitectureLoaded',
                      return_value=loaded_mock)
 
         mocker.patch.object(ArchitectureReaderFactory,
@@ -290,7 +290,7 @@ class TestArchitecture:
         mocker.patch.object(loaded_mock, 'communications', [])
         mocker.patch.object(loaded_mock, 'executors', [])
 
-        mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
+        mocker.patch('caret_analyze.architecture.architecture.ArchitectureLoaded',
                      return_value=loaded_mock)
 
         mocker.patch.object(ArchitectureReaderFactory,
@@ -339,13 +339,13 @@ class TestArchitecture:
         mocker.patch.object(loaded_mock, 'communications', [])
         mocker.patch.object(loaded_mock, 'executors', [])
 
-        mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
+        mocker.patch('caret_analyze.architecture.architecture.ArchitectureLoaded',
                      return_value=loaded_mock)
         mocker.patch.object(ArchitectureReaderFactory,
                             'create_instance', return_value=reader_mock)
 
         searcher_mock = mocker.Mock(spec=NodePathSearcher)
-        mocker.patch('caret_analyze.architecture.graph_search.NodePathSearcher',
+        mocker.patch('caret_analyze.architecture.architecture.NodePathSearcher',
                      return_value=searcher_mock)
         path_mock = mocker.Mock(spec=PathStruct)
         path_struct_mock = mocker.Mock(spec=PathStructValue)
@@ -430,7 +430,7 @@ class TestArchitecture:
         mocker.patch.object(loaded_mock, 'communications', [comm_mock_0, comm_mock_1])
         mocker.patch.object(loaded_mock, 'executors', [])
 
-        mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
+        mocker.patch('caret_analyze.architecture.architecture.ArchitectureLoaded',
                      return_value=loaded_mock)
         mocker.patch.object(ArchitectureReaderFactory,
                             'create_instance', return_value=reader_mock)

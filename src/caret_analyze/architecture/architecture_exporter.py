@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+import yaml
+
 from .reader_interface import UNDEFINED_STR
 from ..exceptions import InvalidArgumentError, UnsupportedTypeError
 from ..value_objects import (CallbackStructValue,
@@ -47,7 +49,6 @@ class ArchitectureExporter():
             f.write(str(self))
 
     def __str__(self) -> str:
-        import yaml
         obj = self.to_dict()
         return yaml.dump(obj, indent=2, default_flow_style=False, sort_keys=False)
 

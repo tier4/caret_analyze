@@ -39,7 +39,7 @@ class TestApplication:
         mocker.patch.object(assigned_mock, 'paths', [])
         mocker.patch.object(assigned_mock, 'communications', [])
         mocker.patch(
-            'caret_analyze.runtime.runtime_loaded.RuntimeLoaded', return_value=assigned_mock)
+            'caret_analyze.runtime.application.RuntimeLoaded', return_value=assigned_mock)
         records_provider_mock = mocker.Mock(spec=Lttng)
         app = Application(arch_mock, records_provider_mock)
 
@@ -85,6 +85,8 @@ class TestApplication:
         mocker.patch.object(node_mock, 'node_name', 'node_name_')
         mocker.patch.object(node_mock, 'callbacks', [callback_mock])
         mocker.patch.object(node_mock, 'paths', [node_path_mock])
+        mocker.patch.object(node_mock, 'publishers', 'pub_name_')
+
         mocker.patch.object(path_mock, 'path_name', 'path_name_')
         mocker.patch.object(comm_mock, 'publish_node_name',
                             'publish_node_name_')
@@ -97,7 +99,14 @@ class TestApplication:
         mocker.patch.object(
             comm_mock, 'subscription_construction_order', 0)
 
-        mocker.patch('caret_analyze.runtime.runtime_loaded.RuntimeLoaded',
+        mocker.patch.object(arch_mock, 'nodes', [node_mock])
+        mocker.patch.object(arch_mock,
+                            'executors', [executor_mock])
+        mocker.patch.object(arch_mock, 'paths', [path_mock])
+        mocker.patch.object(arch_mock,
+                            'communications', [comm_mock])
+
+        mocker.patch('caret_analyze.runtime.application.RuntimeLoaded',
                      return_value=records_assigned_mock)
 
         mocker.patch.object(records_assigned_mock, 'nodes', [node_mock])
@@ -182,7 +191,7 @@ class TestApplication:
         mocker.patch.object(
             comm_mock, 'topic_name', 'topic_name')
 
-        mocker.patch('caret_analyze.runtime.runtime_loaded.RuntimeLoaded',
+        mocker.patch('caret_analyze.runtime.application.RuntimeLoaded',
                      return_value=records_assigned_mock)
 
         mocker.patch.object(records_assigned_mock, 'nodes', [node_mock])

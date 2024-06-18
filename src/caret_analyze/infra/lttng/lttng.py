@@ -17,6 +17,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from collections.abc import Iterable, Iterator, Sequence, Sized
 from datetime import datetime
+import functools
 from functools import cached_property
 from logging import getLogger
 import os
@@ -24,12 +25,17 @@ import pickle
 from typing import Any
 
 import bt2
+
 import pandas as pd
+
 from tqdm import tqdm
 
+from .event_counter import EventCounter
 from .events_factory import EventsFactory
 from .id_remapper import IDRemapperCollection
 from .lttng_event_filter import LttngEventFilter, SameAddressFilter
+from .lttng_info import LttngInfo
+from .records_source import RecordsSource
 from .ros2_tracing.data_model import Ros2DataModel
 from .ros2_tracing.data_model_service import DataModelService
 from .ros2_tracing.processor import get_field, Ros2Handler
@@ -44,6 +50,7 @@ from ...exceptions import InvalidArgumentError
 from ...record import RecordsInterface
 from ...value_objects import CallbackGroupValue, ExecutorValue, NodeValue, \
         NodeValueWithId, Qos, ServiceValue, SubscriptionValue, TimerValue
+
 
 Event = dict[str, int]
 
@@ -364,10 +371,6 @@ class Lttng(InfraBase):
         # TODO(hsgwa): change validate function to public "verify".
         validate: bool = True
     ) -> None:
-        from .lttng_info import LttngInfo
-        from .records_source import RecordsSource
-        from .event_counter import EventCounter
-
         if isinstance(trace_dir_or_events, list) and validate:
             if len(trace_dir_or_events) >= 2 and isinstance(trace_dir_or_events[0], str):
                 logger.warning('Validation of multiple LTTng log is not supported.')
@@ -479,7 +482,6 @@ class Lttng(InfraBase):
 
                 Lttng.apply_init_timestamp(init_events, offset)
 
-                import functools
                 init_events.sort(key=functools.cmp_to_key(Lttng._compare_init_event))
                 handler.create_init_handler_map()
                 for event in tqdm(
@@ -552,7 +554,6 @@ class Lttng(InfraBase):
 
             Lttng.apply_init_timestamp(init_events, offset)
 
-            import functools
             init_events.sort(key=functools.cmp_to_key(Lttng._compare_init_event))
             handler.create_init_handler_map()
             for event in init_events:

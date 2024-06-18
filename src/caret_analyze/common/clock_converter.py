@@ -17,6 +17,8 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
+import numpy as np
+
 from ..exceptions import InvalidArgumentError
 
 
@@ -72,7 +74,6 @@ class ClockConverter():
             Occurs when calculation failed by the least-squares method.
 
         """
-        import numpy as np
         if len(times_from) < 2:
             raise InvalidArgumentError('Failed to construct ClockConverter. len(times_from) < 2')
 

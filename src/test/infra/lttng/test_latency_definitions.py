@@ -55,7 +55,7 @@ def bridge_mock(
 ):
     bridge_mock = mocker.Mock(spec=LttngBridge)
     mocker.patch(
-        'caret_analyze.infra.lttng.bridge.LttngBridge',
+        'caret_analyze.infra.lttng.records_provider_lttng.LttngBridge',
         return_value=bridge_mock,
     )
     return bridge_mock
