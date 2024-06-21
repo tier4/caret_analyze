@@ -83,7 +83,7 @@ class NodeStruct():
 
     @property
     def callbacks(self) -> list[CallbackStruct]:
-        if len(self.callback_groups )== 0:
+        if len(self.callback_groups ) == 0:
             return []
         return list(Util.flatten(cbg.callbacks for cbg in self._callback_groups))
 
