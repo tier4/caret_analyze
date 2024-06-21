@@ -618,6 +618,7 @@ class LttngInfo:
         concat_target_dfs.append(self._formatted.timer_callbacks.clone())
         concat_target_dfs.append(self._formatted.subscription_callbacks.clone())
         concat_target_dfs.append(self._formatted.service_callbacks.clone())
+        dummy_executor_addr = 100000000
 
         try:
             column_names = [
@@ -628,7 +629,7 @@ class LttngInfo:
             nodes = self._formatted.nodes.clone()
             callback_groups = self._formatted.callback_groups.clone()
             merge(concat, nodes, 'node_handle')
-            merge(concat, callback_groups, 'callback_group_addr')
+            merge(concat, callback_groups, 'callback_group_addr', how='left')
 
             callback_groups_values: list[CallbackGroupValueLttng] = []
             for _, group_df in concat.df.groupby('callback_group_addr'):
@@ -640,15 +641,30 @@ class LttngInfo:
                 callback_ids = tuple(group_df['callback_id'].values)
                 callback_ids = tuple(Util.filter_items(self._is_user_made_callback, callback_ids))
 
+                if row['executor_addr'] is not pd.NA:
+                    executor_addr = row['executor_addr']
+                else:
+                    executor_addr = dummy_executor_addr
+                    dummy_executor_addr += 1
+                if row['callback_group_id'] is not pd.NA:
+                    callback_group_id = row['callback_group_id']
+                else:
+                    callback_group_addr = row['callback_group_addr']
+                    callback_group_id = f'callback_group_{callback_group_addr}'
+                if row['group_type_name'] is not pd.NA:
+                    group_type_name = row['group_type_name']
+                else:
+                    group_type_name = "UNDEFIND"
+
                 callback_groups_values.append(
                     CallbackGroupValueLttng(
-                        callback_group_type_name=row['group_type_name'],
+                        callback_group_type_name=group_type_name,
                         node_name=row['node_name'],
                         node_id=node_id,
                         callback_ids=callback_ids,
-                        callback_group_id=row['callback_group_id'],
+                        callback_group_id=callback_group_id,
                         callback_group_addr=row['callback_group_addr'],
-                        executor_addr=row['executor_addr'],
+                        executor_addr=executor_addr,
                     )
                 )
 
@@ -1033,6 +1049,7 @@ class DataFrameFormatted:
             - callback_group_addr
             - executor_addr
             - group_type_name
+            - callback_group_id
 
         """
         return self._cbg

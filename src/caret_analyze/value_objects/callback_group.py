@@ -41,10 +41,10 @@ class CallbackGroupType(ValueObject):
         Parameters
         ----------
         name : str
-            type name ['mutually_exclusive', 'reentrant']
+            type name ['mutually_exclusive', 'reentrant', 'UNDIFINED']
 
         """
-        if name not in ['mutually_exclusive', 'reentrant']:
+        if name not in ['mutually_exclusive', 'reentrant', 'UNDIFINED']:
             raise ValueError(f'Unsupported callback group type: {name}')
 
         self._name = name

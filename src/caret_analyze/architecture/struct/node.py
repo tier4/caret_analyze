@@ -83,23 +83,21 @@ class NodeStruct():
 
     @property
     def callbacks(self) -> list[CallbackStruct]:
-        if len(self.callback_groups)==0:
+        if len(self.callback_groups )== 0:
             return []
         return list(Util.flatten(cbg.callbacks for cbg in self._callback_groups))
 
     @property
     def callback_names(self) -> list[str] | None:
-        if self.callbacks is None:
-            return None
         return [_.callback_name for _ in self.callbacks]
 
     @property
-    def callback_groups(self) -> list[CallbackGroupStruct] | None:
+    def callback_groups(self) -> list[CallbackGroupStruct]:
         return self._callback_groups
 
     @property
     def callback_group_names(self) -> list[str] | None:
-        if self.callback_groups is None:
+        if len(self.callback_groups) == 0:
             return None
         return [_.callback_group_name for _ in self.callback_groups]
 
@@ -179,8 +177,6 @@ class NodeStruct():
             tuple(v.to_value() for v in self.paths),
             tuple(v.to_value() for v in self.callback_groups),
             None if self.callback_groups is None
-            else tuple(v.to_value() for v in self.callback_groups),
-            None if self.variable_passings is None
             else tuple(v.to_value() for v in self.variable_passings))
 
     def update_node_path(self, paths: list[NodePathStruct]) -> None:

@@ -331,7 +331,7 @@ class CallbackPathSearcher:
         callbacks = node.callbacks
         var_passes = node.variable_passings
 
-        if callbacks is None or var_passes is None:
+        if len(callbacks) == 0 or var_passes is None:
             return
 
         self._graph = Graph()
