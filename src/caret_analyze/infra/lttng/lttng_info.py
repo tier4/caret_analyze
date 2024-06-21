@@ -654,7 +654,7 @@ class LttngInfo:
                 if row['group_type_name'] is not pd.NA:
                     group_type_name = row['group_type_name']
                 else:
-                    group_type_name = "UNDEFIND"
+                    group_type_name = "UNDEFINED"
 
                 callback_groups_values.append(
                     CallbackGroupValueLttng(

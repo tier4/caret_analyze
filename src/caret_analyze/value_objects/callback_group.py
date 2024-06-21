@@ -33,6 +33,7 @@ class CallbackGroupType(ValueObject):
 
     MUTUALLY_EXCLUSIVE: CallbackGroupType
     REENTRANT: CallbackGroupType
+    UNDEFINED: CallbackGroupType
 
     def __init__(self, name: str) -> None:
         """
@@ -41,10 +42,10 @@ class CallbackGroupType(ValueObject):
         Parameters
         ----------
         name : str
-            type name ['mutually_exclusive', 'reentrant', 'UNDIFINED']
+            type name ['mutually_exclusive', 'reentrant', 'UNDEFINED']
 
         """
-        if name not in ['mutually_exclusive', 'reentrant', 'UNDIFINED']:
+        if name not in ['mutually_exclusive', 'reentrant', 'UNDEFINED']:
             raise ValueError(f'Unsupported callback group type: {name}')
 
         self._name = name
@@ -68,6 +69,7 @@ class CallbackGroupType(ValueObject):
 
 CallbackGroupType.MUTUALLY_EXCLUSIVE = CallbackGroupType('mutually_exclusive')
 CallbackGroupType.REENTRANT = CallbackGroupType('reentrant')
+CallbackGroupType.UNDEFINED = CallbackGroupType('UNDEFINED')
 
 
 class CallbackGroupValue(ValueObject):
@@ -89,7 +91,7 @@ class CallbackGroupValue(ValueObject):
         Parameters
         ----------
         callback_group_type_name : str
-            callback group type name: ['mutually_exclusive' / 'reentrant']
+            callback group type name: ['mutually_exclusive' / 'reentrant' / 'UNDIFINED']
         node_name : str
             node name.
         node_id : str
