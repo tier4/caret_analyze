@@ -51,7 +51,10 @@ class NodeStruct():
         else:
             self._callback_groups = []
         self._node_paths = node_paths
-        self._variable_passings_info = variable_passings
+        if variable_passings:
+            self._variable_passings_info = variable_passings
+        else:
+            self._variable_passings_info = []
 
     @property
     def node_name(self) -> str:
@@ -176,8 +179,7 @@ class NodeStruct():
             tuple(v.to_value() for v in self.timers),
             tuple(v.to_value() for v in self.paths),
             tuple(v.to_value() for v in self.callback_groups),
-            None if self.callback_groups is None
-            else tuple(v.to_value() for v in self.variable_passings))
+            tuple(v.to_value() for v in self.variable_passings))
 
     def update_node_path(self, paths: list[NodePathStruct]) -> None:
         self._node_paths = paths
@@ -221,7 +223,7 @@ class NodeStruct():
             Util.find_one(lambda x: x.callback_name == callback_name_read, self.callbacks)
 
         passing = VariablePassingStruct(self.node_name, callback_write, callback_read)
-        if self._variable_passings_info is None:
+        if len(self._variable_passings_info) == 0:
             self._variable_passings_info = [passing]
         elif (callback_name_read, callback_name_write) not in \
                 [(passing.callback_name_read, passing.callback_name_write)
@@ -273,14 +275,14 @@ class NodeStruct():
         for t in self._timers:
             t.rename_node(src, dst)
 
-        if len(self._callback_groups) != 0:
+        if self._callback_groups:
             for c in self._callback_groups:
                 c.rename_node(src, dst)
 
         for n in self._node_paths:
             n.rename_node(src, dst)
 
-        if self._variable_passings_info is not None:
+        if self._variable_passings_info:
             for v in self._variable_passings_info:
                 v.rename_node(src, dst)
 
@@ -294,14 +296,14 @@ class NodeStruct():
         for t in self._timers:
             t.rename_topic(src, dst)
 
-        if len(self._callback_groups) != 0:
+        if self._callback_groups:
             for c in self._callback_groups:
                 c.rename_topic(src, dst)
 
         for n in self._node_paths:
             n.rename_topic(src, dst)
 
-        if self._variable_passings_info is not None:
+        if self._variable_passings_info:
             for v in self._variable_passings_info:
                 v.rename_topic(src, dst)
 

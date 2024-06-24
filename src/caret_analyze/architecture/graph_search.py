@@ -333,10 +333,6 @@ class CallbackPathSearcher:
 
         self._graph = Graph()
 
-        if len(callbacks) == 0 or len(var_passes) == 0:
-            return
-
-
         for callback in callbacks:
             if callback.callback_name is None:
                 continue
