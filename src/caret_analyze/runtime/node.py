@@ -82,7 +82,7 @@ class Node(Summarizable):
             callback groups that the node contains.
 
         """
-        if len(self._callback_groups) == 0:
+        if not self._callback_groups:
             return []
         return sorted(self._callback_groups, key=lambda x: x.callback_group_name)
 
@@ -110,7 +110,7 @@ class Node(Summarizable):
             callbacks that the node contains.
 
         """
-        if len(self.callback_groups) == 0:
+        if not self.callback_groups:
             return []
         cbs = Util.flatten([cbg.callbacks for cbg in self.callback_groups])
         return sorted(cbs, key=lambda x: x.callback_name)
@@ -126,7 +126,7 @@ class Node(Summarizable):
             callback names that the node contains.
 
         """
-        if len(self.callbacks) == 0:
+        if not self.callbacks:
             return []
         return sorted(c.callback_name for c in self.callbacks)
 
@@ -376,7 +376,7 @@ class Node(Summarizable):
         if not isinstance(callback_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        if len(self.callbacks) == 0:
+        if not self.callbacks:
             raise ItemNotFoundError('Callback is None.')
 
         return Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)

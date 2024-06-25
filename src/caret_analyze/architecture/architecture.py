@@ -335,7 +335,7 @@ class Architecture(Summarizable):
         # verify callback parameter uniqueness
         for node in nodes:
             callbacks = node.callbacks
-            if len(callbacks) == 0:
+            if not callbacks:
                 continue
 
             callback_params: list[tuple[str, str | int, str, int]] = []

@@ -262,7 +262,7 @@ class Application(Summarizable):
         """
         callback_groups: list[CallbackGroup] = []
         for node in self.nodes:
-            if len(node.callback_groups) == 0:
+            if not node.callback_groups:
                 continue
             callback_groups += node.callback_groups
         return sorted(callback_groups, key=lambda x: x.callback_group_name)

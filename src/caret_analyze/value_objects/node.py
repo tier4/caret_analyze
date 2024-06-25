@@ -338,7 +338,7 @@ class NodeStructValue(ValueObject, Summarizable):
             Callbacks that the node contains.
 
         """
-        if len(self._callback_groups) == 0:
+        if not self._callback_groups:
             return tuple()
         return tuple(Util.flatten(cbg.callbacks for cbg in self._callback_groups))
 
