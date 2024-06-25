@@ -91,7 +91,7 @@ class CallbackGroupValue(ValueObject):
         Parameters
         ----------
         callback_group_type_name : str
-            callback group type name: ['mutually_exclusive' / 'reentrant' / 'UNDIFINED']
+            callback group type name: ['mutually_exclusive' / 'reentrant' / 'UNDEFINED']
         node_name : str
             node name.
         node_id : str
