@@ -17,8 +17,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 
-from .lttng import Lttng
-from .lttng import LttngEventFilter
+from .lttng import Lttng, LttngEventFilter
 from ...architecture.reader_interface import ArchitectureReader
 from ...value_objects import (
     CallbackGroupValue,

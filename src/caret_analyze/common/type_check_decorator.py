@@ -20,13 +20,12 @@ from logging import getLogger
 from re import findall
 from typing import Any
 
-from pydantic import ValidationError
-from pydantic.deprecated.decorator import validate_arguments
-
 from ..exceptions import UnsupportedTypeError
 
-
 try:
+    from pydantic import ValidationError
+    from pydantic.deprecated.decorator import validate_arguments
+
     def _get_given_arg(
         annotations: dict[str, Any],
         args: tuple[Any, ...],

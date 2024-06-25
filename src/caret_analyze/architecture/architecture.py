@@ -18,8 +18,7 @@ from collections.abc import Callable, Collection, Sequence
 import logging
 
 from .architecture_exporter import ArchitectureExporter
-from .architecture_loaded import ArchitectureLoaded
-from .architecture_loaded import NodeValuesLoaded
+from .architecture_loaded import ArchitectureLoaded, NodeValuesLoaded
 from .architecture_reader_factory import ArchitectureReaderFactory
 from .combine_path import CombinePath
 from .graph_search import NodePathSearcher

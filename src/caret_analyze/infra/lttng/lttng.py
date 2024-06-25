@@ -25,9 +25,7 @@ import pickle
 from typing import Any
 
 import bt2
-
 import pandas as pd
-
 from tqdm import tqdm
 
 from .event_counter import EventCounter
@@ -50,7 +48,6 @@ from ...exceptions import InvalidArgumentError
 from ...record import RecordsInterface
 from ...value_objects import CallbackGroupValue, ExecutorValue, NodeValue, \
         NodeValueWithId, Qos, ServiceValue, SubscriptionValue, TimerValue
-
 
 Event = dict[str, int]
 

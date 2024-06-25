@@ -33,7 +33,6 @@ from .struct import (CallbackChainStruct,
                      SubscriptionCallbackStruct, SubscriptionStruct,
                      TimerCallbackStruct, TimerStruct,
                      VariablePassingStruct)
-
 from ..common import Progress, Util
 from ..exceptions import (Error, InvalidArgumentError, InvalidReaderError,
                           InvalidYamlFormatError, ItemNotFoundError,
@@ -51,7 +50,6 @@ from ..value_objects import (CallbackGroupValue,
                              TimerCallbackValue,
                              TimerValue, VariablePassingValue,
                              )
-
 
 logger = getLogger(__name__)
 
