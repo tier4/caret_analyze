@@ -86,7 +86,7 @@ class NodeStruct():
 
     @property
     def callbacks(self) -> list[CallbackStruct]:
-        if len(self.callback_groups ) == 0:
+        if not self.callback_groups:
             return []
         return list(Util.flatten(cbg.callbacks for cbg in self._callback_groups))
 
@@ -100,7 +100,7 @@ class NodeStruct():
 
     @property
     def callback_group_names(self) -> list[str] | None:
-        if len(self.callback_groups) == 0:
+        if not self.callback_groups:
             return None
         return [_.callback_group_name for _ in self.callback_groups]
 
@@ -223,7 +223,7 @@ class NodeStruct():
             Util.find_one(lambda x: x.callback_name == callback_name_read, self.callbacks)
 
         passing = VariablePassingStruct(self.node_name, callback_write, callback_read)
-        if len(self._variable_passings_info) == 0:
+        if not self._variable_passings_info:
             self._variable_passings_info = [passing]
         elif (callback_name_read, callback_name_write) not in \
                 [(passing.callback_name_read, passing.callback_name_write)
