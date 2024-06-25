@@ -77,15 +77,16 @@ class Architecture(Summarizable):
     def get_executor(self, executor_name: str) -> ExecutorStructValue:
         return Util.find_one(lambda x: x.executor_name == executor_name, self.executors)
 
-    def get_callback_group(self) -> tuple[CallbackGroupStructValue, ...]:
+    def get_callback_group(self, callback_group_name: str) -> CallbackGroupStructValue:
+        return Util.find_one(lambda x: x.callback_group_name == callback_group_name,
+                             self.callback_groups)
+
+    @property
+    def callback_groups(self) -> tuple[CallbackGroupStructValue, ...]:
         cbg: list[CallbackGroupStructValue] = []
         for node in self.nodes:
             cbg += node.callback_groups
         return tuple(set(cbg))
-
-    @property
-    def callback_groups(self) -> tuple[CallbackGroupStructValue, ...]:
-        return tuple(Util.flatten(_.callback_groups for _ in self.executors))
 
     @property
     def callback_group_names(self) -> tuple[str, ...]:
