@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-
 from itertools import groupby, product
 from logging import getLogger, INFO
 
