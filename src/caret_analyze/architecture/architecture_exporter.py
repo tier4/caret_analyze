@@ -262,17 +262,17 @@ class NodesDicts:
         obj: dict = {}
         obj['node_name'] = f'{node.node_name}'
 
-        if len(node.callback_groups) != 0:
+        if node.callback_groups:
             obj['callback_groups'] = [{
                 'callback_group_type': cbg.callback_group_type_name,
                 'callback_group_name': cbg.callback_group_name,
                 'callback_names': sorted(cbg.callback_names)
             } for cbg in node.callback_groups]
 
-        if len(node.callback_groups) == 0:
+        if not node.callback_groups:
             obj['callback_groups'] = []
 
-        if len(node.callbacks) != 0:
+        if node.callbacks:
             if len(node.callbacks) >= 1:
                 obj['callbacks'] = CallbackDicts(node.callbacks).data
             if len(node.callbacks) >= 2:
