@@ -272,7 +272,7 @@ class NodesDicts:
         if len(node.callback_groups) == 0:
             obj['callback_groups'] = []
 
-        if len(node.callbacks) !=0:
+        if len(node.callbacks) != 0:
             if len(node.callbacks) >= 1:
                 obj['callbacks'] = CallbackDicts(node.callbacks).data
             if len(node.callbacks) >= 2:

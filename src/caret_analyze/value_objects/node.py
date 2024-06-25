@@ -177,7 +177,7 @@ class NodeStructValue(ValueObject, Summarizable):
         if callback_groups:
             self._callback_groups = callback_groups
         else:
-            self._callback_groups = tuple()
+            self._callback_groups = ()
         self._node_paths = node_paths
         self._variable_passings_info = variable_passings
 
@@ -339,7 +339,7 @@ class NodeStructValue(ValueObject, Summarizable):
 
         """
         if not self._callback_groups:
-            return tuple()
+            return ()
         return tuple(Util.flatten(cbg.callbacks for cbg in self._callback_groups))
 
     @property
