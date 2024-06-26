@@ -618,7 +618,7 @@ class LttngInfo:
         concat_target_dfs.append(self._formatted.timer_callbacks.clone())
         concat_target_dfs.append(self._formatted.subscription_callbacks.clone())
         concat_target_dfs.append(self._formatted.service_callbacks.clone())
-        dummy_executor_addr = 100000000
+        dummy_executor_addr = -1
 
         try:
             column_names = [
@@ -641,16 +641,19 @@ class LttngInfo:
                 callback_ids = tuple(group_df['callback_id'].values)
                 callback_ids = tuple(Util.filter_items(self._is_user_made_callback, callback_ids))
 
+                # For the case where the callback_group is not linked to the executor
                 if row['executor_addr'] is not pd.NA:
                     executor_addr = row['executor_addr']
                 else:
                     executor_addr = dummy_executor_addr
-                    dummy_executor_addr += 1
+                    dummy_executor_addr -= 1
                 if row['callback_group_id'] is not pd.NA:
                     callback_group_id = row['callback_group_id']
                 else:
                     callback_group_addr = row['callback_group_addr']
-                    callback_group_id = f'callback_group_{callback_group_addr}'
+                    # There is no corresponding row in callback_groups.df.
+                    # Generate callback_group_id there.
+                    callback_group_id = CallbackGroupAddr(callback_group_addr).group_id
                 if row['group_type_name'] is not pd.NA:
                     group_type_name = row['group_type_name']
                 else:
