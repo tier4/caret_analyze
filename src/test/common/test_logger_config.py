@@ -26,7 +26,6 @@ class TestLoggerConfig:
         assert 'Failed to load log config.' in caplog.messages[0]
 
     def test_empty_yaml(self, caplog) -> None:
-        import tempfile
         with tempfile.NamedTemporaryFile() as tp:
             init_logger(tp.name)
         assert 'Failed to load log config.' in caplog.messages[0]

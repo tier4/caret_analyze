@@ -18,6 +18,8 @@ from collections.abc import Callable, Collection, Iterable
 
 import difflib
 
+import itertools
+
 from logging import getLogger
 
 import os
@@ -48,8 +50,6 @@ class Util:
             Flattened list.
 
         """
-        import itertools
-
         return list(itertools.chain.from_iterable(x))
 
     @staticmethod
@@ -112,8 +112,6 @@ class Util:
             This function is duplicated. see: get_ext in Util.
 
         """
-        import os
-
         _, ext = os.path.splitext(path)
         return ext[1:]
 

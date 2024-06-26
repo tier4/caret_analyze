@@ -307,7 +307,7 @@ class TestRecordsProviderLttngHelper:
         callback_object = 3
 
         lttng_bridge_mock = mocker.Mock(spec=LttngBridge)
-        mocker.patch('caret_analyze.infra.lttng.bridge.LttngBridge',
+        mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.LttngBridge',
                      return_value=lttng_bridge_mock)
         mocker.patch.object(
             lttng_bridge_mock, 'get_timer_callback', return_value=cb_info_mock)
@@ -327,7 +327,7 @@ class TestRecordsProviderLttngHelper:
         callback_object = 3
 
         lttng_bridge_mock = mocker.Mock(spec=LttngBridge)
-        mocker.patch('caret_analyze.infra.lttng.bridge.LttngBridge',
+        mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.LttngBridge',
                      return_value=lttng_bridge_mock)
         mocker.patch.object(
             lttng_bridge_mock, 'get_subscription_callback', return_value=cb_info_mock)
@@ -346,7 +346,7 @@ class TestRecordsProviderLttngHelper:
         callback_object = 3
 
         lttng_bridge_mock = mocker.Mock(spec=LttngBridge)
-        mocker.patch('caret_analyze.infra.lttng.bridge.LttngBridge',
+        mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.LttngBridge',
                      return_value=lttng_bridge_mock)
         mocker.patch.object(
             lttng_bridge_mock, 'get_subscription_callback', return_value=cb_info_mock)
@@ -363,7 +363,7 @@ class TestRecordsProviderLttngHelper:
         pub_handle = 3
 
         lttng_bridge_mock = mocker.Mock(spec=LttngBridge)
-        mocker.patch('caret_analyze.infra.lttng.bridge.LttngBridge',
+        mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.LttngBridge',
                      return_value=lttng_bridge_mock)
         helper = RecordsProviderLttngHelper(lttng_mock)
 

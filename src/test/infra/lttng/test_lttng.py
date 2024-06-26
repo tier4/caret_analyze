@@ -14,6 +14,7 @@
 
 
 from datetime import datetime
+import functools
 
 from caret_analyze.infra.lttng import Lttng
 from caret_analyze.infra.lttng.event_counter import EventCounter
@@ -48,13 +49,13 @@ class TestLttng:
         mocker.patch.object(Lttng, '_parse_lttng_data',
                             return_value=(data_mock, {}, 0, 1))
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
-        mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
+        mocker.patch('caret_analyze.infra.lttng.lttng.LttngInfo',
                      return_value=lttng_info_mock)
         source_mock = mocker.Mock(spec=RecordsSource)
-        mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
+        mocker.patch('caret_analyze.infra.lttng.lttng.RecordsSource',
                      return_value=source_mock)
         counter_mock = mocker.Mock(spec=EventCounter)
-        mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
+        mocker.patch('caret_analyze.infra.lttng.lttng.EventCounter',
                      return_value=counter_mock)
         mocker.patch('os.path.exists', return_value=True)
 
@@ -70,14 +71,14 @@ class TestLttng:
                             return_value=(data_mock, {}, 0, 1))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
-        mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
+        mocker.patch('caret_analyze.infra.lttng.lttng.LttngInfo',
                      return_value=lttng_info_mock)
         source_mock = mocker.Mock(spec=RecordsSource)
-        mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
+        mocker.patch('caret_analyze.infra.lttng.lttng.RecordsSource',
                      return_value=source_mock)
 
         counter_mock = mocker.Mock(spec=EventCounter)
-        mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
+        mocker.patch('caret_analyze.infra.lttng.lttng.EventCounter',
                      return_value=counter_mock)
 
         lttng = Lttng('trace_dir')
@@ -93,14 +94,14 @@ class TestLttng:
                             return_value=(data_mock, {}, 0, 1))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
-        mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
+        mocker.patch('caret_analyze.infra.lttng.lttng.LttngInfo',
                      return_value=lttng_info_mock)
         source_mock = mocker.Mock(spec=RecordsSource)
-        mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
+        mocker.patch('caret_analyze.infra.lttng.lttng.RecordsSource',
                      return_value=source_mock)
 
         counter_mock = mocker.Mock(spec=EventCounter)
-        mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
+        mocker.patch('caret_analyze.infra.lttng.lttng.EventCounter',
                      return_value=counter_mock)
 
         lttng = Lttng('trace_dir')
@@ -114,13 +115,13 @@ class TestLttng:
                             return_value=(data_mock, {}, 0, 1))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
-        mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
+        mocker.patch('caret_analyze.infra.lttng.lttng.LttngInfo',
                      return_value=lttng_info_mock)
         source_mock = mocker.Mock(spec=RecordsSource)
-        mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
+        mocker.patch('caret_analyze.infra.lttng.lttng.RecordsSource',
                      return_value=source_mock)
         counter_mock = mocker.Mock(spec=EventCounter)
-        mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
+        mocker.patch('caret_analyze.infra.lttng.lttng.EventCounter',
                      return_value=counter_mock)
 
         lttng = Lttng('trace_dir')
@@ -135,13 +136,13 @@ class TestLttng:
                             return_value=(data_mock, {}, 0, 1))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
-        mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
+        mocker.patch('caret_analyze.infra.lttng.lttng.LttngInfo',
                      return_value=lttng_info_mock)
         source_mock = mocker.Mock(spec=RecordsSource)
-        mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
+        mocker.patch('caret_analyze.infra.lttng.lttng.RecordsSource',
                      return_value=source_mock)
         counter_mock = mocker.Mock(spec=EventCounter)
-        mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
+        mocker.patch('caret_analyze.infra.lttng.lttng.EventCounter',
                      return_value=counter_mock)
         lttng = Lttng('trace_dir')
 
@@ -156,13 +157,13 @@ class TestLttng:
                             return_value=(data_mock, {}, 0, 1))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
-        mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
+        mocker.patch('caret_analyze.infra.lttng.lttng.LttngInfo',
                      return_value=lttng_info_mock)
         source_mock = mocker.Mock(spec=RecordsSource)
-        mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
+        mocker.patch('caret_analyze.infra.lttng.lttng.RecordsSource',
                      return_value=source_mock)
         counter_mock = mocker.Mock(spec=EventCounter)
-        mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
+        mocker.patch('caret_analyze.infra.lttng.lttng.EventCounter',
                      return_value=counter_mock)
 
         lttng = Lttng('trace_dir')
@@ -178,13 +179,13 @@ class TestLttng:
                             return_value=(data_mock, {}, 0, 1))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
-        mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
+        mocker.patch('caret_analyze.infra.lttng.lttng.LttngInfo',
                      return_value=lttng_info_mock)
         source_mock = mocker.Mock(spec=RecordsSource)
-        mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
+        mocker.patch('caret_analyze.infra.lttng.lttng.RecordsSource',
                      return_value=source_mock)
         counter_mock = mocker.Mock(spec=EventCounter)
-        mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
+        mocker.patch('caret_analyze.infra.lttng.lttng.EventCounter',
                      return_value=counter_mock)
 
         lttng = Lttng('trace_dir')
@@ -200,13 +201,13 @@ class TestLttng:
                             return_value=(data_mock, {}, 0, 1))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
-        mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
+        mocker.patch('caret_analyze.infra.lttng.lttng.LttngInfo',
                      return_value=lttng_info_mock)
         source_mock = mocker.Mock(spec=RecordsSource)
-        mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
+        mocker.patch('caret_analyze.infra.lttng.lttng.RecordsSource',
                      return_value=source_mock)
         counter_mock = mocker.Mock(spec=EventCounter)
-        mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
+        mocker.patch('caret_analyze.infra.lttng.lttng.EventCounter',
                      return_value=counter_mock)
 
         lttng = Lttng('trace_dir')
@@ -222,14 +223,14 @@ class TestLttng:
                             return_value=(data_mock, {}, 0, 1))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
-        mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
+        mocker.patch('caret_analyze.infra.lttng.lttng.LttngInfo',
                      return_value=lttng_info_mock)
 
         records_source_mock = mocker.Mock(spec=RecordsSource)
-        mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
+        mocker.patch('caret_analyze.infra.lttng.lttng.RecordsSource',
                      return_value=records_source_mock)
         counter_mock = mocker.Mock(spec=EventCounter)
-        mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
+        mocker.patch('caret_analyze.infra.lttng.lttng.EventCounter',
                      return_value=counter_mock)
 
         lttng = Lttng('trace_dir')
@@ -246,14 +247,14 @@ class TestLttng:
                             return_value=(data_mock, {}, 0, 1))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
-        mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
+        mocker.patch('caret_analyze.infra.lttng.lttng.LttngInfo',
                      return_value=lttng_info_mock)
 
         records_source_mock = mocker.Mock(spec=RecordsSource)
-        mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
+        mocker.patch('caret_analyze.infra.lttng.lttng.RecordsSource',
                      return_value=records_source_mock)
         counter_mock = mocker.Mock(spec=EventCounter)
-        mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
+        mocker.patch('caret_analyze.infra.lttng.lttng.EventCounter',
                      return_value=counter_mock)
 
         lttng = Lttng('trace_dir')
@@ -291,7 +292,6 @@ class TestLttng:
         assert lttng.events != lttng_.events
 
     def test_compare_init_event(self):
-        import functools
         init_events = []
         event_collection = {}
         # for testing sorting with _timestamp

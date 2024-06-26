@@ -25,6 +25,7 @@ from .executor import Executor
 from .node import Node
 from .path import Path
 from .publisher import Publisher
+from .runtime_loaded import RuntimeLoaded
 from .subscription import Subscription
 from ..architecture import Architecture
 from ..common import Summarizable, Summary, Util
@@ -63,8 +64,6 @@ class Application(Summarizable):
             Occurs when the invalid infra is given.
 
         """
-        from .runtime_loaded import RuntimeLoaded
-
         provider: RecordsProvider | RuntimeDataProvider
 
         if isinstance(infra, Lttng):

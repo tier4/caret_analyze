@@ -17,7 +17,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 
-from .lttng import LttngEventFilter
+from .lttng import Lttng, LttngEventFilter
 from ...architecture.reader_interface import ArchitectureReader
 from ...value_objects import (
     CallbackGroupValue,
@@ -41,7 +41,6 @@ class ArchitectureReaderLttng(ArchitectureReader):
         self,
         trace_dir: str | list[str]
     ) -> None:
-        from .lttng import Lttng
         self._lttng = Lttng(
             trace_dir, event_filters=[LttngEventFilter.init_pass_filter()],
             validate=False)

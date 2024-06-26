@@ -15,10 +15,10 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from itertools import product
+from itertools import groupby, product
 from logging import getLogger, INFO
 
-
+from .graph_search import CallbackPathSearcher
 from .reader_interface import ArchitectureReader, UNDEFINED_STR
 from .struct import (CallbackChainStruct,
                      CallbackGroupStruct,
@@ -182,8 +182,6 @@ class CommValuesLoaded():
         node_pub: NodeStruct,
         node_sub: NodeStruct,
     ) -> CommunicationStruct:
-        from ..common import Util
-
         try:
             callbacks_pub = None
             is_target_pub_cb = CommValuesLoaded.IsTargetPubCallback(pub)
@@ -225,8 +223,6 @@ class CommValuesLoaded():
         subscribe_node_name: str,
         subscription_construction_order: int | None,
     ) -> CommunicationStruct:
-        from ..common import Util
-
         def is_target(comm: CommunicationStruct):
             return comm.publish_node_name == publish_node_name and \
                 comm.subscribe_node_name == subscribe_node_name and \
@@ -330,8 +326,6 @@ class NodeValuesLoaded():
 
     @staticmethod
     def _validate(nodes: Sequence[NodeValueWithId]):
-        from itertools import groupby
-
         # validate node name uniqueness.
         node_names = [n.node_name for n in nodes]
         duplicated_name: list[str] = []
@@ -360,7 +354,6 @@ class NodeValuesLoaded():
         self,
         node_name: str
     ) -> list[CallbackStruct]:
-        from ..common import Util
         try:
             cb_loaded: CallbacksLoaded
             cb_loaded = Util.find_one(lambda x: x.node_name == node_name, self._cb_loaded)
@@ -371,7 +364,6 @@ class NodeValuesLoaded():
             raise ItemNotFoundError(msg)
 
     def find_node(self, node_name: str) -> NodeStruct:
-        from ..common import Util
         try:
             return Util.find_one(lambda x: x.node_name == node_name, self.data)
         except ItemNotFoundError:
@@ -383,8 +375,6 @@ class NodeValuesLoaded():
         self,
         node_path_value: NodePathValue,
     ) -> NodePathStruct:
-        from ..common import Util
-
         def is_target(value: NodePathStruct):
             return (value.publish_topic_name == node_path_value.publish_topic_name and
                     value.subscribe_topic_name == node_path_value.subscribe_topic_name and
@@ -1596,7 +1586,6 @@ class CallbackPathSearched():
         node: NodeStruct,
         max_callback_construction_order: int
     ) -> None:
-        from .graph_search import CallbackPathSearcher
         self._data: list[NodePathStruct]
 
         searcher = CallbackPathSearcher(node)

@@ -18,8 +18,10 @@ from collections.abc import Callable, Collection, Sequence
 import logging
 
 from .architecture_exporter import ArchitectureExporter
-from .architecture_loaded import NodeValuesLoaded
+from .architecture_loaded import ArchitectureLoaded, NodeValuesLoaded
+from .architecture_reader_factory import ArchitectureReaderFactory
 from .combine_path import CombinePath
+from .graph_search import NodePathSearcher
 
 from .reader_interface import ArchitectureReader, IGNORE_TOPICS
 from .struct import (CallbackStruct, CommunicationStruct, ExecutorStruct,
@@ -45,9 +47,6 @@ class Architecture(Summarizable):
         max_callback_construction_order_on_path_searching: int =
             DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
     ) -> None:
-        from .architecture_reader_factory import ArchitectureReaderFactory
-        from .architecture_loaded import ArchitectureLoaded
-
         self._max_callback_construction_order_on_path_searching = \
             max_callback_construction_order_on_path_searching
 
@@ -262,7 +261,6 @@ class Architecture(Summarizable):
         node_filter: Callable[[str], bool] | None = None,
         communication_filter: Callable[[str], bool] | None = None,
     ) -> list[PathStructValue]:
-        from .graph_search import NodePathSearcher
         for node_name in node_names:
             if node_name not in self.node_names:
                 raise ItemNotFoundError(f'Failed to find node. {node_name}')
