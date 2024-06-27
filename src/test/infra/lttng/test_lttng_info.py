@@ -719,7 +719,7 @@ class TestLttngInfo:
         cbg = TracePointData(pd.DataFrame.from_dict(
             [
                 {
-                    'callback_group_id': 'callback_group_id',
+                    'callback_group_id': pd.NA,
                     'callback_group_addr': cbg_addr,
                     'executor_addr': pd.NA,
                     'group_type_name': pd.NA,
@@ -732,15 +732,16 @@ class TestLttngInfo:
         data.finalize()
         info = LttngInfo(data)
         cbg_info = info.get_callback_groups(NodeValue(node_name, 'node_id'))
-        dummy_addr = 100000000
+        dummy_addr_expect = -1
+        callback_group_id_expect = f'callback_group_{cbg_addr}'
         cbg_info_expect = CallbackGroupValueLttng(
             CallbackGroupType.UNDEFINED.type_name,
             '/node1',
             'node_id',
             ('timer_callback_0', 'subscription_callback_0', 'service_callback_0'),
-            'callback_group_id',
+            callback_group_id_expect,
             callback_group_addr=cbg_addr,
-            executor_addr=dummy_addr,
+            executor_addr=dummy_addr_expect,
         )
         assert cbg_info == [cbg_info_expect]
 
