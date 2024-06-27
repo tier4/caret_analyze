@@ -85,6 +85,15 @@ class TestTypeCheckDecorator:
         # def iterable_arg(i: list[bool] | str):
         #     pass
 
+    def test_type_check_decorator_not_string(self):
+        @type_check_decorator
+        def not_str_arg(a:bool,b:int):
+            pass
+
+        with pytest.raises(UnsupportedTypeError) as e:
+            not_str_arg(False,'string')
+        assert "'b' must be 'int'. The given argument type is 'str'" in str(e.value)
+
     def test_type_check_decorator_dict(self):
         @type_check_decorator
         def dict_arg(d: dict[str, bool]):

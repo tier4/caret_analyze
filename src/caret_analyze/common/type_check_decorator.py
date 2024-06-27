@@ -24,7 +24,7 @@ from ..exceptions import UnsupportedTypeError
 
 try:
     from pydantic import ValidationError
-    from pydantic.deprecated.decorator import validate_arguments
+    from pydantic import validate_call
 
     def _get_given_arg(
         annotations: dict[str, Any],
@@ -160,7 +160,9 @@ try:
 
         """
         # Iterable or dict type case
-        if isinstance(given_arg, Sequence) or isinstance(given_arg, dict):
+        if isinstance(given_arg, str):
+            loc_str = f"'{given_arg_loc[0]}'"
+        elif isinstance(given_arg, Sequence) or isinstance(given_arg, dict):
             loc_str = f"'{given_arg_loc[0]}'[{given_arg_loc[1]}]"
         else:
             loc_str = f"'{given_arg_loc[0]}'"
@@ -198,7 +200,9 @@ try:
                 Class name input for argument <ARGUMENT_NAME>[<KEY>]
 
         """
-        if isinstance(given_arg, Sequence) or isinstance(given_arg, dict):
+        if isinstance(given_arg, str):
+            given_arg_type_str = f"'{given_arg.__class__.__name__}'"
+        elif isinstance(given_arg, Sequence) or isinstance(given_arg, dict):
             given_arg_type_str = f"'{given_arg[given_arg_loc[1]].__class__.__name__}'"
         else:
             given_arg_type_str = f"'{given_arg.__class__.__name__}'"
@@ -234,7 +238,7 @@ try:
 
     def decorator(func):
         validate_arguments_wrapper = \
-            validate_arguments(config={'arbitrary_types_allowed': True})(func)
+            validate_call(config={'arbitrary_types_allowed': True})(func)
 
         @wraps(func)
         def _custom_wrapper(*args, **kwargs):
@@ -249,8 +253,39 @@ try:
                 return validate_arguments_wrapper(*args, **kwargs)
 
             except ValidationError as e:
-                loc_tuple = e.errors()[0]['loc']
+                temp_loc_tuple = e.errors()[0]['loc']
                 annotations = get_annotations(func)
+
+                if e.errors()[0]['type'] == "is_instance_of":
+                    # instance type
+                    loc_tuple = []
+                    loc_tuple_mk = []
+                    for colume_no in range(len(annotations)):
+                        if e.errors()[0]['ctx']['class'] in annotations[list(annotations)[colume_no]]:
+                            value = []
+                            for pos in range(len(temp_loc_tuple)):
+                                if isinstance(temp_loc_tuple[pos], int):
+                                    value.append(temp_loc_tuple[pos]-colume_no)
+                                else:
+                                    value.append(temp_loc_tuple[pos])
+                            loc_tuple_mk = tuple(list(annotations)[colume_no])
+                            for i in value:
+                                loc_tuple_mk = loc_tuple_mk + tuple([i])
+                    loc_tuple = loc_tuple_mk
+                else:
+                    colume_no = temp_loc_tuple[0]
+                    if len(temp_loc_tuple) > 1:
+                        # including multiple arguments
+                        arg_name1: str = list(annotations)[colume_no] # keyword
+                        arg_name2 = temp_loc_tuple[1] # position
+                        loc_tuple = (arg_name1, arg_name2)
+                    else:
+                        if isinstance(temp_loc_tuple[0], int):
+                            # does not include Keyword
+                            loc_tuple: str = list(annotations)[colume_no]
+                        else:
+                            # include Keyword
+                            loc_tuple = colume_no
 
                 given_arg = _get_given_arg(annotations, args, kwargs, loc_tuple, varargs_name)
                 expected_types = _get_expected_types(loc_tuple, annotations)
