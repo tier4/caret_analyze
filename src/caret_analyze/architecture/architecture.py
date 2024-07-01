@@ -86,7 +86,7 @@ class Architecture(Summarizable):
         cbg: list[CallbackGroupStructValue] = []
         for node in self.nodes:
             cbg += node.callback_groups
-        return tuple(set(cbg))
+        return tuple(cbg)
 
     @property
     def callback_group_names(self) -> tuple[str, ...]:
