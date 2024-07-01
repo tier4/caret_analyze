@@ -618,7 +618,6 @@ class LttngInfo:
         concat_target_dfs.append(self._formatted.timer_callbacks.clone())
         concat_target_dfs.append(self._formatted.subscription_callbacks.clone())
         concat_target_dfs.append(self._formatted.service_callbacks.clone())
-        dummy_executor_addr = -1
 
         try:
             column_names = [
@@ -645,8 +644,7 @@ class LttngInfo:
                 if row['executor_addr'] is not pd.NA:
                     executor_addr = row['executor_addr']
                 else:
-                    executor_addr = dummy_executor_addr
-                    dummy_executor_addr -= 1
+                    executor_addr = 0
                 if row['callback_group_id'] is not pd.NA:
                     callback_group_id = row['callback_group_id']
                 else:
