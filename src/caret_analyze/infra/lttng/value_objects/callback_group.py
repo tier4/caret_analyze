@@ -26,7 +26,7 @@ class CallbackGroupValueLttng(CallbackGroupValue):
         callback_ids: tuple[str, ...],
         callback_group_id: str,
         callback_group_addr: int,
-        executor_addr: int | None
+        executor_addr: int
     ) -> None:
         super().__init__(
             callback_group_type_name=callback_group_type_name,
@@ -42,7 +42,7 @@ class CallbackGroupValueLttng(CallbackGroupValue):
         return self._callback_group_addr
 
     @property
-    def executor_addr(self) -> int | None:
+    def executor_addr(self) -> int:
         return self._executor_addr
 
 
