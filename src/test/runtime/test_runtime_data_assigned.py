@@ -132,7 +132,7 @@ class TestNodesLoaded:
     def test_to_runtime_optional_none(self, mocker):
         node_info_mock = mocker.Mock(spec=NodeStructValue)
         mocker.patch.object(node_info_mock, 'node_name', 'node')
-        mocker.patch.object(node_info_mock, 'callback_groups', ())
+        mocker.patch.object(node_info_mock, 'callback_groups', None)
         mocker.patch.object(node_info_mock, 'paths', ())
         mocker.patch.object(node_info_mock, 'variable_passings', None)
         mocker.patch.object(node_info_mock, 'timers', ())
@@ -149,7 +149,6 @@ class TestNodesLoaded:
         node = NodesLoaded._to_runtime(node_info_mock, provider_mock)
 
         assert node.node_name == 'node'
-        assert node.callback_groups == []
         assert node.callbacks == []
         assert node.timers == []
         assert node.publishers == []
@@ -167,9 +166,9 @@ class TestNodesLoaded:
         sub_info_mock = mocker.Mock(spec=SubscriptionStructValue)
 
         mocker.patch.object(node_info_mock, 'node_name', 'node')
-        mocker.patch.object(node_info_mock, 'callback_groups', (cbg_info_mock,))
+        mocker.patch.object(node_info_mock, 'callback_groups', (cbg_info_mock))
         mocker.patch.object(node_info_mock, 'paths', ())
-        mocker.patch.object(node_info_mock, 'variable_passings', (var_pass_info_mock,))
+        mocker.patch.object(node_info_mock, 'variable_passings', (var_pass_info_mock))
         mocker.patch.object(node_info_mock, 'timers', (timer_info_mock,))
         mocker.patch.object(node_info_mock, 'publishers', (pub_info_mock,))
         mocker.patch.object(node_info_mock, 'subscriptions', (sub_info_mock,))

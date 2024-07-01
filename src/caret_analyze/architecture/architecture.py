@@ -85,7 +85,8 @@ class Architecture(Summarizable):
     def callback_groups(self) -> tuple[CallbackGroupStructValue, ...]:
         cbg: list[CallbackGroupStructValue] = []
         for node in self.nodes:
-            cbg += node.callback_groups
+            if node.callback_groups is not None:
+                cbg += node.callback_groups
         return tuple(cbg)
 
     @property
@@ -336,7 +337,7 @@ class Architecture(Summarizable):
         # verify callback parameter uniqueness
         for node in nodes:
             callbacks = node.callbacks
-            if not callbacks:
+            if callbacks is None:
                 continue
 
             callback_params: list[tuple[str, str | int, str, int]] = []

@@ -1604,7 +1604,7 @@ class CallbackPathSearched():
         callbacks = node.callbacks
         paths: list[NodePathStruct] = []
 
-        if callbacks:
+        if callbacks is not None:
             skip_count = 0
             max_ignored_construction_order = 0
             for write_callback, read_callback in product(callbacks, callbacks):

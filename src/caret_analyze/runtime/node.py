@@ -65,14 +65,12 @@ class Node(Summarizable):
         self._subscriptions = subscription
         self._timers = timers
         self._paths = node_paths
-        if callback_groups:
-            self._callback_groups = callback_groups
-        else:
-            self._callback_groups = []
+        self._callback_groups = callback_groups
+
         self._variable_passings = variable_passings
 
     @property
-    def callback_groups(self) -> list[CallbackGroup]:
+    def callback_groups(self) -> list[CallbackGroup] | None:
         """
         Get callback groups.
 
@@ -82,8 +80,8 @@ class Node(Summarizable):
             callback groups that the node contains.
 
         """
-        if not self._callback_groups:
-            return []
+        if self._callback_groups is None:
+            return None
         return sorted(self._callback_groups, key=lambda x: x.callback_group_name)
 
     @property
@@ -100,7 +98,7 @@ class Node(Summarizable):
         return self._val.node_name
 
     @property
-    def callbacks(self) -> list[CallbackBase]:
+    def callbacks(self) -> list[CallbackBase] | None:
         """
         Get callbacks.
 
@@ -110,8 +108,8 @@ class Node(Summarizable):
             callbacks that the node contains.
 
         """
-        if not self.callback_groups:
-            return []
+        if self.callback_groups is None:
+            return None
         cbs = Util.flatten([cbg.callbacks for cbg in self.callback_groups])
         return sorted(cbs, key=lambda x: x.callback_name)
 
@@ -126,8 +124,8 @@ class Node(Summarizable):
             callback names that the node contains.
 
         """
-        if not self.callbacks:
-            return []
+        if self.callbacks is None:
+            return None
         return sorted(c.callback_name for c in self.callbacks)
 
     @property
@@ -224,7 +222,7 @@ class Node(Summarizable):
         return sorted(_.topic_name for _ in self._subscriptions)
 
     @property
-    def callback_group_names(self) -> list[str]:
+    def callback_group_names(self) -> list[str] |None:
         """
         Get callback group names.
 
@@ -234,6 +232,8 @@ class Node(Summarizable):
             callback group names that the node contains.
 
         """
+        if self.callback_groups is None:
+            return None
         return sorted(_.callback_group_name for _ in self.callback_groups)
 
     @property
@@ -376,7 +376,7 @@ class Node(Summarizable):
         if not isinstance(callback_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        if not self.callbacks:
+        if self.callbacks is None:
             raise ItemNotFoundError('Callback is None.')
 
         return Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)

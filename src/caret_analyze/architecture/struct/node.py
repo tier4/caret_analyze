@@ -46,15 +46,9 @@ class NodeStruct():
         self._subscriptions = subscriptions_info
         self._services = services
         self._timers = timers
-        if callback_groups:
-            self._callback_groups = callback_groups
-        else:
-            self._callback_groups = []
+        self._callback_groups = callback_groups
         self._node_paths = node_paths
-        if variable_passings:
-            self._variable_passings_info = variable_passings
-        else:
-            self._variable_passings_info = []
+        self._variable_passings_info = variable_passings
 
     @property
     def node_name(self) -> str:
@@ -85,22 +79,24 @@ class NodeStruct():
         return self._timers
 
     @property
-    def callbacks(self) -> list[CallbackStruct]:
-        if not self.callback_groups:
-            return []
+    def callbacks(self) -> list[CallbackStruct] | None:
+        if self._callback_groups is None:
+            return None
         return list(Util.flatten(cbg.callbacks for cbg in self._callback_groups))
 
     @property
     def callback_names(self) -> list[str] | None:
+        if self.callbacks is None:
+            return None
         return [_.callback_name for _ in self.callbacks]
 
     @property
-    def callback_groups(self) -> list[CallbackGroupStruct]:
+    def callback_groups(self) -> list[CallbackGroupStruct] | None:
         return self._callback_groups
 
     @property
     def callback_group_names(self) -> list[str] | None:
-        if not self.callback_groups:
+        if self.callback_groups is None:
             return None
         return [_.callback_group_name for _ in self.callback_groups]
 
@@ -109,7 +105,7 @@ class NodeStruct():
         return self._node_paths
 
     @property
-    def variable_passings(self) -> list[VariablePassingStruct]:
+    def variable_passings(self) -> list[VariablePassingStruct] | None:
         return self._variable_passings_info
 
     def get_subscription(
@@ -178,8 +174,10 @@ class NodeStruct():
             tuple(v.to_value() for v in self.services),
             tuple(v.to_value() for v in self.timers),
             tuple(v.to_value() for v in self.paths),
-            tuple(v.to_value() for v in self.callback_groups),
-            tuple(v.to_value() for v in self.variable_passings))
+            None if self.callback_groups is None
+            else tuple(v.to_value() for v in self.callback_groups),
+            None if self.variable_passings is None
+            else tuple(v.to_value() for v in self.variable_passings))
 
     def update_node_path(self, paths: list[NodePathStruct]) -> None:
         self._node_paths = paths
@@ -223,7 +221,7 @@ class NodeStruct():
             Util.find_one(lambda x: x.callback_name == callback_name_read, self.callbacks)
 
         passing = VariablePassingStruct(self.node_name, callback_write, callback_read)
-        if not self._variable_passings_info:
+        if self._variable_passings_info is None:
             self._variable_passings_info = [passing]
         elif (callback_name_read, callback_name_write) not in \
                 [(passing.callback_name_read, passing.callback_name_write)
@@ -275,14 +273,14 @@ class NodeStruct():
         for t in self._timers:
             t.rename_node(src, dst)
 
-        if self._callback_groups:
+        if self._callback_groups is not None:
             for c in self._callback_groups:
                 c.rename_node(src, dst)
 
         for n in self._node_paths:
             n.rename_node(src, dst)
 
-        if self._variable_passings_info:
+        if self._variable_passings_info is not None:
             for v in self._variable_passings_info:
                 v.rename_node(src, dst)
 
@@ -296,14 +294,14 @@ class NodeStruct():
         for t in self._timers:
             t.rename_topic(src, dst)
 
-        if self._callback_groups:
+        if self._callback_groups is not None:
             for c in self._callback_groups:
                 c.rename_topic(src, dst)
 
         for n in self._node_paths:
             n.rename_topic(src, dst)
 
-        if self._variable_passings_info:
+        if self._variable_passings_info is not None:
             for v in self._variable_passings_info:
                 v.rename_topic(src, dst)
 

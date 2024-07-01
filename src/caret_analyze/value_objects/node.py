@@ -328,7 +328,7 @@ class NodeStructValue(ValueObject, Summarizable):
         return Util.find_one(is_target, self.paths)
 
     @property
-    def callbacks(self) -> tuple[CallbackStructValue, ...]:
+    def callbacks(self) -> tuple[CallbackStructValue, ...] | None:
         """
         Get callbacks.
 
@@ -338,8 +338,8 @@ class NodeStructValue(ValueObject, Summarizable):
             Callbacks that the node contains.
 
         """
-        if not self._callback_groups:
-            return ()
+        if self._callback_groups is None:
+            return None
         return tuple(Util.flatten(cbg.callbacks for cbg in self._callback_groups))
 
     @property
@@ -358,7 +358,7 @@ class NodeStructValue(ValueObject, Summarizable):
         return tuple(_.callback_name for _ in self.callbacks)
 
     @property
-    def callback_groups(self) -> tuple[CallbackGroupStructValue, ...]:
+    def callback_groups(self) -> tuple[CallbackGroupStructValue, ...] | None:
         """
         Get callback groups.
 
@@ -371,7 +371,7 @@ class NodeStructValue(ValueObject, Summarizable):
         return self._callback_groups
 
     @property
-    def callback_group_names(self) -> tuple[str, ...]:
+    def callback_group_names(self) -> tuple[str, ...] | None:
         """
         Get callback group names.
 
@@ -381,6 +381,8 @@ class NodeStructValue(ValueObject, Summarizable):
             Callback group names that the node contains.
 
         """
+        if self.callback_groups is None:
+            return None
         return tuple(_.callback_group_name for _ in self.callback_groups)
 
     @property

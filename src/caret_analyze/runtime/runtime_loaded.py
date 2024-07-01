@@ -149,7 +149,7 @@ class NodesLoaded:
         timers = timers_loaded.data
 
         callback_groups: list[CallbackGroup] = []
-        if node_value.callback_groups:
+        if node_value.callback_groups is not None:
             callback_groups = CallbackGroupsLoaded(
                 node_value.callback_groups,
                 provider,
@@ -195,7 +195,7 @@ class NodesLoaded:
     def callbacks(self) -> list[CallbackBase] | None:
         cbs = []
         for node in self._nodes:
-            if node.callbacks:
+            if node.callbacks is not None:
                 cbs += node.callbacks
         return cbs
 
