@@ -716,15 +716,11 @@ class TestLttngInfo:
         ))
         mocker.patch.object(formatted_mock, 'nodes', node)
 
-        cbg = TracePointData(pd.DataFrame.from_dict(
-            [
-                {
-                    'callback_group_id': pd.NA,
-                    'callback_group_addr': cbg_addr,
-                    'executor_addr': pd.NA,
-                    'group_type_name': pd.NA,
-                }
-            ]
+        cbg = TracePointData(pd.DataFrame(columns=[
+            'callback_group_id',
+            'callback_group_addr',
+            'executor_addr',
+            'group_type_name']
         ))
         mocker.patch.object(formatted_mock, 'callback_groups', cbg)
 
@@ -732,7 +728,7 @@ class TestLttngInfo:
         data.finalize()
         info = LttngInfo(data)
         cbg_info = info.get_callback_groups(NodeValue(node_name, 'node_id'))
-        dummy_addr_expect = -1
+        dummy_addr_expect = 0
         callback_group_id_expect = f'callback_group_{cbg_addr}'
         cbg_info_expect = CallbackGroupValueLttng(
             CallbackGroupType.UNDEFINED.type_name,
