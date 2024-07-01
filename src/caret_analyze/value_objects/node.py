@@ -174,10 +174,7 @@ class NodeStructValue(ValueObject, Summarizable):
         self._subscriptions = subscriptions_info
         self._services = services_info
         self._timers = timers
-        if callback_groups:
-            self._callback_groups = callback_groups
-        else:
-            self._callback_groups = ()
+        self._callback_groups = callback_groups
         self._node_paths = node_paths
         self._variable_passings_info = variable_passings
 
