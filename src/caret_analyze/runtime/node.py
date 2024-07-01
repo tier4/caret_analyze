@@ -66,7 +66,6 @@ class Node(Summarizable):
         self._timers = timers
         self._paths = node_paths
         self._callback_groups = callback_groups
-
         self._variable_passings = variable_passings
 
     @property
@@ -222,7 +221,7 @@ class Node(Summarizable):
         return sorted(_.topic_name for _ in self._subscriptions)
 
     @property
-    def callback_group_names(self) -> list[str] |None:
+    def callback_group_names(self) -> list[str] | None:
         """
         Get callback group names.
 
