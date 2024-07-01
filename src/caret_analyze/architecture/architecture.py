@@ -82,7 +82,11 @@ class Architecture(Summarizable):
 
     @property
     def callback_groups(self) -> tuple[CallbackGroupStructValue, ...]:
-        return tuple(Util.flatten(_.callback_groups for _ in self.executors))
+        cbg: list[CallbackGroupStructValue] = []
+        for node in self.nodes:
+            if node.callback_groups is not None:
+                cbg += node.callback_groups
+        return tuple(cbg)
 
     @property
     def callback_group_names(self) -> tuple[str, ...]:
