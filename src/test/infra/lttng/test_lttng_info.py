@@ -646,6 +646,101 @@ class TestLttngInfo:
         )
         assert cbg_info == [cbg_info_expect]
 
+    def test_get_undefined_callback_groups_info(self, mocker):
+        node_handle = 3
+        callback_object = 10
+        node_name = '/node1'
+        cbg_addr = 8
+
+        formatted_mock = mocker.Mock(spec=DataFrameFormatted)
+        mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
+                     return_value=formatted_mock)
+
+        timer = TracePointData(pd.DataFrame.from_dict(
+            [
+                {
+                    'callback_object': callback_object,
+                    'node_handle': node_handle,
+                    'timer_handle': 0,
+                    'callback_group_addr': cbg_addr,
+                    'period_ns': 0,
+                    'symbol': 'symbol',
+                    'callback_id': 'timer_callback_0'
+                }
+            ]
+        ))
+        mocker.patch.object(formatted_mock, 'timer_callbacks', timer)
+
+        sub = TracePointData(pd.DataFrame.from_dict(
+            [
+                {
+                    'callback_object': callback_object,
+                    'callback_object_intra': 0,
+                    'node_handle': node_handle,
+                    'subscription_handle': 0,
+                    'callback_group_addr': cbg_addr,
+                    'topic_name': 'topic',
+                    'symbol': 'symbol',
+                    'callback_id': 'subscription_callback_0',
+                    'depth': 0
+                },
+            ]
+        ))
+        mocker.patch.object(
+            formatted_mock, 'subscription_callbacks', sub)
+
+        srv = TracePointData(pd.DataFrame.from_dict(
+            [
+                {
+                    'callback_object': callback_object,
+                    'node_handle': node_handle,
+                    'service_handle': 0,
+                    'callback_group_addr': cbg_addr,
+                    'service_name': 'service',
+                    'symbol': 'symbol',
+                    'callback_id': 'service_callback_0'
+                },
+            ]
+        ))
+        mocker.patch.object(
+            formatted_mock, 'service_callbacks', srv)
+
+        node = TracePointData(pd.DataFrame.from_dict(
+            [
+                {
+                    'node_id': 'node_id',
+                    'node_handle': node_handle,
+                    'node_name': node_name
+                }
+            ]
+        ))
+        mocker.patch.object(formatted_mock, 'nodes', node)
+
+        cbg = TracePointData(pd.DataFrame(columns=[
+            'callback_group_id',
+            'callback_group_addr',
+            'executor_addr',
+            'group_type_name']
+        ))
+        mocker.patch.object(formatted_mock, 'callback_groups', cbg)
+
+        data = Ros2DataModel()
+        data.finalize()
+        info = LttngInfo(data)
+        cbg_info = info.get_callback_groups(NodeValue(node_name, 'node_id'))
+        dummy_addr_expect = 0
+        callback_group_id_expect = f'callback_group_{cbg_addr}'
+        cbg_info_expect = CallbackGroupValueLttng(
+            CallbackGroupType.UNDEFINED.type_name,
+            '/node1',
+            'node_id',
+            ('timer_callback_0', 'subscription_callback_0', 'service_callback_0'),
+            callback_group_id_expect,
+            callback_group_addr=cbg_addr,
+            executor_addr=dummy_addr_expect,
+        )
+        assert cbg_info == [cbg_info_expect]
+
     def test_get_executors_info(self, mocker):
         cbg_addr = 13
         executor_addr = 15
