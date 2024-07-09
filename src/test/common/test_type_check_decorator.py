@@ -53,6 +53,10 @@ class TestTypeCheckDecorator:
             custom_arg(10)
         assert "'c' must be 'DummyCustom1'. The given argument type is 'int'" in str(e.value)
 
+        with pytest.raises(UnsupportedTypeError) as e:
+            custom_arg(c=10)
+        assert "'c' must be 'DummyCustom1'. The given argument type is 'int'" in str(e.value)
+
     def test_type_check_decorator_union(self):
         @type_check_decorator
         def union_arg(u: bool | set):
@@ -87,12 +91,67 @@ class TestTypeCheckDecorator:
 
     def test_type_check_decorator_not_string(self):
         @type_check_decorator
-        def not_str_arg(a:bool,b:int):
+        def not_str_arg(a: bool, b: int):
             pass
 
         with pytest.raises(UnsupportedTypeError) as e:
-            not_str_arg(False,'string')
+            not_str_arg(False, 'string')
         assert "'b' must be 'int'. The given argument type is 'str'" in str(e.value)
+
+    def test_type_check_decorator_default_param(self):
+        @type_check_decorator
+        def default_param(a: int, b: str = 'B'):
+            pass
+
+        with pytest.raises(UnsupportedTypeError) as e:
+            default_param(1, 2)
+        assert "'b' must be 'str'. The given argument type is 'int'" in str(e.value)
+
+        with pytest.raises(UnsupportedTypeError) as e:
+            default_param('A')
+        assert "'a' must be 'int'. The given argument type is 'str'" in str(e.value)
+
+    def test_type_check_decorator_custom_iterable(self):
+        @type_check_decorator
+        def iterable_arg(i: list[DummyCustom1]):
+            pass
+
+        with pytest.raises(UnsupportedTypeError) as e:
+            dummy1 = DummyCustom1()
+            iterable_arg([10, dummy1])
+        assert "'i'[0] must be 'DummyCustom1'. The given argument type is 'int'" in str(e.value)
+
+        with pytest.raises(UnsupportedTypeError) as e:
+            dummy1 = DummyCustom1()
+            iterable_arg([dummy1, 10])
+        assert "'i'[1] must be 'DummyCustom1'. The given argument type is 'int'" in str(e.value)
+
+        with pytest.raises(UnsupportedTypeError) as e:
+            dummy1 = DummyCustom1()
+            iterable_arg(i=[10, dummy1])
+        assert "'i'[0] must be 'DummyCustom1'. The given argument type is 'int'" in str(e.value)
+
+    def test_type_check_decorator_custom_iterable_mix_arg(self):
+        @type_check_decorator
+        def iterable_arg(a: int, i: list[DummyCustom1]):
+            pass
+
+        with pytest.raises(UnsupportedTypeError) as e:
+            dummy1 = DummyCustom1()
+            iterable_arg(1, [10, dummy1])
+        assert "'i'[0] must be 'DummyCustom1'. The given argument type is 'int'" in str(e.value)
+
+        with pytest.raises(UnsupportedTypeError) as e:
+            dummy1 = DummyCustom1()
+            dummy2 = DummyCustom1()
+            iterable_arg(1, [dummy1, dummy2, 30])
+        assert "'i'[2] must be 'DummyCustom1'. The given argument type is 'int'" in str(e.value)
+
+        with pytest.raises(UnsupportedTypeError) as e:
+            dummy1 = DummyCustom1()
+            dummy2 = DummyCustom1()
+            iterable_arg('A', [dummy1, dummy2])
+        assert "'a' must be 'int'. The given argument type is 'str'" in str(e.value)
 
     def test_type_check_decorator_dict(self):
         @type_check_decorator
