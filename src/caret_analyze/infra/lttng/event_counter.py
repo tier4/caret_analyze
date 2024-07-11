@@ -77,6 +77,11 @@ class EventCounter:
             'ros2_caret:rmw_implementation'
         }
 
+        dds_trace_points_added_by_ld_preload = {
+            'ros2_caret:dds_bind_addr_to_stamp',
+            'ros2_caret:dds_bind_addr_to_addr',
+        }
+
         trace_points_added_by_fork_rclcpp_for_intra_process = {
             'ros2:message_construct',
             'ros2:rclcpp_intra_publish',
@@ -86,6 +91,13 @@ class EventCounter:
         trace_points_added_by_fork_rclcpp_for_inter_process = {
             'ros2:dispatch_subscription_callback',
         }
+
+        if len(set(recorded_trace_points) & dds_trace_points_added_by_ld_preload) == 0:
+            raise InvalidTraceFormatError(
+                'Failed to find dds trace point added by LD_PRELOAD. '
+                'Measurement results will not be correct. '
+                'Function symbols used for hooks may be hidden in the DDS layer.'
+            )
 
         if len(set(recorded_trace_points) & trace_points_added_by_ld_preload) == 0:
             raise InvalidTraceFormatError(
