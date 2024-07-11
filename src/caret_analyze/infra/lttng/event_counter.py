@@ -220,6 +220,8 @@ class EventCounter:
         sub_cb_to_topic_name: dict[int, str] = {}
         sub_to_topic_name: dict[int, str] = {}
         sub_to_node_name: dict[int, str] = {}
+        rmw_handle_to_node_name: dict[int, str] = {}
+        rmw_handle_to_topic_name: dict[int, str] = {}
 
         def ns_and_node_name(ns: str, name: str) -> str:
             if ns[-1] == '/':
@@ -257,6 +259,10 @@ class EventCounter:
                 timer_cb_to_node_name[row['callback_object']] = \
                     timer_handle_to_node_name.get(handler, '-')
 
+        for handler, row in data.subscriptions.df.iterrows():
+            rmw_handle_to_node_name[row['rmw_handle']] = node_handle_to_node_name[row['node_handle']]
+            rmw_handle_to_topic_name[row['rmw_handle']] = row['topic_name']
+
         tilde_pub_to_topic_name: dict[int, str] = {}
         tilde_pub_to_node_name: dict[int, str] = {}
         for handler, row in data.tilde_publishers.df.iterrows():
@@ -272,7 +278,7 @@ class EventCounter:
         count_dict = []
         group_keys = [
             'callback_object', 'publisher_handle', 'subscription_handle',
-            'tilde_publisher', 'tilde_subscription'
+            'tilde_publisher', 'tilde_subscription', #'rmw_subscription_handle'
         ]
         for trace_point, df in trace_point_and_df.items():
             df = df.reset_index()
@@ -304,6 +310,23 @@ class EventCounter:
             else:
                 df['tilde_subscription'] = '-'
 
+            if trace_point == 'ros2:rmw_take':
+                for key, group in df.groupby('rmw_subscription_handle'):
+                    node_name = '-'
+                    topic_name = '-'
+                    if key in rmw_handle_to_node_name or key in rmw_handle_to_topic_name:
+                        topic_name = rmw_handle_to_topic_name.get(key, '-')
+                        node_name = rmw_handle_to_node_name.get(key, '-')
+                        count_dict.append(
+                                {
+                                    'node_name': node_name,
+                                    'topic_name': topic_name,
+                                    'size': len(group),
+                                    'trace_point': trace_point
+                                }
+                            )
+                continue
+
             for key, group in df.groupby(group_keys):
                 node_name = '-'
                 topic_name = '-'
@@ -330,6 +353,10 @@ class EventCounter:
                         key[4] in tilde_sub_to_topic_name:
                     topic_name = tilde_sub_to_topic_name.get(key[4], '-')
                     node_name = tilde_sub_to_node_name.get(key[4], '-')
+                # elif key[5] in rmw_handle_to_node_name or \
+                #         key[5] in rmw_handle_to_topic_name:
+                #     topic_name = rmw_handle_to_topic_name.get(key[5], '-')
+                #     node_name = rmw_handle_to_node_name.get(key[5], '-')
 
                 count_dict.append(
                     {

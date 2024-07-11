@@ -157,8 +157,7 @@ class RecordsMerged:
                 right_records)
             right_records.rename_columns(rename_rule)
 
-            if left_records.columns[-1] != right_records.columns[0]:
-                raise InvalidRecordsError('left columns[-1] != right columns[0]')
+            #     raise InvalidRecordsError('left columns[-1] != right columns[0]')
             left_stamp_key = left_records.columns[-1]
             right_stamp_key = right_records.columns[0]
 
@@ -189,11 +188,20 @@ class RecordsMerged:
                     how='left_use_latest',
                 )
             else:
+                # print(f'merge, l_key={left_key}, r_key={right_key}')
+                left_key = left_records.columns[-1]
+                right_key = right_records.columns[0]
+                if left_key != right_key:
+                    print(f'left_key: {left_key}')
+                    print(f'right_key: {right_key}')
+                    left_records.drop_columns([left_records.columns[-1]])  # drop empty callback_start 
+                    left_key = left_records.columns[-1]  # source_timestamp
+                    right_key = right_records.columns[0]  # source_timestamp
                 left_records = merge(
                     left_records=left_records,
                     right_records=right_records,
-                    join_left_key=left_records.columns[-1],
-                    join_right_key=right_records.columns[0],
+                    join_left_key=left_key,
+                    join_right_key=right_key,
                     columns=Columns.from_str(
                         left_records.columns + right_records.columns
                     ).column_names,
@@ -207,11 +215,20 @@ class RecordsMerged:
             right_records.rename_columns(rename_rule)
             if left_records.columns[-1] != right_records.columns[0]:
                 raise InvalidRecordsError('left columns[-1] != right columns[0]')
+            # left_key, right_key = _get_merge_key(left_records, right_records)
+            left_key = left_records.columns[-1]
+            right_key = right_records.columns[0]
+            if left_key != right_key:
+                print(f'left_key: {left_key}')
+                print(f'right_key: {right_key}')
+                left_records.drop_columns([left_records.columns[-1]])  # drop empty callback_start 
+                left_key = left_records.columns[-1]  # source_timestamp
+                right_key = right_records.columns[0]  # source_timestamp
             left_records = merge(
                 left_records=left_records,
                 right_records=right_records,
-                join_left_key=left_records.columns[-1],
-                join_right_key=right_records.columns[0],
+                join_left_key=left_key,
+                join_right_key=right_key,
                 columns=Columns.from_str(
                     left_records.columns + right_records.columns
                 ).column_names,
@@ -220,6 +237,10 @@ class RecordsMerged:
 
         logger.info('Finished merging path records.')
         left_records.sort(first_column)
+
+        # search drop columns, which contain 'source_timestamp'
+        source_columns = [column for column in left_records.columns if 'source_timestamp' in column]
+        left_records.drop_columns(source_columns)
 
         return left_records
 

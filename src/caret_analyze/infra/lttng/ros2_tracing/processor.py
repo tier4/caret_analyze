@@ -500,6 +500,7 @@ class Ros2Handler():
             self._remapper.callback_remapper.register_and_get_object_id(callback_object, event)
         self.data.add_callback_object(
             subscription_pointer, timestamp, callback_object)
+        self.data.map_callback_to_sub[callback_object] = subscription_pointer
 
     def _handle_rcl_service_init(
         self,

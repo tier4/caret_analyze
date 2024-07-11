@@ -30,6 +30,10 @@ class Ros2DataModel():
     def __init__(self) -> None:
         """Create a Ros2DataModel."""
         # Objects (one-time events, usually when something is created)
+        self.map_callback_to_sub = {}
+        self.map_sub_to_sub_handle = {}
+        self.map_sub_hanlde_to_rmw_handle = {}
+        
         self._contexts = TracePointIntermediateData(
             ['context_handle', 'timestamp', 'pid'])
         self._nodes = TracePointIntermediateData(
@@ -305,6 +309,7 @@ class Ros2DataModel():
             'depth': depth,
         }
         self._subscriptions.append(record)
+        self.map_sub_hanlde_to_rmw_handle[handle] = rmw_handle
 
     def add_rclcpp_subscription(
         self, subscription_pointer, timestamp, subscription_handle
@@ -315,6 +320,7 @@ class Ros2DataModel():
             'subscription_handle': subscription_handle,
         }
         self._subscription_objects.append(record)
+        self.map_sub_to_sub_handle[subscription_pointer] = subscription_handle
 
     def add_service(self, handle, timestamp, node_handle, rmw_handle, service_name) -> None:
         record = {
