@@ -278,7 +278,7 @@ class EventCounter:
         count_dict = []
         group_keys = [
             'callback_object', 'publisher_handle', 'subscription_handle',
-            'tilde_publisher', 'tilde_subscription', #'rmw_subscription_handle'
+            'tilde_publisher', 'tilde_subscription', 'rmw_subscription_handle'
         ]
         for trace_point, df in trace_point_and_df.items():
             df = df.reset_index()
@@ -299,6 +299,8 @@ class EventCounter:
                 df['publisher_handle'] = '-'
             if 'subscription_handle' not in df.columns:
                 df['subscription_handle'] = '-'
+            if 'rmw_subscription_handle' not in df.columns:
+                df['rmw_subscription_handle'] = '-'
 
             if trace_point in ['ros2_caret:tilde_publish', 'ros2_caret:tilde_publisher_init']:
                 df['tilde_publisher'] = df['publisher']
@@ -309,23 +311,6 @@ class EventCounter:
                 df['tilde_subscription'] = df['subscription']
             else:
                 df['tilde_subscription'] = '-'
-
-            if trace_point == 'ros2:rmw_take':
-                for key, group in df.groupby('rmw_subscription_handle'):
-                    node_name = '-'
-                    topic_name = '-'
-                    if key in rmw_handle_to_node_name or key in rmw_handle_to_topic_name:
-                        topic_name = rmw_handle_to_topic_name.get(key, '-')
-                        node_name = rmw_handle_to_node_name.get(key, '-')
-                        count_dict.append(
-                                {
-                                    'node_name': node_name,
-                                    'topic_name': topic_name,
-                                    'size': len(group),
-                                    'trace_point': trace_point
-                                }
-                            )
-                continue
 
             for key, group in df.groupby(group_keys):
                 node_name = '-'
@@ -353,10 +338,10 @@ class EventCounter:
                         key[4] in tilde_sub_to_topic_name:
                     topic_name = tilde_sub_to_topic_name.get(key[4], '-')
                     node_name = tilde_sub_to_node_name.get(key[4], '-')
-                # elif key[5] in rmw_handle_to_node_name or \
-                #         key[5] in rmw_handle_to_topic_name:
-                #     topic_name = rmw_handle_to_topic_name.get(key[5], '-')
-                #     node_name = rmw_handle_to_node_name.get(key[5], '-')
+                elif key[5] in rmw_handle_to_node_name or \
+                        key[5] in rmw_handle_to_topic_name:
+                    topic_name = rmw_handle_to_topic_name.get(key[5], '-')
+                    node_name = rmw_handle_to_node_name.get(key[5], '-')
 
                 count_dict.append(
                     {
