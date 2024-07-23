@@ -1295,10 +1295,7 @@ class NodeRecordsUseLatestMessage:
         sub_records = self._provider.subscribe_records(self._node_path.subscription)
         is_take_node = len(sub_records) == 0
         if is_take_node:
-            logger.warn('this path container take implemantation. ')
             sub_records = self._provider.subscription_take_records(self._node_path.subscription)
-            print(sub_records.to_dataframe().shape)
-            # sub_records.drop_columns([sub_records.columns[-1]])
         pub_records = self._provider.publish_records(self._node_path.publisher)
 
         columns = [
@@ -1306,20 +1303,6 @@ class NodeRecordsUseLatestMessage:
             f'{self._node_path.publish_topic_name}/rclcpp_publish_timestamp',
         ]
 
-        # if take:
-        #     pub_sub_records = merge_sequential(
-        #         left_records=sub_records,
-        #         right_records=pub_records,
-        #         left_stamp_key=sub_records.columns[0],
-        #         right_stamp_key=pub_records.columns[0],
-        #         join_left_key=None,
-        #         join_right_key=None,
-        #         columns=Columns.from_str(
-        #             sub_records.columns + pub_records.columns
-        #         ).column_names,
-        #         how='left_use_latest',
-        #     )
-        # else:
         pub_sub_records = merge_sequential(
             left_records=sub_records,
             right_records=pub_records,
