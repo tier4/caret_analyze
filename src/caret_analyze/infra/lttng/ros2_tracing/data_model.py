@@ -33,7 +33,7 @@ class Ros2DataModel():
         self.map_callback_to_sub = {}
         self.map_sub_to_sub_handle = {}
         self.map_sub_hanlde_to_rmw_handle = {}
-        
+
         self._contexts = TracePointIntermediateData(
             ['context_handle', 'timestamp', 'pid'])
         self._nodes = TracePointIntermediateData(

@@ -157,7 +157,6 @@ class RecordsMerged:
                 right_records)
             right_records.rename_columns(rename_rule)
 
-            #     raise InvalidRecordsError('left columns[-1] != right columns[0]')
             left_stamp_key = left_records.columns[-1]
             right_stamp_key = right_records.columns[0]
 
@@ -188,20 +187,17 @@ class RecordsMerged:
                     how='left_use_latest',
                 )
             else:
-                # print(f'merge, l_key={left_key}, r_key={right_key}')
-                left_key = left_records.columns[-1]
-                right_key = right_records.columns[0]
-                if left_key != right_key:
-                    print(f'left_key: {left_key}')
-                    print(f'right_key: {right_key}')
-                    left_records.drop_columns([left_records.columns[-1]])  # drop empty callback_start 
-                    left_key = left_records.columns[-1]  # source_timestamp
-                    right_key = right_records.columns[0]  # source_timestamp
+                # if callback_start != source_timestamp
+                if left_stamp_key != right_stamp_key:
+                    left_records.drop_columns([left_records.columns[-1]])
+                    left_stamp_key = left_records.columns[-1]  # source_timestamp
+                    right_stamp_key = right_records.columns[0]  # source_timestamp
+
                 left_records = merge(
                     left_records=left_records,
                     right_records=right_records,
-                    join_left_key=left_key,
-                    join_right_key=right_key,
+                    join_left_key=left_stamp_key,
+                    join_right_key=right_stamp_key,
                     columns=Columns.from_str(
                         left_records.columns + right_records.columns
                     ).column_names,
@@ -215,25 +211,20 @@ class RecordsMerged:
             right_records.rename_columns(rename_rule)
             if left_records.columns[-1] != right_records.columns[0]:
                 raise InvalidRecordsError('left columns[-1] != right columns[0]')
-            # left_key, right_key = _get_merge_key(left_records, right_records)
-            left_key = left_records.columns[-1]
-            right_key = right_records.columns[0]
-            if left_key != right_key:
-                print(f'left_key: {left_key}')
-                print(f'right_key: {right_key}')
-                left_records.drop_columns([left_records.columns[-1]])  # drop empty callback_start 
-                left_key = left_records.columns[-1]  # source_timestamp
-                right_key = right_records.columns[0]  # source_timestamp
-            left_records = merge(
-                left_records=left_records,
-                right_records=right_records,
-                join_left_key=left_key,
-                join_right_key=right_key,
-                columns=Columns.from_str(
-                    left_records.columns + right_records.columns
-                ).column_names,
-                how='left'
-            )
+            if len(right_records.data) != 0:
+                left_records = merge(
+                    left_records=left_records,
+                    right_records=right_records,
+                    join_left_key=left_records.columns[-1],
+                    join_right_key=right_records.columns[-1],
+                    columns=Columns.from_str(
+                        left_records.columns + right_records.columns
+                    ).column_names,
+                    how='left'
+                )
+            else:
+                msg = 'last_callback is None. Use last_callback = False'
+                logger.warn(msg)
 
         logger.info('Finished merging path records.')
         left_records.sort(first_column)

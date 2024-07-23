@@ -888,7 +888,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in records.columns:
             columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
         if COLUMN_NAME.DDS_WRITE_TIMESTAMP in records.columns:
-            columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)    
+            columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
         columns.append(COLUMN_NAME.SOURCE_TIMESTAMP)
         columns.append(COLUMN_NAME.CALLBACK_START_TIMESTAMP)
 
@@ -1291,7 +1291,6 @@ class NodeRecordsUseLatestMessage:
 
     def to_records(self):
         assert self._node_path.subscription is not None and self._node_path.publisher is not None
-        take = False
 
         sub_records = self._provider.subscribe_records(self._node_path.subscription)
         is_take_node = len(sub_records) == 0

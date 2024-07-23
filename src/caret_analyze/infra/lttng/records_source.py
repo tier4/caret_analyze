@@ -401,7 +401,7 @@ class RecordsSource():
         )
 
         return subscribe
-    
+
     @cached_property
     def rmw_take_records(self) -> RecordsInterface:
         rmw_take_records = self._data.rmw_take_instances.clone()
