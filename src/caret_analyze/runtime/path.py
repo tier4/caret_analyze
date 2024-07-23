@@ -157,6 +157,13 @@ class RecordsMerged:
                 right_records)
             right_records.rename_columns(rename_rule)
 
+            if left_records.columns[-1] != right_records.columns[0]:
+                # If right_records[0] is source_timestamp
+                if left_records.columns[-2] == right_records.columns[0]:
+                    left_records.drop_columns([left_records.columns[-1]])
+                else:
+                    raise InvalidRecordsError('left columns[-1] != right columns[0]')
+
             left_stamp_key = left_records.columns[-1]
             right_stamp_key = right_records.columns[0]
 
@@ -187,17 +194,11 @@ class RecordsMerged:
                     how='left_use_latest',
                 )
             else:
-                # if callback_start != source_timestamp
-                if left_stamp_key != right_stamp_key:
-                    left_records.drop_columns([left_records.columns[-1]])
-                    left_stamp_key = left_records.columns[-1]  # source_timestamp
-                    right_stamp_key = right_records.columns[0]  # source_timestamp
-
                 left_records = merge(
                     left_records=left_records,
                     right_records=right_records,
-                    join_left_key=left_stamp_key,
-                    join_right_key=right_stamp_key,
+                    join_left_key=left_records.columns[-1],
+                    join_right_key=right_records.columns[0],
                     columns=Columns.from_str(
                         left_records.columns + right_records.columns
                     ).column_names,
@@ -216,7 +217,7 @@ class RecordsMerged:
                     left_records=left_records,
                     right_records=right_records,
                     join_left_key=left_records.columns[-1],
-                    join_right_key=right_records.columns[-1],
+                    join_right_key=right_records.columns[0],
                     columns=Columns.from_str(
                         left_records.columns + right_records.columns
                     ).column_names,
