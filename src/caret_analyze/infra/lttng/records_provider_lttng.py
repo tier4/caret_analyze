@@ -224,7 +224,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         callback_objects = self._helper.get_subscription_callback_objects(callback)
 
         # callback_objects[0]: inter, callback_objects[1]: intra
-        # subscription -> take implementation must be use inter-proce communication 
+        # subscription -> take implementation must be use inter-proce communication
         sub = self._lttng.data.map_callback_to_sub[callback_objects[0]]
         sub_handle = self._lttng.data.map_sub_to_sub_handle[sub]
         rmw_handle = self._lttng.data.map_sub_hanlde_to_rmw_handle[sub_handle]
