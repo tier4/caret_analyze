@@ -32,7 +32,7 @@ class Ros2DataModel():
         # Objects (one-time events, usually when something is created)
         self.map_callback_to_sub: dict[int, int] = {}
         self.map_sub_to_sub_handle: dict[int, int] = {}
-        self.map_sub_hanlde_to_rmw_handle: dict[int, int] = {}
+        self.map_sub_handle_to_rmw_handle: dict[int, int] = {}
 
         self._contexts = TracePointIntermediateData(
             ['context_handle', 'timestamp', 'pid'])
@@ -309,7 +309,7 @@ class Ros2DataModel():
             'depth': depth,
         }
         self._subscriptions.append(record)
-        self.map_sub_hanlde_to_rmw_handle[handle] = rmw_handle
+        self.map_sub_handle_to_rmw_handle[handle] = rmw_handle
 
     def add_rclcpp_subscription(
         self, subscription_pointer, timestamp, subscription_handle
