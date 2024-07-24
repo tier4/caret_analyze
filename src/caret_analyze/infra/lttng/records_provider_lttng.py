@@ -221,7 +221,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         """
         callback = subscription.callback
-        callback_objects = self._helper.get_subscription_callback_objects(callback)
+        if callback is not None:
+            callback_objects = self._helper.get_subscription_callback_objects(callback)
 
         # callback_objects[0]: inter, callback_objects[1]: intra
         # subscription -> take implementation must be use inter-proce communication
@@ -238,12 +239,13 @@ class RecordsProviderLttng(RuntimeDataProvider):
         rmw_records.drop_columns(drop_columns)
 
         # add prefix to columns; e.g. [topic_name]/source_timestamp
-        self._rename_column(
-            rmw_records,
-            callback.callback_name,
-            subscription.topic_name,
-            None
-        )
+        if callback is not None:
+            self._rename_column(
+                rmw_records,
+                callback.callback_name,
+                subscription.topic_name,
+                None
+            )
         return rmw_records
 
     def _subscribe_records(
