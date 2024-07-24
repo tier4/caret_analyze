@@ -260,7 +260,8 @@ class EventCounter:
                     timer_handle_to_node_name.get(handler, '-')
 
         for handler, row in data.subscriptions.df.iterrows():
-            rmw_handle_to_node_name[row['rmw_handle']] = node_handle_to_node_name[row['node_handle']]
+            rmw_handle_to_node_name[row['rmw_handle']] = \
+                node_handle_to_node_name[row['node_handle']]
             rmw_handle_to_topic_name[row['rmw_handle']] = row['topic_name']
 
         tilde_pub_to_topic_name: dict[int, str] = {}

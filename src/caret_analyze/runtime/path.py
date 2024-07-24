@@ -231,7 +231,8 @@ class RecordsMerged:
         left_records.sort(first_column)
 
         # search drop columns, which contain 'source_timestamp'
-        source_columns = [column for column in left_records.columns if 'source_timestamp' in column]
+        source_columns = \
+            [column for column in left_records.columns if 'source_timestamp' in column]
         left_records.drop_columns(source_columns)
 
         return left_records

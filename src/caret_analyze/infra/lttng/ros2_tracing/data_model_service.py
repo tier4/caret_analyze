@@ -194,7 +194,6 @@ class DataModelService:
         except KeyError:
             return [None]
 
-
     @staticmethod
     def _ensure_dataframe(
         dataframe_or_series: pd.DataFrame | pd.Series
