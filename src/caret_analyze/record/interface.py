@@ -187,6 +187,8 @@ class RecordsInterface:
     To avoid conflicts with the pybind metaclass, ABC is not used.
     """
 
+    time_reversed = True
+
     @abstractmethod
     def equals(self, other: RecordsInterface) -> bool:
         """

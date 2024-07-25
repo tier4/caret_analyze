@@ -117,6 +117,7 @@ class ResponseMap():
 
         """
         self._columns = columns
+        self._time_reversed = True
         new_data = {}
 
         input_min_time = None
@@ -128,6 +129,7 @@ class ResponseMap():
             input_time, output_time = data.get(self.input_column), data.get(self.output_column)
 
             if self._has_reversed_timestamp(data):
+                self._time_reversed = False
                 continue
 
             if input_min_time is None:
