@@ -113,16 +113,18 @@ class LatencyStackedBar:
                                      columns=target_object.column_names)
         # include timestamp of response time (best, worst)
         if self._case == 'all':
-            return response_time.to_all_stacked_bar()
+            record_if = response_time.to_all_stacked_bar()
         elif self._case == 'best':
-            return response_time.to_best_case_stacked_bar()
+            record_if = response_time.to_best_case_stacked_bar()
         elif self._case == 'worst':
-            return response_time.to_worst_case_stacked_bar()
+            record_if = response_time.to_worst_case_stacked_bar()
         elif self._case == 'worst-with-external-latency':
-            return response_time.to_worst_with_external_latency_case_stacked_bar()
+            record_if = response_time.to_worst_with_external_latency_case_stacked_bar()
         else:
             raise ValueError('optional argument "case" must be following: \
                                 "all", "best", "worst", "worst-with-external-latency".')
+        record_if.time_reversed = response_time._records._response_map._time_reversed
+        return record_if
 
     @property
     def target_objects(self) -> Path:

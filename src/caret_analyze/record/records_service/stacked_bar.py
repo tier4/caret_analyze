@@ -267,11 +267,18 @@ class StackedBar:
 
         """
         columns = records.columns
+        series_seq: Sequence[int | None]
         output_dict: dict[str, list[int]] = {}
-        for column in columns:
-            series_seq: Sequence[int | None] = records.get_column_series(column)
-            series_list: list[int] = self._convert_sequence_to_list(series_seq)
-            output_dict[column] = series_list
+        if self._records.time_reversed is False:
+            for column in columns:
+                series_seq = records.get_column_series(column)
+                zero_data = [0] * len(series_seq)
+                output_dict[column] = zero_data
+        else:
+            for column in columns:
+                series_seq = records.get_column_series(column)
+                series_list: list[int] = self._convert_sequence_to_list(series_seq)
+                output_dict[column] = series_list
         return output_dict
 
     @staticmethod
