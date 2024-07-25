@@ -183,17 +183,6 @@ class DataModelService:
         except KeyError:
             return [None]
 
-    def _get_rmw_handle_from_callback_object(
-        self,
-        cb_addr: int
-    ) -> list[str | None]:
-        try:
-            target_df = self._ensure_dataframe(
-                self._data.subscriptions.df.loc[cb_addr, :])
-            return target_df['rmw_handle'].values()[0]
-        except KeyError:
-            return [None]
-
     @staticmethod
     def _ensure_dataframe(
         dataframe_or_series: pd.DataFrame | pd.Series
