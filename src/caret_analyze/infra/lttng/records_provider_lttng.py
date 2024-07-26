@@ -227,9 +227,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         # callback_objects[0]: inter, callback_objects[1]: intra
         # subscription -> take implementation must be use inter-process communication
-        sub = self._lttng.data.map_callback_to_sub[callback_objects[0]]
-        sub_handle = self._lttng.data.map_sub_to_sub_handle[sub]
-        rmw_handle = self._lttng.data.map_sub_handle_to_rmw_handle[sub_handle]
         data_model_srv = DataModelService(self._lttng.data)
 
         rmw_handle = data_model_srv._get_rmw_handle_from_callback_object(callback_objects[0])
