@@ -21,6 +21,7 @@ from logging import getLogger
 from .bridge import LttngBridge
 from .column_names import COLUMN_NAME
 from .lttng import Lttng
+from .ros2_tracing.data_model_service import DataModelService
 from .value_objects import (PublisherValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng)
@@ -229,6 +230,9 @@ class RecordsProviderLttng(RuntimeDataProvider):
         sub = self._lttng.data.map_callback_to_sub[callback_objects[0]]
         sub_handle = self._lttng.data.map_sub_to_sub_handle[sub]
         rmw_handle = self._lttng.data.map_sub_handle_to_rmw_handle[sub_handle]
+        data_model_srv = DataModelService(self._lttng.data)
+
+        rmw_handle = data_model_srv._get_rmw_handle_from_callback_object(callback_objects[0])
 
         # get rmw_records, which relates to callback_object
         rmw_records = self._source._grouped_rmw_records[rmw_handle]

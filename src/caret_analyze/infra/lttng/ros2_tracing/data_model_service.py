@@ -188,9 +188,43 @@ class DataModelService:
         cb_addr: int
     ) -> list[str | None]:
         try:
+            sub = self._get_sub_from_callback_object(cb_addr)
+            sub_handle = self._get_sub_handle_from_sub(sub)
+            rmw_handle = self._get_rmw_handle_from_sub_handle(sub_handle)
+            return rmw_handle
+        except KeyError:
+            return [None]
+
+    def _get_sub_from_callback_object(
+        self,
+        cb_addr: int
+    ) -> str | None:
+        try:
             target_df = self._ensure_dataframe(
-                self._data.subscriptions.df.loc[cb_addr, :])
-            return target_df['rmw_handle'].values()[0]
+                self._data.callback_objects.df.reset_index()[['reference', 'callback_object']])
+            return target_df[target_df['callback_object']==cb_addr]['reference'].values[0]
+        except KeyError:
+            return [None]
+
+    def _get_sub_handle_from_sub(
+        self,
+        subscription: int
+    ) -> str | None:
+        try:
+            target_df = self._ensure_dataframe(
+                self._data.subscription_objects.df.reset_index()[['subscription', 'subscription_handle']])
+            return target_df[target_df['subscription']==subscription]['subscription_handle'].values[0]
+        except KeyError:
+            return [None]
+
+    def _get_rmw_handle_from_sub_handle(
+        self,
+        subscription_handle: int
+    ) -> str | None:
+        try:
+            target_df = self._ensure_dataframe(
+                self._data.subscriptions.df.reset_index()[['subscription_handle', 'rmw_handle']])
+            return target_df[target_df['subscription_handle']==subscription_handle]['rmw_handle'].values[0]
         except KeyError:
             return [None]
 
