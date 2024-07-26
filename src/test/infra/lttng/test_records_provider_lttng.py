@@ -24,6 +24,8 @@ from caret_analyze.infra.lttng.records_provider_lttng import (FilteredRecordsSou
                                                               NodeRecordsUseLatestMessage,
                                                               RecordsProviderLttng,
                                                               RecordsProviderLttngHelper)
+from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
+from caret_analyze.infra.lttng.ros2_tracing.data_model_service import DataModelService
 from caret_analyze.infra.lttng.value_objects import (PublisherValueLttng,
                                                      SubscriptionCallbackValueLttng,
                                                      TimerCallbackValueLttng)
@@ -80,7 +82,56 @@ class TestRecordsProviderLttng:
         assert records == records_mock
 
     def test_subscription_take_records(self, mocker):
-        assert True
+
+        records_mock = mocker.Mock(spec=RecordsInterface)
+
+        def _rename_column(records, callback_name, topic_name, node_name):
+            return records
+        mocker.patch.object(
+            RecordsProviderLttng, '_rename_column', side_effect=_rename_column)
+
+        def _format(records, columns):
+            return records
+
+        mocker.patch.object(
+            RecordsProviderLttng, '_format', side_effect=_format)
+
+        lttng_mock = mocker.Mock(spec=Lttng)
+
+        ros2datamodel_mock = mocker.Mock(spec=Ros2DataModel)
+        # ros2datamodel_mock.map_callback_to_sub = {1: 2}
+        # ros2datamodel_mock.map_sub_to_sub_handle = {2: 4}
+        # ros2datamodel_mock.map_sub_handle_to_rmw_handle = {4, 5}
+        # mocker.patch('caret_analyze.infra.lttng.ros2_tracing.data_model.Ros2DataModel',
+        #              return_value=ros2datamodel_mock)
+
+        # mocker.patch.object(lttng_mock, 'data', return_value=ros2datamodel_mock)
+        lttng_mock.data = ros2datamodel_mock
+
+        helper_mock = mocker.Mock(spec=RecordsProviderLttngHelper)
+        mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.RecordsProviderLttngHelper',
+                     return_value=helper_mock)
+
+        callback_objects = (1, None)
+        mocker.patch.object(helper_mock, 'get_subscription_callback_objects', return_value=callback_objects)
+
+        data_model_srv_mock = mocker.Mock(spec=DataModelService)
+        mocker.patch('caret_analyze.infra.lttng.ros2_tracing.data_model_service.DataModelService', \
+            return_value=data_model_srv_mock)
+        mocker.patch.object(data_model_srv_mock, '_get_rmw_handle_from_callback_object', return_value=['10',])
+
+        source_mock = mocker.Mock(spec=FilteredRecordsSource)
+        mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.FilteredRecordsSource',
+                     return_value=source_mock)
+
+        records_mock = mocker.Mock(spec=RecordsInterface)
+
+        mocker.patch.object(source_mock, '_grouped_rmw_records', records_mock)
+
+        subscription_mock = mocker.Mock(spec=SubscriptionStructValue)
+        provider = RecordsProviderLttng(lttng_mock)
+        records = provider.subscription_take_records(subscription_mock)
+
 
     def test_node_records_callback_chain(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
