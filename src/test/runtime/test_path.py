@@ -573,3 +573,94 @@ class TestRecordsMerged:
             ]
         )
         assert records.equals(expected)
+
+    def test_take_impl_case(self, mocker):
+        comm_path = mocker.Mock(spec=Communication)
+        mocker.patch.object(
+            comm_path, 'to_records',
+            return_value=RecordsCppImpl(
+                [
+                    RecordCppImpl({
+                        'rclcpp_publish_timestamp': 0,
+                        'rcl_publish_timestamp': 1,
+                        'dds_write_timestamp': 2,
+                        'source_timestamp': 3,
+                    }),
+                ],
+                [
+                    ColumnValue('rclcpp_publish_timestamp'),
+                    ColumnValue('rcl_publish_timestamp'),
+                    ColumnValue('dds_write_timestamp'),
+                    ColumnValue('source_timestamp'),
+                    ColumnValue('callback_start_timestamp'),
+                ]
+            )
+        )
+
+        node_path = mocker.Mock(spec=NodePath)
+        mocker.patch.object(
+            node_path, 'to_records',
+            return_value=RecordsCppImpl(
+                [
+                    RecordCppImpl({
+                        'source_timestamp': 3,
+                        'rclcpp_publish_timestamp': 4,
+                    }),
+                ],
+                [
+                    ColumnValue('source_timestamp'),
+                    ColumnValue('rclcpp_publish_timestamp'),
+                ]
+            )
+        )
+
+        merger_mock = mocker.Mock(spec=ColumnMerger)
+        mocker.patch('caret_analyze.runtime.path.ColumnMerger',
+                     return_value=merger_mock)
+
+        def append_columns_and_return_rename_rule(records):
+            if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
+                return {
+                        'rclcpp_publish_timestamp': 'rclcpp_publish_timestamp/0',
+                        'rcl_publish_timestamp': 'rcl_publish_timestamp/0',
+                        'dds_write_timestamp': 'dds_write_timestamp/0',
+                        'source_timestamp': 'source_timestamp/0',
+                        }
+            if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
+                return {
+                        'source_timestamp': 'source_timestamp/0',
+                        'rclcpp_publish_timestamp': 'rclcpp_publish_timestamp/1',
+                }
+        mocker.patch.object(
+            merger_mock, 'append_columns_and_return_rename_rule',
+            side_effect=append_columns_and_return_rename_rule)
+
+        merged = RecordsMerged([comm_path, node_path])
+        records = merged.data
+
+        expected = RecordsCppImpl(
+            [
+                RecordCppImpl({
+                    'rclcpp_publish_timestamp/0': 0,
+                    'rcl_publish_timestamp/0': 1,
+                    'dds_write_timestamp/0': 2,
+                    'rclcpp_publish_timestamp/1': 4,
+                }),
+            ],
+            [
+                ColumnValue('rclcpp_publish_timestamp/0'),
+                ColumnValue('rcl_publish_timestamp/0'),
+                ColumnValue('dds_write_timestamp/0'),
+                ColumnValue('rclcpp_publish_timestamp/1'),
+            ]
+        )
+
+        assert records.equals(expected)
+
+
+
+
+
+
+
+
