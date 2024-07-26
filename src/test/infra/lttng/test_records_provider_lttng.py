@@ -384,7 +384,101 @@ class TestRecordsProviderLttngHelper:
         assert pub_handles == [pub_handle]
 
 class TestNodeRecordsUseLatestMessage:
-    def test_has_not_callback_start(self, mocker):
+    def test_data_normal_flow(self, mocker):
+        provider_mock = mocker.Mock(spec=RecordsProviderLttng)
+        node_path_mock = mocker.Mock(spec=NodePathStructValue)
+
+        use_latest_message = mocker.Mock(spec=UseLatestMessage)
+        mocker.patch.object(node_path_mock, 'message_context', use_latest_message)
+
+        def noop(*args, **kwargs):
+            pass
+        mocker.patch.object(NodeRecordsUseLatestMessage, '_validate', noop)
+
+        records_data: list[RecordInterface]
+        records_data = [
+            RecordCppImpl({
+                COLUMN_NAME.CALLBACK_START_TIMESTAMP: 1,
+                COLUMN_NAME.SOURCE_TIMESTAMP: 2,
+            }),
+            RecordCppImpl({
+                COLUMN_NAME.CALLBACK_START_TIMESTAMP: 6,
+                COLUMN_NAME.SOURCE_TIMESTAMP: 7,
+            }),
+        ]
+        sub_records = RecordsCppImpl(
+            records_data,
+            [
+                ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
+            ]
+        )
+        mocker.patch.object(provider_mock, 'subscribe_records', return_value=sub_records)
+
+        records_data: list[RecordInterface]
+        pub_records_data = [
+            RecordCppImpl({
+                COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: 3,
+                COLUMN_NAME.RCL_PUBLISH_TIMESTAMP: 4,
+                COLUMN_NAME.DDS_WRITE_TIMESTAMP: 5,
+                COLUMN_NAME.MESSAGE_TIMESTAMP: 6,
+                COLUMN_NAME.SOURCE_TIMESTAMP: 7,
+            }),
+            RecordCppImpl({
+                COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: 8,
+                COLUMN_NAME.RCL_PUBLISH_TIMESTAMP: 9,
+                COLUMN_NAME.DDS_WRITE_TIMESTAMP: 10,
+                COLUMN_NAME.MESSAGE_TIMESTAMP: 11,
+                COLUMN_NAME.SOURCE_TIMESTAMP: 12,
+            }),
+        ]
+        pub_records = RecordsCppImpl(
+            pub_records_data,
+            [
+            ColumnValue(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
+            ColumnValue(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP),
+            ColumnValue(COLUMN_NAME.DDS_WRITE_TIMESTAMP),
+            ColumnValue(COLUMN_NAME.MESSAGE_TIMESTAMP),
+            ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
+            ]
+        )
+        pub_records.rename_columns({
+            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: \
+                f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'})
+
+        mocker.patch.object(provider_mock, 'publish_records', return_value=pub_records)
+        mocker.patch.object(node_path_mock, 'publish_topic_name', '')
+
+        node_records = NodeRecordsUseLatestMessage(provider_mock, node_path_mock)
+        records = node_records.to_records()
+
+        expect_data = [
+            RecordCppImpl({
+                COLUMN_NAME.CALLBACK_START_TIMESTAMP: 1,
+                COLUMN_NAME.SOURCE_TIMESTAMP: 2,
+                COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: 3,
+            }),
+            RecordCppImpl({
+                COLUMN_NAME.CALLBACK_START_TIMESTAMP: 6,
+                COLUMN_NAME.SOURCE_TIMESTAMP: 7,
+                COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: 8,
+            }),
+        ]
+        expect_records = RecordsCppImpl(
+            expect_data,
+            [
+                ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
+            ]
+        )
+        expect_records.rename_columns({
+            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: \
+                f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'})
+        records.equals(expect_records)
+
+    # When node is implemented with subscription->take
+    def test_data_has_not_callback_start(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProviderLttng)
         node_path_mock = mocker.Mock(spec=NodePathStructValue)
 
@@ -442,16 +536,16 @@ class TestNodeRecordsUseLatestMessage:
                 COLUMN_NAME.SOURCE_TIMESTAMP: 12,
             }),
         ]
-        pub_records_columns = [
+
+        pub_records = RecordsCppImpl(
+            pub_records_data,
+            [
             ColumnValue(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
             ColumnValue(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP),
             ColumnValue(COLUMN_NAME.DDS_WRITE_TIMESTAMP),
             ColumnValue(COLUMN_NAME.MESSAGE_TIMESTAMP),
             ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
             ]
-        pub_records = RecordsCppImpl(
-            pub_records_data,
-            pub_records_columns
         )
         pub_records.rename_columns({
             COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: \
