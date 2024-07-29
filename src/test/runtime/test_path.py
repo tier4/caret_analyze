@@ -657,10 +657,94 @@ class TestRecordsMerged:
 
         assert records.equals(expected)
 
+    def test_take_imple_case_include_first_callback(self, mocker):
+        node_path =mocker.Mock(spec=NodePath)
+        mocker.patch.object(
+            node_path, 'to_records',
+            return_value=RecordsCppImpl()
+        )
+        mocker.patch.object(
+            node_path, 'to_path_beginning_records',
+            return_value=RecordsCppImpl(
+                [
+                    RecordCppImpl({
+                        'callback_start_timestamp': 0,
+                        'rclcpp_publish_timestamp': 1,
+                    }),
+                ],
+                [
+                    ColumnValue('callback_start_timestamp'),
+                    ColumnValue('rclcpp_publish_timestamp'),
+                ]
+            )
+        )
 
+        comm_path = mocker.Mock(spec=Communication)
+        mocker.patch.object(
+            comm_path, 'to_records',
+            return_value=RecordsCppImpl(
+                [
+                    RecordCppImpl({
+                        'rclcpp_publish_timestamp': 1,
+                        'rcl_publish_timestamp': 2,
+                        'dds_write_timestamp': 3,
+                        'source_timestamp': 4,
+                        'callback_start_timestamp': 5
+                    }),
+                ],
+                [
+                    ColumnValue('rclcpp_publish_timestamp'),
+                    ColumnValue('rcl_publish_timestamp'),
+                    ColumnValue('dds_write_timestamp'),
+                    ColumnValue('source_timestamp'),
+                    ColumnValue('callback_start_timestamp'),
+                ]
+            )
+        )
 
+        merger_mock = mocker.Mock(spec=ColumnMerger)
+        mocker.patch('caret_analyze.runtime.path.ColumnMerger',
+                     return_value=merger_mock)
 
+        def append_columns_and_return_rename_rule(records):
+            if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
+                return {
+                        'callback_start_timestamp': 'callback_start_timestamp/0',
+                        'rclcpp_publish_timestamp': 'rclcpp_publish_timestamp/0',
+                }
+            if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
+                return {
+                        'rclcpp_publish_timestamp': 'rclcpp_publish_timestamp/0',
+                        'rcl_publish_timestamp': 'rcl_publish_timestamp/0',
+                        'dds_write_timestamp': 'dds_write_timestamp/0',
+                        'source_timestamp': 'source_timestamp/0',
+                        'callback_start_timestamp': 'callback_start_timestamp/1',
+                        }
+        mocker.patch.object(
+            merger_mock, 'append_columns_and_return_rename_rule',
+            side_effect=append_columns_and_return_rename_rule)
 
+        merged = RecordsMerged([node_path, comm_path], include_first_callback=True)
+        records = merged.data
 
+        expected = RecordsCppImpl(
+            [
+                RecordCppImpl({
+                    'callback_start_timestamp/0': 0,
+                    'rclcpp_publish_timestamp/0': 1,
+                    'rcl_publish_timestamp/0': 2,
+                    'dds_write_timestamp/0': 3,
+                    'callback_start_timestamp/1': 5,
 
+                }),
+            ],
+            [
+                ColumnValue('callback_start_timestamp/0'),
+                ColumnValue('rclcpp_publish_timestamp/0'),
+                ColumnValue('rcl_publish_timestamp/0'),
+                ColumnValue('dds_write_timestamp/0'),
+                ColumnValue('callback_start_timestamp/1'),
+            ]
+        )
 
+        assert records.equals(expected)
