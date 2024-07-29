@@ -99,13 +99,7 @@ class TestRecordsProviderLttng:
         lttng_mock = mocker.Mock(spec=Lttng)
 
         ros2datamodel_mock = mocker.Mock(spec=Ros2DataModel)
-        # ros2datamodel_mock.map_callback_to_sub = {1: 2}
-        # ros2datamodel_mock.map_sub_to_sub_handle = {2: 4}
-        # ros2datamodel_mock.map_sub_handle_to_rmw_handle = {4, 5}
-        # mocker.patch('caret_analyze.infra.lttng.ros2_tracing.data_model.Ros2DataModel',
-        #              return_value=ros2datamodel_mock)
 
-        # mocker.patch.object(lttng_mock, 'data', return_value=ros2datamodel_mock)
         lttng_mock.data = ros2datamodel_mock
 
         helper_mock = mocker.Mock(spec=RecordsProviderLttngHelper)
@@ -116,22 +110,52 @@ class TestRecordsProviderLttng:
         mocker.patch.object(helper_mock, 'get_subscription_callback_objects', return_value=callback_objects)
 
         data_model_srv_mock = mocker.Mock(spec=DataModelService)
-        mocker.patch('caret_analyze.infra.lttng.ros2_tracing.data_model_service.DataModelService', \
+        mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.DataModelService', \
             return_value=data_model_srv_mock)
-        mocker.patch.object(data_model_srv_mock, '_get_rmw_handle_from_callback_object', return_value=['10',])
+        mocker.patch.object(data_model_srv_mock, '_get_rmw_handle_from_callback_object', return_value=0)
 
         source_mock = mocker.Mock(spec=FilteredRecordsSource)
         mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.FilteredRecordsSource',
                      return_value=source_mock)
 
-        records_mock = mocker.Mock(spec=RecordsInterface)
-
-        mocker.patch.object(source_mock, '_grouped_rmw_records', records_mock)
+        records_mock = RecordsCppImpl(
+            [
+                RecordCppImpl(
+                    {
+                    COLUMN_NAME.TID: 2,
+                    COLUMN_NAME.RMW_TAKE_TIMESTAMP: 3,
+                    COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE: 4,
+                    COLUMN_NAME.MESSAGE: 5,
+                    COLUMN_NAME.SOURCE_TIMESTAMP: 6,
+                    },
+                )
+            ],
+            [
+            ColumnValue(COLUMN_NAME.TID),
+            ColumnValue(COLUMN_NAME.RMW_TAKE_TIMESTAMP),
+            ColumnValue(COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE),
+            ColumnValue(COLUMN_NAME.MESSAGE),
+            ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
+            ]
+        )
+        source_mock._grouped_rmw_records = [records_mock, ]
 
         subscription_mock = mocker.Mock(spec=SubscriptionStructValue)
         provider = RecordsProviderLttng(lttng_mock)
         records = provider.subscription_take_records(subscription_mock)
 
+        expected = RecordsCppImpl(
+            [
+                RecordCppImpl(
+                    {
+                    COLUMN_NAME.SOURCE_TIMESTAMP: 6,
+                    },
+                )
+            ],
+            [ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP), ]
+        )
+
+        records.equals(expected)
 
     def test_node_records_callback_chain(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
