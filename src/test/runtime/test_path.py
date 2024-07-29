@@ -657,7 +657,7 @@ class TestRecordsMerged:
 
         assert records.equals(expected)
 
-    def test_take_imple_case_include_first_callback(self, mocker):
+    def test_take_impl_case_include_first_callback(self, mocker):
         node_path =mocker.Mock(spec=NodePath)
         mocker.patch.object(
             node_path, 'to_records',

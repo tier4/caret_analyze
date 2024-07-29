@@ -98,9 +98,9 @@ class TestRecordsProviderLttng:
 
         lttng_mock = mocker.Mock(spec=Lttng)
 
-        ros2datamodel_mock = mocker.Mock(spec=Ros2DataModel)
+        data_model_mock = mocker.Mock(spec=Ros2DataModel)
 
-        lttng_mock.data = ros2datamodel_mock
+        lttng_mock.data = data_model_mock
 
         helper_mock = mocker.Mock(spec=RecordsProviderLttngHelper)
         mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.RecordsProviderLttngHelper',
