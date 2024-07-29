@@ -107,12 +107,14 @@ class TestRecordsProviderLttng:
                      return_value=helper_mock)
 
         callback_objects = (1, None)
-        mocker.patch.object(helper_mock, 'get_subscription_callback_objects', return_value=callback_objects)
+        mocker.patch.object(helper_mock, 'get_subscription_callback_objects',
+                            return_value=callback_objects)
 
         data_model_srv_mock = mocker.Mock(spec=DataModelService)
-        mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.DataModelService', \
-            return_value=data_model_srv_mock)
-        mocker.patch.object(data_model_srv_mock, '_get_rmw_handle_from_callback_object', return_value=0)
+        mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.DataModelService',
+                     return_value=data_model_srv_mock)
+        mocker.patch.object(data_model_srv_mock,
+                            '_get_rmw_handle_from_callback_object', return_value=0)
 
         source_mock = mocker.Mock(spec=FilteredRecordsSource)
         mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.FilteredRecordsSource',
@@ -122,20 +124,20 @@ class TestRecordsProviderLttng:
             [
                 RecordCppImpl(
                     {
-                    COLUMN_NAME.TID: 2,
-                    COLUMN_NAME.RMW_TAKE_TIMESTAMP: 3,
-                    COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE: 4,
-                    COLUMN_NAME.MESSAGE: 5,
-                    COLUMN_NAME.SOURCE_TIMESTAMP: 6,
+                        COLUMN_NAME.TID: 2,
+                        COLUMN_NAME.RMW_TAKE_TIMESTAMP: 3,
+                        COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE: 4,
+                        COLUMN_NAME.MESSAGE: 5,
+                        COLUMN_NAME.SOURCE_TIMESTAMP: 6,
                     },
                 )
             ],
             [
-            ColumnValue(COLUMN_NAME.TID),
-            ColumnValue(COLUMN_NAME.RMW_TAKE_TIMESTAMP),
-            ColumnValue(COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE),
-            ColumnValue(COLUMN_NAME.MESSAGE),
-            ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.TID),
+                ColumnValue(COLUMN_NAME.RMW_TAKE_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE),
+                ColumnValue(COLUMN_NAME.MESSAGE),
+                ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
             ]
         )
         source_mock._grouped_rmw_records = [records_mock, ]
@@ -148,7 +150,7 @@ class TestRecordsProviderLttng:
             [
                 RecordCppImpl(
                     {
-                    COLUMN_NAME.SOURCE_TIMESTAMP: 6,
+                        COLUMN_NAME.SOURCE_TIMESTAMP: 6,
                     },
                 )
             ],
@@ -458,7 +460,9 @@ class TestRecordsProviderLttngHelper:
         pub_handles = helper.get_publisher_handles(pub_info_mock)
         assert pub_handles == [pub_handle]
 
+
 class TestNodeRecordsUseLatestMessage:
+
     def test_data_normal_flow(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProviderLttng)
         node_path_mock = mocker.Mock(spec=NodePathStructValue)
@@ -510,16 +514,18 @@ class TestNodeRecordsUseLatestMessage:
         pub_records = RecordsCppImpl(
             pub_records_data,
             [
-            ColumnValue(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
-            ColumnValue(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP),
-            ColumnValue(COLUMN_NAME.DDS_WRITE_TIMESTAMP),
-            ColumnValue(COLUMN_NAME.MESSAGE_TIMESTAMP),
-            ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.DDS_WRITE_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.MESSAGE_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
             ]
         )
         pub_records.rename_columns({
-            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: \
-                f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'})
+            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: (
+                f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'
+                )
+            })
 
         mocker.patch.object(provider_mock, 'publish_records', return_value=pub_records)
         mocker.patch.object(node_path_mock, 'publish_topic_name', '')
@@ -548,8 +554,10 @@ class TestNodeRecordsUseLatestMessage:
             ]
         )
         expect_records.rename_columns({
-            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: \
-                f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'})
+            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: (
+                f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'
+                )
+            })
         records.equals(expect_records)
 
     # When node is implemented with subscription->take
@@ -592,7 +600,7 @@ class TestNodeRecordsUseLatestMessage:
             ]
         )
 
-        mocker.patch.object(provider_mock,'subscription_take_records', return_value=take_records)
+        mocker.patch.object(provider_mock, 'subscription_take_records', return_value=take_records)
 
         records_data: list[RecordInterface]
         pub_records_data = [
@@ -615,16 +623,18 @@ class TestNodeRecordsUseLatestMessage:
         pub_records = RecordsCppImpl(
             pub_records_data,
             [
-            ColumnValue(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
-            ColumnValue(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP),
-            ColumnValue(COLUMN_NAME.DDS_WRITE_TIMESTAMP),
-            ColumnValue(COLUMN_NAME.MESSAGE_TIMESTAMP),
-            ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.DDS_WRITE_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.MESSAGE_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
             ]
         )
         pub_records.rename_columns({
-            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: \
-                f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'})
+            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: (
+                f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'
+                )
+            })
 
         mocker.patch.object(provider_mock, 'publish_records', return_value=pub_records)
         mocker.patch.object(node_path_mock, 'publish_topic_name', '')
@@ -650,9 +660,12 @@ class TestNodeRecordsUseLatestMessage:
             ]
         )
         expect_records.rename_columns({
-            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: \
-                f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'})
+            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: (
+                f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'
+            )
+        })
         records.equals(expect_records)
+
 
 class TestNodeRecordsCallbackChain:
 

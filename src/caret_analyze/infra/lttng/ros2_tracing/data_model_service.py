@@ -202,7 +202,7 @@ class DataModelService:
         try:
             target_df = self._ensure_dataframe(
                 self._data.callback_objects.df.reset_index()[['reference', 'callback_object']])
-            return target_df[target_df['callback_object']==cb_addr]['reference'].values[0]
+            return target_df[target_df['callback_object'] == cb_addr]['reference'].values[0]
         except KeyError:
             return [None]
 
@@ -212,8 +212,13 @@ class DataModelService:
     ) -> str | None:
         try:
             target_df = self._ensure_dataframe(
-                self._data.subscription_objects.df.reset_index()[['subscription', 'subscription_handle']])
-            return target_df[target_df['subscription']==subscription]['subscription_handle'].values[0]
+                self._data.subscription_objects.df.reset_index()[
+                        ['subscription', 'subscription_handle']
+                    ]
+                )
+            return target_df[target_df['subscription'] == subscription][
+                    'subscription_handle'
+                ].values[0]
         except KeyError:
             return [None]
 
@@ -224,7 +229,9 @@ class DataModelService:
         try:
             target_df = self._ensure_dataframe(
                 self._data.subscriptions.df.reset_index()[['subscription_handle', 'rmw_handle']])
-            return target_df[target_df['subscription_handle']==subscription_handle]['rmw_handle'].values[0]
+            return target_df[
+                    target_df['subscription_handle'] == subscription_handle
+                ]['rmw_handle'].values[0]
         except KeyError:
             return [None]
 
