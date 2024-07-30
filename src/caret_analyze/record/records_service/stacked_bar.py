@@ -269,11 +269,9 @@ class StackedBar:
         columns = records.columns
         series_seq: Sequence[int | None]
         output_dict: dict[str, list[int]] = {}
-        if self._records.time_reversed is False:
+        if self._records._has_invalid_timestamps() is True:
             for column in columns:
-                series_seq = records.get_column_series(column)
-                zero_data = [0] * len(series_seq)
-                output_dict[column] = zero_data
+                output_dict[column] = []
         else:
             for column in columns:
                 series_seq = records.get_column_series(column)

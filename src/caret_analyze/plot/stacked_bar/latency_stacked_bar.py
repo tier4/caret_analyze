@@ -123,7 +123,7 @@ class LatencyStackedBar:
         else:
             raise ValueError('optional argument "case" must be following: \
                                 "all", "best", "worst", "worst-with-external-latency".')
-        record_if.time_reversed = response_time._records._response_map._time_reversed
+        record_if.time_reversed = response_time._has_invalid_timestamps()
         return record_if
 
     @property
