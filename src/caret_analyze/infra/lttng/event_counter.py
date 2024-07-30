@@ -241,6 +241,9 @@ class EventCounter:
             sub_handle_to_node_name[handler] = \
                 node_handle_to_node_name.get(row['node_handle'], '-')
             sub_handle_to_topic_name[handler] = row['topic_name']
+            rmw_handle_to_node_name[row['rmw_handle']] = \
+                node_handle_to_node_name[row['node_handle']]
+            rmw_handle_to_topic_name[row['rmw_handle']] = row['topic_name']
 
         for handler, row in data.timer_node_links.df.iterrows():
             timer_handle_to_node_name[handler] = \
@@ -258,11 +261,6 @@ class EventCounter:
             elif handler in timer_handle_to_node_name:
                 timer_cb_to_node_name[row['callback_object']] = \
                     timer_handle_to_node_name.get(handler, '-')
-
-        for handler, row in data.subscriptions.df.iterrows():
-            rmw_handle_to_node_name[row['rmw_handle']] = \
-                node_handle_to_node_name[row['node_handle']]
-            rmw_handle_to_topic_name[row['rmw_handle']] = row['topic_name']
 
         tilde_pub_to_topic_name: dict[int, str] = {}
         tilde_pub_to_node_name: dict[int, str] = {}
