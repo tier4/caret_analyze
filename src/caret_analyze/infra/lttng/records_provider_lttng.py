@@ -833,6 +833,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             Columns
 
             - [topic_name]/rclcpp_publish_timestamp
+            - [topic_name]/source_timestamp
             - [callback_name]/callback_start_timestamp
 
         """
