@@ -222,10 +222,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/source_timestamp
             - [topic_name]/rmw_take
 
-        Raises
-        ------
-        InvalidArgumentError
-
         """
         callback = subscription.callback
         if callback is not None:
