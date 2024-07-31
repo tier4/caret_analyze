@@ -22,6 +22,7 @@ from logging import getLogger, Logger
 import pandas as pd
 
 from .data_model import Ros2DataModel
+from ....exceptions import InvalidArgumentError
 
 
 logger = getLogger(__name__)
@@ -202,7 +203,11 @@ class DataModelService:
         try:
             target_df = self._ensure_dataframe(
                 self._data.callback_objects.df.reset_index()[['reference', 'callback_object']])
-            return target_df[target_df['callback_object'] == cb_addr]['reference'].values[0]
+            sub = target_df[target_df['callback_object'] == cb_addr]['reference'].values
+            if len(sub) == 1:
+                return sub[0]
+            else:
+                raise InvalidArgumentError('len(sub) != 1')
         except KeyError:
             return [None]
 
@@ -216,9 +221,13 @@ class DataModelService:
                         ['subscription', 'subscription_handle']
                     ]
                 )
-            return target_df[target_df['subscription'] == subscription][
+            sub_handle = target_df[target_df['subscription'] == subscription][
                     'subscription_handle'
-                ].values[0]
+                ].values
+            if len(sub_handle) == 1:
+                return sub_handle[0]
+            else:
+                raise InvalidArgumentError('len(sub_handle) != 1')
         except KeyError:
             return [None]
 
@@ -229,9 +238,13 @@ class DataModelService:
         try:
             target_df = self._ensure_dataframe(
                 self._data.subscriptions.df.reset_index()[['subscription_handle', 'rmw_handle']])
-            return target_df[
-                    target_df['subscription_handle'] == subscription_handle
-                ]['rmw_handle'].values[0]
+            rmw_handle = target_df[
+                target_df['subscription_handle'] == subscription_handle
+                ]['rmw_handle'].values
+            if len(rmw_handle) == 1:
+                return rmw_handle[0]
+            else:
+                raise InvalidArgumentError('len(rmw_handle) != 1')
         except KeyError:
             return [None]
 
