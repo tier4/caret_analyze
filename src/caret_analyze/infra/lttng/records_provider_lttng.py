@@ -220,6 +220,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             Columns
 
             - [topic_name]/source_timestamp
+            - [topic_name]/rmw_take
 
         Raises
         ------
@@ -241,7 +242,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         # drop columns
         columns = rmw_records.columns
-        drop_columns = list(set(columns) - {'source_timestamp'})
+        drop_columns = list(set(columns) - {'source_timestamp', 'rmw_take_timestamp'})
         rmw_records.drop_columns(drop_columns)
 
         # add prefix to columns; e.g. [topic_name]/source_timestamp
@@ -1305,17 +1306,23 @@ class NodeRecordsUseLatestMessage:
         is_take_node = len(sub_records) == 0
         if is_take_node:
             sub_records = self._provider.subscription_take_records(self._node_path.subscription)
+            # TODO: Currently, pub_records and sub_records are being joined by source_timestamp.
+            # If possible, use rmw_take as the key.
         pub_records = self._provider.publish_records(self._node_path.publisher)
 
         columns = [
             *sub_records.columns,
             f'{self._node_path.publish_topic_name}/rclcpp_publish_timestamp',
         ]
+        left_key_index = 0
+        if 'rmw_take_timestamp' in columns:
+            columns.remove('rmw_take_timestamp')
+            left_key_index = -1
 
         pub_sub_records = merge_sequential(
             left_records=sub_records,
             right_records=pub_records,
-            left_stamp_key=sub_records.columns[0],
+            left_stamp_key=sub_records.columns[left_key_index],
             right_stamp_key=pub_records.columns[0],
             join_left_key=None,
             join_right_key=None,

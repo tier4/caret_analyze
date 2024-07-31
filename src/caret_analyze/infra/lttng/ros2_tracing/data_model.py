@@ -209,10 +209,10 @@ class Ros2DataModel():
             None,
             columns=[
                 ColumnValue('tid'),
+                ColumnValue('source_timestamp'),
                 ColumnValue('rmw_take_timestamp'),
                 ColumnValue('rmw_subscription_handle'),
-                ColumnValue('message'),
-                ColumnValue('source_timestamp')
+                ColumnValue('message')
             ]
         )
         self.dispatch_intra_process_subscription_callback_instances = \
