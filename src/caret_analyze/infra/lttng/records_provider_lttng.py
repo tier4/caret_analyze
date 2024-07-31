@@ -227,8 +227,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
         if callback is not None:
             callback_objects = self._helper.get_subscription_callback_objects(callback)
 
-        # callback_objects[0]: inter, callback_objects[1]: intra
-        # subscription -> take implementation must be use inter-process communication
         data_model_srv = DataModelService(self._lttng.data)
 
         rmw_handle = data_model_srv._get_rmw_handle_from_callback_object(callback_objects[0])
