@@ -1314,15 +1314,15 @@ class NodeRecordsUseLatestMessage:
             *sub_records.columns,
             f'{self._node_path.publish_topic_name}/rclcpp_publish_timestamp',
         ]
-        left_key_index = 0
+        left_key = sub_records.columns[0]
         if 'rmw_take_timestamp' in columns:
             columns.remove('rmw_take_timestamp')
-            left_key_index = -1
+            left_key = 'rmw_take_timestamp'
 
         pub_sub_records = merge_sequential(
             left_records=sub_records,
             right_records=pub_records,
-            left_stamp_key=sub_records.columns[left_key_index],
+            left_stamp_key=left_key,
             right_stamp_key=pub_records.columns[0],
             join_left_key=None,
             join_right_key=None,
