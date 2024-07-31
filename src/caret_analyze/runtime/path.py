@@ -157,12 +157,10 @@ class RecordsMerged:
                 right_records)
             right_records.rename_columns(rename_rule)
 
+            if 'source_timestamp' in right_records.columns[0]:
+                left_records.drop_columns([left_records.columns[-1]])
             if left_records.columns[-1] != right_records.columns[0]:
-                # If right_records[0] is source_timestamp
-                if left_records.columns[-2] == right_records.columns[0]:
-                    left_records.drop_columns([left_records.columns[-1]])
-                else:
-                    raise InvalidRecordsError('left columns[-1] != right columns[0]')
+                raise InvalidRecordsError('left columns[-1] != right columns[0]')
 
             left_stamp_key = left_records.columns[-1]
             right_stamp_key = right_records.columns[0]
