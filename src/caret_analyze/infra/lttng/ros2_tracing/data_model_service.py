@@ -187,19 +187,24 @@ class DataModelService:
     def _get_rmw_handle_from_callback_object(
         self,
         cb_addr: int
-    ) -> list[str | None]:
+    ) -> int | None:
         try:
             sub = self._get_sub_from_callback_object(cb_addr)
-            sub_handle = self._get_sub_handle_from_sub(sub)
-            rmw_handle = self._get_rmw_handle_from_sub_handle(sub_handle)
-            return rmw_handle
+            if sub is not None:
+                sub_handle = self._get_sub_handle_from_sub(sub)
+            if sub_handle is not None:
+                rmw_handle = self._get_rmw_handle_from_sub_handle(sub_handle)
+            if rmw_handle is not None:
+                return rmw_handle
+            else:
+                return None
         except KeyError:
-            return [None]
+            return None
 
     def _get_sub_from_callback_object(
         self,
         cb_addr: int
-    ) -> str | None:
+    ) -> int | None:
         try:
             target_df = self._ensure_dataframe(
                 self._data.callback_objects.df.reset_index()[['reference', 'callback_object']])
@@ -209,12 +214,12 @@ class DataModelService:
             else:
                 raise InvalidArgumentError('len(sub) != 1')
         except KeyError:
-            return [None]
+            return None
 
     def _get_sub_handle_from_sub(
         self,
         subscription: int
-    ) -> str | None:
+    ) -> int | None:
         try:
             target_df = self._ensure_dataframe(
                 self._data.subscription_objects.df.reset_index()[
@@ -229,12 +234,12 @@ class DataModelService:
             else:
                 raise InvalidArgumentError('len(sub_handle) != 1')
         except KeyError:
-            return [None]
+            return None
 
     def _get_rmw_handle_from_sub_handle(
         self,
         subscription_handle: int
-    ) -> str | None:
+    ) -> int | None:
         try:
             target_df = self._ensure_dataframe(
                 self._data.subscriptions.df.reset_index()[['subscription_handle', 'rmw_handle']])
@@ -246,7 +251,7 @@ class DataModelService:
             else:
                 raise InvalidArgumentError('len(rmw_handle) != 1')
         except KeyError:
-            return [None]
+            return None
 
     @staticmethod
     def _ensure_dataframe(
