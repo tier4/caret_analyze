@@ -68,6 +68,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         self._lttng = lttng
         self._source = FilteredRecordsSource(lttng)
         self._helper = RecordsProviderLttngHelper(lttng)
+        self._srv = DataModelService(lttng.data)
 
     def communication_records(
         self,
@@ -227,9 +228,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         if callback is not None:
             callback_objects = self._helper.get_subscription_callback_objects(callback)
 
-        data_model_srv = DataModelService(self._lttng.data)
-
-        rmw_handle = data_model_srv._get_rmw_handle_from_callback_object(callback_objects[0])
+        rmw_handle = self._srv._get_rmw_handle_from_callback_object(callback_objects[0])
 
         # get rmw_records, which relates to callback_object
         rmw_records = self._source._grouped_rmw_records[rmw_handle]
