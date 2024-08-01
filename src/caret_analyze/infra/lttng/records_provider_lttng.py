@@ -1328,7 +1328,6 @@ class NodeRecordsUseLatestMessage:
         )
 
         drop_columns = list(set(pub_sub_records.columns) - set(columns))
-        drop_columns += [s for s in pub_sub_records.columns if s.endswith('callback_start')]
         pub_sub_records.drop_columns(drop_columns)
         pub_sub_records.reindex(columns)
         return pub_sub_records
