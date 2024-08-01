@@ -16,6 +16,7 @@
 from caret_analyze.architecture.architecture import Architecture
 from caret_analyze.exceptions import ItemNotFoundError
 from caret_analyze.infra.lttng import Lttng
+from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
 from caret_analyze.runtime.application import Application
 from caret_analyze.runtime.callback import CallbackBase
 from caret_analyze.runtime.communication import Communication
@@ -41,6 +42,8 @@ class TestApplication:
         mocker.patch(
             'caret_analyze.runtime.application.RuntimeLoaded', return_value=assigned_mock)
         records_provider_mock = mocker.Mock(spec=Lttng)
+        data_model_mock = mocker.Mock(spec=Ros2DataModel)
+        records_provider_mock.data = data_model_mock
         app = Application(arch_mock, records_provider_mock)
 
         assert len(app.paths) == 0
@@ -65,6 +68,8 @@ class TestApplication:
         # define mocks
         arch_mock = mocker.Mock(spec=Architecture)
         records_provider_mock = mocker.Mock(spec=Lttng)
+        data_model_mock = mocker.Mock(spec=Ros2DataModel)
+        records_provider_mock.data = data_model_mock
 
         node_mock = mocker.Mock(spec=Node)
         executor_mock = mocker.Mock(spec=Executor)
@@ -168,6 +173,8 @@ class TestApplication:
         # define mocks
         arch_mock = mocker.Mock(spec=Architecture)
         records_provider_mock = mocker.Mock(spec=Lttng)
+        data_model_mock = mocker.Mock(spec=Ros2DataModel)
+        records_provider_mock.data = data_model_mock
 
         # node_mock = mocker.Mock(spec=Node)
         node_mock = mocker.Mock(spec=Node)

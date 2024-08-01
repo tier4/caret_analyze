@@ -63,6 +63,9 @@ class TestRecordsProviderLttng:
 
         lttng_mock = mocker.Mock(spec=Lttng)
 
+        data_model_mock = mocker.Mock(spec=Ros2DataModel)
+        lttng_mock.data = data_model_mock
+
         helper_mock = mocker.Mock(spec=RecordsProviderLttngHelper)
         mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.RecordsProviderLttngHelper',
                      return_value=helper_mock)
@@ -161,6 +164,8 @@ class TestRecordsProviderLttng:
 
     def test_node_records_callback_chain(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
+        data_model_mock = mocker.Mock(spec=Ros2DataModel)
+        lttng_mock.data = data_model_mock
         node_path_info_mock = mocker.Mock(spec=NodePathStructValue)
         records_mock = mocker.Mock(spec=RecordsInterface)
 
@@ -181,6 +186,8 @@ class TestRecordsProviderLttng:
 
     def test_node_records_inherit_timestamp(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
+        data_model_mock = mocker.Mock(spec=Ros2DataModel)
+        lttng_mock.data = data_model_mock
         node_path_info_mock = mocker.Mock(spec=NodePathStructValue)
         records_mock = mocker.Mock(spec=RecordsInterface)
 
@@ -205,6 +212,8 @@ class TestRecordsProviderLttng:
 
     def test_get_publish_records(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
+        data_model_mock = mocker.Mock(spec=Ros2DataModel)
+        lttng_mock.data = data_model_mock
 
         pub_handle = 6
 
@@ -245,6 +254,8 @@ class TestRecordsProviderLttng:
 
     def test_get_rmw_impl(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
+        data_model_mock = mocker.Mock(spec=Ros2DataModel)
+        lttng_mock.data = data_model_mock
         mocker.patch.object(
             lttng_mock, 'get_rmw_impl', return_value='rmw')
         provider = RecordsProviderLttng(lttng_mock)
@@ -253,6 +264,8 @@ class TestRecordsProviderLttng:
 
     def test_intra_proc_comm_records(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
+        data_model_mock = mocker.Mock(spec=Ros2DataModel)
+        lttng_mock.data = data_model_mock
 
         comm_mock = mocker.Mock(spec=CommunicationStructValue)
         pub_mock = mocker.Mock(spec=PublisherStructValue)
@@ -300,6 +313,8 @@ class TestRecordsProviderLttng:
 
     def test_is_intra_process_communication(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
+        data_model_mock = mocker.Mock(spec=Ros2DataModel)
+        lttng_mock.data = data_model_mock
         provider = RecordsProviderLttng(lttng_mock)
         comm_info_mock = mocker.Mock(spec=Lttng)
 
@@ -326,6 +341,8 @@ class TestRecordsProviderLttng:
             RecordsProviderLttng, '_format', side_effect=_format)
 
         lttng_mock = mocker.Mock(spec=Lttng)
+        data_model_mock = mocker.Mock(spec=Ros2DataModel)
+        lttng_mock.data = data_model_mock
 
         helper_mock = mocker.Mock(spec=RecordsProviderLttngHelper)
         mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.RecordsProviderLttngHelper',
@@ -360,6 +377,8 @@ class TestRecordsProviderLttng:
             RecordsProviderLttng, '_format', side_effect=_format)
 
         lttng_mock = mocker.Mock(spec=Lttng)
+        data_model_mock = mocker.Mock(spec=Ros2DataModel)
+        lttng_mock.data = data_model_mock
 
         helper_mock = mocker.Mock(spec=RecordsProviderLttngHelper)
         mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.RecordsProviderLttngHelper',
