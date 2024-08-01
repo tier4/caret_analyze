@@ -18,7 +18,7 @@ import pandas as pd
 
 from ..util import get_clock_converter
 from ...common import ClockConverter
-from ...record import RecordsInterface, ResponseTime, StackedBar
+from ...record import ColumnValue, RecordsInterface, ResponseTime, StackedBar
 from ...runtime import Path
 
 
@@ -123,7 +123,13 @@ class LatencyStackedBar:
         else:
             raise ValueError('optional argument "case" must be following: \
                                 "all", "best", "worst", "worst-with-external-latency".')
-        record_if.time_reversed = response_time._has_invalid_timestamps()
+
+        if response_time._has_invalid_timestamps() is True:
+            columns = []
+            columns += [ColumnValue(column) for column in response_time._records._columns[0:]]
+            columns += [ColumnValue('invalid_timestamps')]
+            record_if = response_time._records._create_empty_records(columns)
+
         return record_if
 
     @property
