@@ -187,8 +187,6 @@ class RecordsInterface:
     To avoid conflicts with the pybind metaclass, ABC is not used.
     """
 
-    time_reversed = False
-
     @abstractmethod
     def equals(self, other: RecordsInterface) -> bool:
         """
@@ -644,15 +642,3 @@ class RecordsInterface:
 
         """
         pass
-
-    def _has_invalid_timestamps(self) -> bool:
-        """
-        Invalid timestamp judgement.
-
-        Returns
-        -------
-        bool
-            Invalid timestamp judgement result.
-
-        """
-        return self.time_reversed
