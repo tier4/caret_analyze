@@ -204,6 +204,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
     ) -> RecordsInterface:
         """
         Provide subscription records.
+
         This method is implemented for a node with a specific subscription usage.
         When subscribe a message,
         use this function when you get the message
