@@ -874,6 +874,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/rclcpp_publish_timestamp
             - [topic_name]/rcl_publish_timestamp (Optional)
             - [topic_name]/dds_write_timestamp (Optional)
+            - [topic_name]/source_timestamp
             - [callback_name_name]/callback_start_timestamp
 
         """
