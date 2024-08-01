@@ -404,6 +404,20 @@ class RecordsSource():
 
     @cached_property
     def rmw_take_records(self) -> RecordsInterface:
+        """
+        Compose rmw_take records.
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+            - tid
+            - rmw_take_timestamp
+            - rmw_subscription_handle
+            - message
+            - source_timestamp
+
+        """
         rmw_take_records = self._data.rmw_take_instances.clone()
         return rmw_take_records
 
