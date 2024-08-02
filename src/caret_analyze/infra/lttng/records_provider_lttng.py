@@ -228,10 +228,26 @@ class RecordsProviderLttng(RuntimeDataProvider):
         if callback is not None:
             callback_objects = self._helper.get_subscription_callback_objects(callback)
 
-        rmw_handle = self._srv._get_rmw_handle_from_callback_object(callback_objects[0])
+        try:
+            rmw_handle = self._srv._get_rmw_handle_from_callback_object(callback_objects[0])
+        except InvalidArgumentError:
+            rmw_handle = None
 
         # get rmw_records, which relates to callback_object
-        rmw_records = self._source._grouped_rmw_records[rmw_handle]
+        if rmw_handle is not None:
+            rmw_records = self._source._grouped_rmw_records[rmw_handle]
+        else:
+            rmw_records: RecordsInterface = \
+                RecordsFactory.create_instance(
+                    None,
+                    columns = [
+                        ColumnValue(COLUMN_NAME.TID),
+                        ColumnValue(COLUMN_NAME.RMW_TAKE_TIMESTAMP),
+                        ColumnValue(COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE),
+                        ColumnValue(COLUMN_NAME.MESSAGE),
+                        ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP)
+                    ]
+                )
 
         # drop columns
         columns = rmw_records.columns

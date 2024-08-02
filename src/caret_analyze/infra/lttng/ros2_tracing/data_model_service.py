@@ -194,10 +194,7 @@ class DataModelService:
                 sub_handle = self._get_sub_handle_from_sub(sub)
             if sub_handle is not None:
                 rmw_handle = self._get_rmw_handle_from_sub_handle(sub_handle)
-            if rmw_handle is not None:
                 return rmw_handle
-            else:
-                return None
         except KeyError:
             return None
 
@@ -211,8 +208,11 @@ class DataModelService:
             sub = target_df[target_df['callback_object'] == cb_addr]['reference'].values
             if len(sub) == 1:
                 return sub[0]
+            elif len(sub) == 0:
+                msg = f'There is no subscription id that corresponds to callback_addr:{cb_addr}.'
+                raise InvalidArgumentError(msg)
             else:
-                msg = f'Duplicated subscription id. {sub}. Use first subscription only.'
+                msg = f'Duplicated subscription id: [{sub}] that corresponds to callback_addr:{cb_addr}'
                 raise InvalidArgumentError(msg)
         except KeyError:
             return None
@@ -232,8 +232,11 @@ class DataModelService:
                 ].values
             if len(sub_handle) == 1:
                 return sub_handle[0]
+            elif len(sub_handle) == 0:
+                msg = f'There is no subscription_handle that corresponds to subscription id: {subscription}.'
+                raise InvalidArgumentError(msg)
             else:
-                msg = f'Duplicated subscription_handle. {sub_handle}. Use first subscription_handle only.'
+                msg = f'Duplicated subscription_handle: [{sub_handle}] that corresponds to subscription id: {subscription}.'
                 raise InvalidArgumentError(msg)
         except KeyError:
             return None
@@ -250,8 +253,11 @@ class DataModelService:
                 ]['rmw_handle'].values
             if len(rmw_handle) == 1:
                 return rmw_handle[0]
+            elif len(rmw_handle) == 0:
+                msg = f'There is no rmw_handle that corresponds to subscription_handle: {subscription_handle}.'
+                raise InvalidArgumentError(msg)
             else:
-                msg = f'Duplicated rmw_handle. {rmw_handle}. Use first rmw_handle only.'
+                msg = f'Duplicated rmw_handle: [{rmw_handle}] that corresponds to subscription_handle: {subscription_handle}.'
                 raise InvalidArgumentError('len(rmw_handle) != 1')
         except KeyError:
             return None
