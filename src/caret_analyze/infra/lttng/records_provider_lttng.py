@@ -206,8 +206,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         Provide subscription records.
 
         This method is implemented for a node with a specific subscription usage.
-        When subscribe a message,
-        use this function when you get the message
+        Use this function when you get the message
         using 'subscription->take' at any arbitrary timing
         instead of using 'subscription_callback'.
 
