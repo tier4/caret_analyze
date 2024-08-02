@@ -212,7 +212,8 @@ class DataModelService:
             if len(sub) == 1:
                 return sub[0]
             else:
-                raise InvalidArgumentError('len(sub) != 1')
+                msg = f'Duplicated subscription id. {sub}. Use first subscription only.'
+                raise InvalidArgumentError(msg)
         except KeyError:
             return None
 
@@ -232,7 +233,8 @@ class DataModelService:
             if len(sub_handle) == 1:
                 return sub_handle[0]
             else:
-                raise InvalidArgumentError('len(sub_handle) != 1')
+                msg = f'Duplicated subscription_handle. {sub_handle}. Use first subscription_handle only.'
+                raise InvalidArgumentError(msg)
         except KeyError:
             return None
 
@@ -249,6 +251,7 @@ class DataModelService:
             if len(rmw_handle) == 1:
                 return rmw_handle[0]
             else:
+                msg = f'Duplicated rmw_handle. {rmw_handle}. Use first rmw_handle only.'
                 raise InvalidArgumentError('len(rmw_handle) != 1')
         except KeyError:
             return None
