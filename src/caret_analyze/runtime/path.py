@@ -223,7 +223,7 @@ class RecordsMerged:
                 )
             else:
                 msg = 'last_callback is None. Use last_callback = False'
-                msg += 'last Node is implemented using subscription -> take'
+                msg += 'last Node is implemented using method of Explicitly take message by User'
                 logger.warn(msg)
 
         logger.info('Finished merging path records.')
