@@ -209,10 +209,11 @@ class DataModelService:
             if len(sub) == 1:
                 return sub[0]
             elif len(sub) == 0:
-                msg = f'There is no subscription id that corresponds to callback_addr:{cb_addr}.'
+                msg = f'There is no subscription id that corresponds to callback_addr: {cb_addr}.'
                 raise InvalidArgumentError(msg)
             else:
-                msg = f'Duplicated subscription id: [{sub}] that corresponds to callback_addr:{cb_addr}'
+                msg = f'Duplicated subscription id: [{sub}] \
+                    that corresponds to callback_addr: {cb_addr}'
                 raise InvalidArgumentError(msg)
         except KeyError:
             return None
@@ -233,10 +234,12 @@ class DataModelService:
             if len(sub_handle) == 1:
                 return sub_handle[0]
             elif len(sub_handle) == 0:
-                msg = f'There is no subscription_handle that corresponds to subscription id: {subscription}.'
+                msg = f'There is no subscription_handle that \
+                    corresponds to subscription id: {subscription}.'
                 raise InvalidArgumentError(msg)
             else:
-                msg = f'Duplicated subscription_handle: [{sub_handle}] that corresponds to subscription id: {subscription}.'
+                msg = f'Duplicated subscription_handle: [{sub_handle}] that \
+                    corresponds to subscription id: {subscription}.'
                 raise InvalidArgumentError(msg)
         except KeyError:
             return None
@@ -254,10 +257,12 @@ class DataModelService:
             if len(rmw_handle) == 1:
                 return rmw_handle[0]
             elif len(rmw_handle) == 0:
-                msg = f'There is no rmw_handle that corresponds to subscription_handle: {subscription_handle}.'
+                msg = f'There is no rmw_handle that \
+                    corresponds to subscription_handle: {subscription_handle}.'
                 raise InvalidArgumentError(msg)
             else:
-                msg = f'Duplicated rmw_handle: [{rmw_handle}] that corresponds to subscription_handle: {subscription_handle}.'
+                msg = f'Duplicated rmw_handle: [{rmw_handle}] that \
+                    corresponds to subscription_handle: {subscription_handle}.'
                 raise InvalidArgumentError('len(rmw_handle) != 1')
         except KeyError:
             return None

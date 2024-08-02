@@ -238,15 +238,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
         if rmw_handle is not None:
             rmw_records = self._source._grouped_rmw_records[rmw_handle]
         else:
-             rmw_records = \
-                RecordsFactory.create_instance(
-                    None,
-                    columns = [
-                        ColumnValue(COLUMN_NAME.TID),
-                        ColumnValue(COLUMN_NAME.RMW_TAKE_TIMESTAMP),
-                        ColumnValue(COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE),
-                        ColumnValue(COLUMN_NAME.MESSAGE),
-                        ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP)
+            rmw_records = RecordsFactory.create_instance(
+                None,
+                columns=[
+                    ColumnValue(COLUMN_NAME.TID),
+                    ColumnValue(COLUMN_NAME.RMW_TAKE_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE),
+                    ColumnValue(COLUMN_NAME.MESSAGE),
+                    ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP)
                     ]
                 )
 
