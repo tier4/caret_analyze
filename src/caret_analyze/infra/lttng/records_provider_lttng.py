@@ -234,10 +234,11 @@ class RecordsProviderLttng(RuntimeDataProvider):
             rmw_handle = None
 
         # get rmw_records, which relates to callback_object
+        rmw_records: RecordsInterface
         if rmw_handle is not None:
             rmw_records = self._source._grouped_rmw_records[rmw_handle]
         else:
-            rmw_records: RecordsInterface = \
+             rmw_records = \
                 RecordsFactory.create_instance(
                     None,
                     columns = [

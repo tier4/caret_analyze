@@ -194,7 +194,7 @@ class DataModelService:
                 sub_handle = self._get_sub_handle_from_sub(sub)
             if sub_handle is not None:
                 rmw_handle = self._get_rmw_handle_from_sub_handle(sub_handle)
-                return rmw_handle
+            return rmw_handle
         except KeyError:
             return None
 
