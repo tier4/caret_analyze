@@ -209,10 +209,10 @@ class DataModelService:
             if len(sub) == 1:
                 return sub[0]
             elif len(sub) == 0:
-                msg = f'There is no subscription id that corresponds to callback_addr: {cb_addr}.'
+                msg = f'There is no subscription  that corresponds to callback_addr: {cb_addr}.'
                 raise InvalidArgumentError(msg)
             else:
-                msg = f'Duplicated subscription id: [{sub}] \
+                msg = f'Duplicated subscription : [{sub}] \
                     that corresponds to callback_addr: {cb_addr}'
                 raise InvalidArgumentError(msg)
         except KeyError:
@@ -235,11 +235,11 @@ class DataModelService:
                 return sub_handle[0]
             elif len(sub_handle) == 0:
                 msg = f'There is no subscription_handle that \
-                    corresponds to subscription id: {subscription}.'
+                    corresponds to subscription : {subscription}.'
                 raise InvalidArgumentError(msg)
             else:
                 msg = f'Duplicated subscription_handle: [{sub_handle}] that \
-                    corresponds to subscription id: {subscription}.'
+                    corresponds to subscription : {subscription}.'
                 raise InvalidArgumentError(msg)
         except KeyError:
             return None

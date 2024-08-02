@@ -30,7 +30,6 @@ class Ros2DataModel():
     def __init__(self) -> None:
         """Create a Ros2DataModel."""
         # Objects (one-time events, usually when something is created)
-
         self._contexts = TracePointIntermediateData(
             ['context_handle', 'timestamp', 'pid'])
         self._nodes = TracePointIntermediateData(
