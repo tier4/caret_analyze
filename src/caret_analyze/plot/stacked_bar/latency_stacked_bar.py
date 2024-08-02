@@ -126,7 +126,7 @@ class LatencyStackedBar:
 
         if response_time._has_invalid_timestamps() is True:
             columns = []
-            columns += [ColumnValue(column) for column in response_time._records._columns[0:]]
+            columns += [ColumnValue(column) for column in response_time._records._columns]
             columns += [ColumnValue('invalid_timestamps')]
             record_if = response_time._records._create_empty_records(columns)
 
