@@ -1315,8 +1315,6 @@ class NodeRecordsUseLatestMessage:
         is_take_node = len(sub_records) == 0
         if is_take_node:
             sub_records = self._provider.subscription_take_records(self._node_path.subscription)
-            # TODO: Currently, pub_records and sub_records are being joined by source_timestamp.
-            # If possible, use rmw_take as the key.
         pub_records = self._provider.publish_records(self._node_path.publisher)
 
         columns = [
