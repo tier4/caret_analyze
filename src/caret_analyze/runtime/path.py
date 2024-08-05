@@ -222,7 +222,7 @@ class RecordsMerged:
                     how='left'
                 )
             else:
-                msg = 'last_callback is None. Use last_callback = False'
+                msg = 'last_callback is None. Use last_callback = False\n'
                 msg += 'last Node is implemented using method of explicitly take message by user'
                 logger.warn(msg)
 
