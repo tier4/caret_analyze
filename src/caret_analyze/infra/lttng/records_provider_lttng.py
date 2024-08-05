@@ -221,7 +221,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             Columns
 
             - [topic_name]/source_timestamp
-            - [topic_name]/rmw_take
+            - [topic_name]/rmw_take_timestamp
 
         """
         callback = subscription.callback
@@ -1312,9 +1312,41 @@ class NodeRecordsUseLatestMessage:
         assert self._node_path.subscription is not None and self._node_path.publisher is not None
 
         sub_records = self._provider.subscribe_records(self._node_path.subscription)
+
+        # If explicitly take message by user, there are cases that source_timestamp is 0.
+        def fill_source_timestamp_with_latest_timestamp(records):
+            source_columns = [s for s in records.columns if 'source_timestamp' in s]
+            if len(source_columns) != 1:
+                return records
+            source_column = source_columns[0]
+
+            columns = []
+            for column in records.columns:
+                columns += [ColumnValue(column)]
+
+            records_data = []
+            tmp_timestamp = 0
+
+            for record in records.data:
+                source_timestamp = record.data[source_column]
+                if source_timestamp == 0:
+                    record_dict = record.data
+                    record_dict[source_column] = tmp_timestamp
+                    records_data.append(record_dict)
+                else:
+                    tmp_timestamp = source_timestamp
+                    records_data.append(record.data)
+
+            new_records = RecordsFactory.create_instance(
+                records_data,
+                columns=columns
+            )
+            return new_records
+
         is_take_node = len(sub_records) == 0
         if is_take_node:
             sub_records = self._provider.subscription_take_records(self._node_path.subscription)
+            sub_records = fill_source_timestamp_with_latest_timestamp(sub_records)
         pub_records = self._provider.publish_records(self._node_path.publisher)
 
         columns = [
