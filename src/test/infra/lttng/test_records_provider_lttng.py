@@ -611,15 +611,18 @@ class TestNodeRecordsUseLatestMessage:
         take_records_data: list[RecordInterface]
         take_records_data = [
             RecordCppImpl({
+                COLUMN_NAME.RMW_TAKE_TIMESTAMP: 0,
                 COLUMN_NAME.SOURCE_TIMESTAMP: 1,
             }),
             RecordCppImpl({
+                COLUMN_NAME.RMW_TAKE_TIMESTAMP: 6,
                 COLUMN_NAME.SOURCE_TIMESTAMP: 7,
             }),
         ]
         take_records = RecordsCppImpl(
             take_records_data,
             [
+                ColumnValue(COLUMN_NAME.RMW_TAKE_TIMESTAMP),
                 ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
             ]
         )
