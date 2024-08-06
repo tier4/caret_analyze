@@ -648,11 +648,6 @@ class TestNodeRecordsUseLatestMessage:
                 ColumnValue(f'/{COLUMN_NAME.SOURCE_TIMESTAMP}'),
             ]
         )
-        # pub_records.rename_columns({
-        #     COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: (
-        #         f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'
-        #         )
-        #     })
 
         mocker.patch.object(provider_mock, 'publish_records', return_value=pub_records)
         mocker.patch.object(node_path_mock, 'publish_topic_name', '')
@@ -677,11 +672,7 @@ class TestNodeRecordsUseLatestMessage:
                 ColumnValue(f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'),
             ]
         )
-        # expect_records.rename_columns({
-        #     COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: (
-        #         f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'
-        #     )
-        # })
+
         assert records.equals(expect_records)
 
 
