@@ -14,6 +14,7 @@
 
 from caret_analyze.plot.stacked_bar import LatencyStackedBar
 from caret_analyze.record import ColumnValue, RecordsFactory
+from caret_analyze.record import RecordsInterface
 from caret_analyze.runtime import Path
 
 import pandas as pd
@@ -33,6 +34,16 @@ def create_mock(mocker):
         mocker.patch.object(stacked_bar_plot, '_get_response_time_record', return_value=records)
         return stacked_bar_plot
     return _create_mock
+
+
+def create_records(records_raw, columns):
+    records = RecordsFactory.create_instance()
+    for column in columns:
+        records.append_column(column, [])
+
+    for record_raw in records_raw:
+        records.append(record_raw)
+    return records
 
 
 def get_data_set():
@@ -115,3 +126,30 @@ class TestLatencyStackedBar:
         # create stacked bar data
         output_df = stacked_bar_plot.to_dataframe()
         assert output_df.equals(expect_df)
+
+    def test_invalid_timestamps(self, mocker):
+        data = []
+        columns = []
+        records_columns = [ColumnValue(column) for column in columns]
+        records = RecordsFactory.create_instance(data, columns=records_columns)
+        target_objects = mocker.Mock(spec=Path)
+        recodes_objects = mocker.Mock(spec=RecordsInterface)
+
+        records_raw = [
+            {'start': 0, 'end': 1},
+            {'start': 5, 'end': 4},
+            {'start': 7, 'end': 8},
+        ]
+        columns = [ColumnValue('start'), ColumnValue('end')]
+        records = create_records(records_raw, columns)
+
+        mocker.patch.object(recodes_objects, 'columns', ['start', 'end'])
+        mocker.patch.object(recodes_objects, 'data', records)
+        mocker.patch.object(target_objects, 'column_names', ['start', 'end'])
+        mocker.patch.object(target_objects, 'to_records', return_value=records)
+
+        stacked_bar_plot = LatencyStackedBar(target_objects)
+        response_records: RecordsInterface = \
+            stacked_bar_plot._get_response_time_record(stacked_bar_plot._target_objects)
+        assert response_records.columns[2] == 'invalid_timestamps'
+        assert len(response_records.data) == 0

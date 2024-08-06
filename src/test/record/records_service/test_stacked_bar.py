@@ -78,6 +78,22 @@ def get_data_set():
     return columns, data, expect_columns, expect_dict
 
 
+def get_data_set_no_data():
+    columns = [
+        '/columns_8/callback_0/callback_start_timestamp/0',
+        '/columns_9/callback_0/callback_end_timestamp/0',
+        'invalid_timestamps',
+    ]
+    expect_dict = {
+    }
+    expect_columns = [
+        '/columns_8/callback_0',
+    ]
+    data = []
+
+    return columns, data, expect_columns, expect_dict
+
+
 class TestStackedBar:
 
     def test_empty_case(self):
@@ -113,3 +129,11 @@ class TestStackedBar:
         stacked_bar = StackedBar(records)
         result = to_dict(stacked_bar.records)
         assert result == expect_dict
+
+    def test_invalid_timestamps(self):
+        columns, data, expect_columns, _ = get_data_set_no_data()
+        records: RecordsInterface = create_records(data, columns)
+
+        stacked_bar = StackedBar(records)
+        assert stacked_bar.columns == expect_columns
+        assert len(stacked_bar.records.data) == 0
