@@ -691,7 +691,7 @@ class TestNodeRecordsUseLatestMessage:
                 f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'
             )
         })
-        records.equals(expect_records)
+        assert records.equals(expect_records)
 
 
 class TestNodeRecordsCallbackChain:
