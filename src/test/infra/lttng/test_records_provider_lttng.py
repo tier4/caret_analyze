@@ -144,7 +144,8 @@ class TestRecordsProviderLttng:
                 ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
             ]
         )
-        mocker.patch.object(source_mock, '_grouped_rmw_records', return_value=records_mock)
+        mocker.patch.object(source_mock, '_grouped_rmw_records',
+                            return_value={0: records_mock})
 
         subscription_mock = mocker.Mock(spec=SubscriptionStructValue)
         provider = RecordsProviderLttng(lttng_mock)
