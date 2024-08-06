@@ -1325,16 +1325,16 @@ class NodeRecordsUseLatestMessage:
                 columns += [ColumnValue(column)]
 
             records_data = []
-            tmp_timestamp = 0
+            latest_timestamp = 0
 
             for record in records.data:
                 source_timestamp = record.data[source_column]
                 if source_timestamp == 0:
                     record_dict = record.data
-                    record_dict[source_column] = tmp_timestamp
+                    record_dict[source_column] = latest_timestamp
                     records_data.append(record_dict)
                 else:
-                    tmp_timestamp = source_timestamp
+                    latest_timestamp = source_timestamp
                     records_data.append(record.data)
 
             new_records = RecordsFactory.create_instance(
