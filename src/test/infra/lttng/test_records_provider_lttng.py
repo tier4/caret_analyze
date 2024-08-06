@@ -582,7 +582,7 @@ class TestNodeRecordsUseLatestMessage:
                 f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'
                 )
             })
-        records.equals(expect_records)
+        assert records.equals(expect_records)
 
     # When node is implemented with subscription->take
     def test_data_has_not_callback_start(self, mocker):
