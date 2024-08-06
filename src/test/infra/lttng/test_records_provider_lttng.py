@@ -118,7 +118,7 @@ class TestRecordsProviderLttng:
         mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.DataModelService',
                      return_value=data_model_srv_mock)
         mocker.patch.object(data_model_srv_mock,
-                            '_get_rmw_handle_from_callback_object', return_value=0)
+                            '_get_rmw_handle_from_callback_object', return_value=4)
 
         source_mock = mocker.Mock(spec=FilteredRecordsSource)
         mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.FilteredRecordsSource',
@@ -145,7 +145,7 @@ class TestRecordsProviderLttng:
             ]
         )
         mocker.patch.object(source_mock, '_grouped_rmw_records',
-                            return_value={0: records_mock})
+                            return_value={4: records_mock})
 
         subscription_mock = mocker.Mock(spec=SubscriptionStructValue)
         provider = RecordsProviderLttng(lttng_mock)
