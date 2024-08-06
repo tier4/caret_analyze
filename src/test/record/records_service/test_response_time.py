@@ -174,6 +174,31 @@ class TestResponseRecords:
         result = to_dict(response.to_worst_with_external_latency_case_stacked_bar())
         assert result == expect_raw
 
+    def test_reversed_timestamp_case(self):
+        records_raw = [
+            {'start': 0, 'end': 1},
+            {'start': 5, 'end': 4},
+            {'start': 7, 'end': 8},
+        ]
+        columns = [ColumnValue('start'), ColumnValue('end')]
+
+        records = create_records(records_raw, columns)
+        response = ResponseTime(records)
+
+        assert response._has_invalid_timestamps() is True
+
+        records_raw = [
+            {'start': 0, 'end': 1},
+            {'start': 4, 'end': 5},
+            {'start': 7, 'end': 8},
+        ]
+        columns = [ColumnValue('start'), ColumnValue('end')]
+
+        records = create_records(records_raw, columns)
+        response = ResponseTime(records)
+
+        assert response._has_invalid_timestamps() is False
+
     class TestMultiColumnCase:
         records_raw = [
             {'column0': 5, 'column1': 10, 'column2': 15},  # flow 1 [used as first data]
