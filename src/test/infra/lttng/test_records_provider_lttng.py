@@ -165,7 +165,7 @@ class TestRecordsProviderLttng:
             ]
         )
 
-        records.equals(expected)
+        assert records.equals(expected)
 
     def test_node_records_callback_chain(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
