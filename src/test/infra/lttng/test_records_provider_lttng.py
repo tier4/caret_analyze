@@ -492,6 +492,10 @@ class TestNodeRecordsUseLatestMessage:
         provider_mock = mocker.Mock(spec=RecordsProviderLttng)
         node_path_mock = mocker.Mock(spec=NodePathStructValue)
 
+        callback_name = 'callback'
+        topic_name_1 = 'topic_1'
+        topic_name_2 = 'topic_2'
+
         use_latest_message = mocker.Mock(spec=UseLatestMessage)
         mocker.patch.object(node_path_mock, 'message_context', use_latest_message)
 
@@ -502,19 +506,19 @@ class TestNodeRecordsUseLatestMessage:
         records_data: list[RecordInterface]
         records_data = [
             RecordCppImpl({
-                f'00/{COLUMN_NAME.SOURCE_TIMESTAMP}': 1,
-                f'0/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}': 2,
+                f'{callback_name}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 1,
+                f'{topic_name_1}/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}': 2,
             }),
             RecordCppImpl({
-                f'00/{COLUMN_NAME.SOURCE_TIMESTAMP}': 6,
-                f'0/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}': 7,
+                f'{callback_name}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 6,
+                f'{topic_name_1}/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}': 7,
             }),
         ]
         sub_records = RecordsCppImpl(
             records_data,
             [
-                ColumnValue(f'00/{COLUMN_NAME.SOURCE_TIMESTAMP}'),
-                ColumnValue(f'0/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}'),
+                ColumnValue(f'{callback_name}/{COLUMN_NAME.SOURCE_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_1}/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}'),
             ]
         )
         mocker.patch.object(provider_mock, 'subscribe_records', return_value=sub_records)
@@ -522,55 +526,55 @@ class TestNodeRecordsUseLatestMessage:
         records_data: list[RecordInterface]
         pub_records_data = [
             RecordCppImpl({
-                f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 3,
-                f'1/{COLUMN_NAME.RCL_PUBLISH_TIMESTAMP}': 4,
-                f'1/{COLUMN_NAME.DDS_WRITE_TIMESTAMP}': 5,
-                f'1/{COLUMN_NAME.MESSAGE_TIMESTAMP}': 6,
-                f'1/{COLUMN_NAME.SOURCE_TIMESTAMP}': 7,
+                f'{topic_name_2}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 3,
+                f'{topic_name_2}/{COLUMN_NAME.RCL_PUBLISH_TIMESTAMP}': 4,
+                f'{topic_name_2}/{COLUMN_NAME.DDS_WRITE_TIMESTAMP}': 5,
+                f'{topic_name_2}/{COLUMN_NAME.MESSAGE_TIMESTAMP}': 6,
+                f'{topic_name_2}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 7,
             }),
             RecordCppImpl({
-                f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 8,
-                f'1/{COLUMN_NAME.RCL_PUBLISH_TIMESTAMP}': 9,
-                f'1/{COLUMN_NAME.DDS_WRITE_TIMESTAMP}': 10,
-                f'1/{COLUMN_NAME.MESSAGE_TIMESTAMP}': 11,
-                f'1/{COLUMN_NAME.SOURCE_TIMESTAMP}': 12,
+                f'{topic_name_2}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 8,
+                f'{topic_name_2}/{COLUMN_NAME.RCL_PUBLISH_TIMESTAMP}': 9,
+                f'{topic_name_2}/{COLUMN_NAME.DDS_WRITE_TIMESTAMP}': 10,
+                f'{topic_name_2}/{COLUMN_NAME.MESSAGE_TIMESTAMP}': 11,
+                f'{topic_name_2}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 12,
             }),
         ]
         pub_records = RecordsCppImpl(
             pub_records_data,
             [
-                ColumnValue(f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'),
-                ColumnValue(f'1/{COLUMN_NAME.RCL_PUBLISH_TIMESTAMP}'),
-                ColumnValue(f'1/{COLUMN_NAME.DDS_WRITE_TIMESTAMP}'),
-                ColumnValue(f'1/{COLUMN_NAME.MESSAGE_TIMESTAMP}'),
-                ColumnValue(f'1/{COLUMN_NAME.SOURCE_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_2}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_2}/{COLUMN_NAME.RCL_PUBLISH_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_2}/{COLUMN_NAME.DDS_WRITE_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_2}/{COLUMN_NAME.MESSAGE_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_2}/{COLUMN_NAME.SOURCE_TIMESTAMP}'),
             ]
         )
 
         mocker.patch.object(provider_mock, 'publish_records', return_value=pub_records)
-        mocker.patch.object(node_path_mock, 'publish_topic_name', '')
+        mocker.patch.object(node_path_mock, 'publish_topic_name', topic_name_2)
 
         node_records = NodeRecordsUseLatestMessage(provider_mock, node_path_mock)
         records = node_records.to_records()
 
         expect_data = [
             RecordCppImpl({
-                f'00/{COLUMN_NAME.SOURCE_TIMESTAMP}': 1,
-                f'0/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}': 2,
-                f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 3,
+                f'{callback_name}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 1,
+                f'{topic_name_1}/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}': 2,
+                f'{topic_name_2}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 3,
             }),
             RecordCppImpl({
-                f'00/{COLUMN_NAME.SOURCE_TIMESTAMP}': 6,
-                f'0/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}': 7,
-                f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 8,
+                f'{callback_name}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 6,
+                f'{topic_name_1}/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}': 7,
+                f'{topic_name_2}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 8,
             }),
         ]
         expect_records = RecordsCppImpl(
             expect_data,
             [
-                ColumnValue(f'00/{COLUMN_NAME.SOURCE_TIMESTAMP}'),
-                ColumnValue(f'0/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}'),
-                ColumnValue(f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'),
+                ColumnValue(f'{callback_name}/{COLUMN_NAME.SOURCE_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_1}/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_2}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'),
             ]
         )
 
@@ -580,6 +584,9 @@ class TestNodeRecordsUseLatestMessage:
     def test_data_has_not_callback_start(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProviderLttng)
         node_path_mock = mocker.Mock(spec=NodePathStructValue)
+
+        topic_name_1 = 'topic_1'
+        topic_name_2 = 'topic_2'
 
         use_latest_message = mocker.Mock(spec=UseLatestMessage)
         mocker.patch.object(node_path_mock, 'message_context', use_latest_message)
@@ -603,19 +610,19 @@ class TestNodeRecordsUseLatestMessage:
         take_records_data: list[RecordInterface]
         take_records_data = [
             RecordCppImpl({
-                COLUMN_NAME.RMW_TAKE_TIMESTAMP: 0,
-                f'0/{COLUMN_NAME.SOURCE_TIMESTAMP}': 1,
+                COLUMN_NAME.RMW_TAKE_TIMESTAMP: 2,
+                f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 1,
             }),
             RecordCppImpl({
                 COLUMN_NAME.RMW_TAKE_TIMESTAMP: 6,
-                f'0/{COLUMN_NAME.SOURCE_TIMESTAMP}': 7,
+                f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 7,
             }),
         ]
         take_records = RecordsCppImpl(
             take_records_data,
             [
                 ColumnValue(COLUMN_NAME.RMW_TAKE_TIMESTAMP),
-                ColumnValue(f'0/{COLUMN_NAME.SOURCE_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}'),
             ]
         )
 
@@ -624,53 +631,53 @@ class TestNodeRecordsUseLatestMessage:
         records_data: list[RecordInterface]
         pub_records_data = [
             RecordCppImpl({
-                f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 2,
-                f'/{COLUMN_NAME.RCL_PUBLISH_TIMESTAMP}': 3,
-                f'/{COLUMN_NAME.DDS_WRITE_TIMESTAMP}': 4,
-                f'/{COLUMN_NAME.MESSAGE_TIMESTAMP}': 5,
-                f'/{COLUMN_NAME.SOURCE_TIMESTAMP}': 6,
+                f'{topic_name_2}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 2,
+                f'{topic_name_2}/{COLUMN_NAME.RCL_PUBLISH_TIMESTAMP}': 3,
+                f'{topic_name_2}/{COLUMN_NAME.DDS_WRITE_TIMESTAMP}': 4,
+                f'{topic_name_2}/{COLUMN_NAME.MESSAGE_TIMESTAMP}': 5,
+                f'{topic_name_2}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 6,
             }),
             RecordCppImpl({
-                f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 8,
-                f'/{COLUMN_NAME.RCL_PUBLISH_TIMESTAMP}': 9,
-                f'/{COLUMN_NAME.DDS_WRITE_TIMESTAMP}': 10,
-                f'/{COLUMN_NAME.MESSAGE_TIMESTAMP}': 11,
-                f'/{COLUMN_NAME.SOURCE_TIMESTAMP}': 12,
+                f'{topic_name_2}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 8,
+                f'{topic_name_2}/{COLUMN_NAME.RCL_PUBLISH_TIMESTAMP}': 9,
+                f'{topic_name_2}/{COLUMN_NAME.DDS_WRITE_TIMESTAMP}': 10,
+                f'{topic_name_2}/{COLUMN_NAME.MESSAGE_TIMESTAMP}': 11,
+                f'{topic_name_2}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 12,
             }),
         ]
 
         pub_records = RecordsCppImpl(
             pub_records_data,
             [
-                ColumnValue(f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'),
-                ColumnValue(f'/{COLUMN_NAME.RCL_PUBLISH_TIMESTAMP}'),
-                ColumnValue(f'/{COLUMN_NAME.DDS_WRITE_TIMESTAMP}'),
-                ColumnValue(f'/{COLUMN_NAME.MESSAGE_TIMESTAMP}'),
-                ColumnValue(f'/{COLUMN_NAME.SOURCE_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_2}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_2}/{COLUMN_NAME.RCL_PUBLISH_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_2}/{COLUMN_NAME.DDS_WRITE_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_2}/{COLUMN_NAME.MESSAGE_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_2}/{COLUMN_NAME.SOURCE_TIMESTAMP}'),
             ]
         )
 
         mocker.patch.object(provider_mock, 'publish_records', return_value=pub_records)
-        mocker.patch.object(node_path_mock, 'publish_topic_name', '')
+        mocker.patch.object(node_path_mock, 'publish_topic_name', topic_name_2)
 
         node_records = NodeRecordsUseLatestMessage(provider_mock, node_path_mock)
         records = node_records.to_records()
 
         expect_data = [
             RecordCppImpl({
-                f'0/{COLUMN_NAME.SOURCE_TIMESTAMP}': 1,
-                f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 2,
+                f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 1,
+                f'{topic_name_2}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 2,
             }),
             RecordCppImpl({
-                f'0/{COLUMN_NAME.SOURCE_TIMESTAMP}': 7,
-                f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 8,
+                f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 7,
+                f'{topic_name_2}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 8,
             }),
         ]
         expect_records = RecordsCppImpl(
             expect_data,
             [
-                ColumnValue(f'0/{COLUMN_NAME.SOURCE_TIMESTAMP}'),
-                ColumnValue(f'/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_2}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'),
             ]
         )
 
