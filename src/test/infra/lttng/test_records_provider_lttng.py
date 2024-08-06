@@ -84,6 +84,7 @@ class TestRecordsProviderLttng:
 
         assert records == records_mock
 
+    # When node is implemented with subscription->take.
     def test_subscription_take_records(self, mocker):
 
         records_mock = mocker.Mock(spec=RecordsInterface)
@@ -153,11 +154,15 @@ class TestRecordsProviderLttng:
             [
                 RecordCppImpl(
                     {
+                        COLUMN_NAME.RMW_TAKE_TIMESTAMP: 3,
                         COLUMN_NAME.SOURCE_TIMESTAMP: 6,
                     },
                 )
             ],
-            [ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP), ]
+            [
+                ColumnValue(COLUMN_NAME.RMW_TAKE_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP)
+            ]
         )
 
         records.equals(expected)
