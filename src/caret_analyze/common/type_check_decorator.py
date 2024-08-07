@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from collections.abc import Collection, Sequence
 from functools import wraps
+import inspect
 from inspect import get_annotations, getfullargspec
 from logging import getLogger
 from re import findall
@@ -250,73 +251,25 @@ try:
 
                 if varargs_name is not None:
                     args = args[:arg_len] + _parse_collection_or_unpack(args[arg_len:])
-                return validate_arguments_wrapper(*args, **kwargs)
+                sig = inspect.signature(func)
+                bound_args = sig.bind(*args, **kwargs)
+                args_dict = bound_args.arguments
+                if 'self' in args_dict:
+                    return validate_arguments_wrapper(*args, **kwargs)
+                return validate_arguments_wrapper(**args_dict)
 
             except ValidationError as e:
-                temp_loc_tuple = e.errors()[0]['loc']
+                loc_tuple = e.errors()[0]['loc']
                 annotations = get_annotations(func)
-                loc_tuple: Any
-
-                if e.errors()[0]['type'] == 'is_instance_of':
-                    if len(temp_loc_tuple) > 1:
-                        # including multiple arguments
-                        if isinstance(temp_loc_tuple[0], int):
-                            # does not include Keyword
-                            column_no = int(temp_loc_tuple[0])
-                        else:
-                            # include Keyword
-                            column_no = int(temp_loc_tuple[1])
-                        if column_no >= len(annotations):
-                            key_word = list(annotations)[column_no-1]
-                            column_no = len(annotations) - 1
-                        else:
-                            key_word = list(annotations)[column_no]
-                        if 'list' in annotations[list(annotations)[column_no]]:
-                            loc_tuple = (key_word, int(temp_loc_tuple[1]))
-                        else:
-                            loc_tuple = (key_word, int(temp_loc_tuple[0]))
-                    else:
-                        if isinstance(temp_loc_tuple[0], int):
-                            # does not include Keyword
-                            for column_no in range(len(annotations)):
-                                if e.errors()[0]['ctx']['class'] in \
-                                        annotations[list(annotations)[column_no]]:
-                                    key_word = list(annotations)[column_no]  # keyword
-                                    if temp_loc_tuple[0] != 0:
-                                        loc_tuple = (key_word, int(temp_loc_tuple[0])-1)
-                                    else:
-                                        loc_tuple = (key_word, int(temp_loc_tuple[0]))
-                        else:
-                            # include Keyword
-                            for column_no in range(len(annotations)):
-                                if e.errors()[0]['ctx']['class'] in \
-                                        annotations[list(annotations)[column_no]]:
-                                    key_word = list(annotations)[column_no]  # keyword
-                                    if len(temp_loc_tuple) == 1:
-                                        loc_tuple = (key_word, 0)
-                                    else:
-                                        loc_tuple = (key_word, int(temp_loc_tuple[1]))
-                else:
-                    if len(temp_loc_tuple) > 1:
-                        # including multiple arguments
-                        key_word = list(annotations)[int(temp_loc_tuple[0])]  # keyword
-                        if isinstance(temp_loc_tuple[1], int):
-                            # does not include Keyword
-                            loc_tuple = (key_word, int(temp_loc_tuple[1]))
-                        else:
-                            # include Keyword
-                            loc_tuple = (key_word, temp_loc_tuple[1])
-                    else:
-                        if isinstance(temp_loc_tuple[0], int):
-                            # does not include Keyword
-                            loc_tuple = \
-                                (list(annotations)[int(temp_loc_tuple[0])], int(temp_loc_tuple[0]))
-                        else:
-                            # include Keyword
-                            loc_tuple = (temp_loc_tuple[0], 0)
 
                 given_arg = _get_given_arg(annotations, args, kwargs, loc_tuple, varargs_name)
                 expected_types = _get_expected_types(loc_tuple, annotations)
+                thrown_in_varargs = loc_tuple[0] == varargs_name
+                if thrown_in_varargs:
+                    for i, arg in enumerate(given_arg):
+                        if arg.__class__.__name__ not in expected_types:
+                            loc_tuple = (loc_tuple[0], i)
+
                 given_arg_loc_str = _get_given_arg_loc_str(loc_tuple, given_arg)
                 given_arg_type = _get_given_arg_type(given_arg, loc_tuple)
 
