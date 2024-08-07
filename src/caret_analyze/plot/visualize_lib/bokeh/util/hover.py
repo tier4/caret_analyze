@@ -154,7 +154,7 @@ class HoverKeysBase(metaclass=ABCMeta):
         tips_str += '</div>'
 
         return HoverTool(
-            tooltips=tips_str, point_policy='follow_mouse', toggleable=False, **options
+            tooltips=tips_str, point_policy='follow_mouse', visible=False, **options
         )
 
 
