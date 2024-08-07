@@ -87,8 +87,6 @@ class TestRecordsProviderLttng:
     # When node is implemented with subscription->take.
     def test_subscription_take_records(self, mocker):
 
-        records_mock = mocker.Mock(spec=RecordsInterface)
-
         def _rename_column(records, callback_name, topic_name, node_name):
             return records
         mocker.patch.object(
