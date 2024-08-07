@@ -236,7 +236,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         # get rmw_records, which relates to callback_object
         rmw_records: RecordsInterface
         if rmw_handle is not None:
-            rmw_records = self._source._grouped_rmw_records[rmw_handle]
+            rmw_records = self._source._grouped_rmw_records[rmw_handle].clone()
         else:
             rmw_records = RecordsFactory.create_instance(
                 None,
@@ -254,6 +254,9 @@ class RecordsProviderLttng(RuntimeDataProvider):
         drop_columns = list(set(columns) - {'source_timestamp', 'rmw_take_timestamp'})
         rmw_records.drop_columns(drop_columns)
 
+        # reindex
+        rmw_records.reindex(['source_timestamp', 'rmw_take_timestamp'])
+
         # add prefix to columns; e.g. [topic_name]/source_timestamp
         if callback is not None:
             self._rename_column(
@@ -262,6 +265,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
                 subscription.topic_name,
                 None
             )
+
         return rmw_records
 
     def _subscribe_records(

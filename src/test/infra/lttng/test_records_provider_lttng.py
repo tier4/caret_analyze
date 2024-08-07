@@ -610,19 +610,19 @@ class TestNodeRecordsUseLatestMessage:
         take_records_data: list[RecordInterface]
         take_records_data = [
             RecordCppImpl({
-                COLUMN_NAME.RMW_TAKE_TIMESTAMP: 2,
                 f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 1,
+                COLUMN_NAME.RMW_TAKE_TIMESTAMP: 2,
             }),
             RecordCppImpl({
-                COLUMN_NAME.RMW_TAKE_TIMESTAMP: 6,
-                f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 7,
+                f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 6,
+                COLUMN_NAME.RMW_TAKE_TIMESTAMP: 7,
             }),
         ]
         take_records = RecordsCppImpl(
             take_records_data,
             [
-                ColumnValue(COLUMN_NAME.RMW_TAKE_TIMESTAMP),
                 ColumnValue(f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}'),
+                ColumnValue(COLUMN_NAME.RMW_TAKE_TIMESTAMP),
             ]
         )
 
@@ -669,7 +669,7 @@ class TestNodeRecordsUseLatestMessage:
                 f'{topic_name_2}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 2,
             }),
             RecordCppImpl({
-                f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 7,
+                f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 6,
                 f'{topic_name_2}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 8,
             }),
         ]
@@ -714,19 +714,19 @@ class TestNodeRecordsUseLatestMessage:
         take_records_data: list[RecordInterface]
         take_records_data = [
             RecordCppImpl({
-                COLUMN_NAME.RMW_TAKE_TIMESTAMP: 2,
                 f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 1,
+                COLUMN_NAME.RMW_TAKE_TIMESTAMP: 2,
             }),
             RecordCppImpl({
-                COLUMN_NAME.RMW_TAKE_TIMESTAMP: 7,
                 f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 0,
+                COLUMN_NAME.RMW_TAKE_TIMESTAMP: 7,
             }),
         ]
         take_records = RecordsCppImpl(
             take_records_data,
             [
-                ColumnValue(COLUMN_NAME.RMW_TAKE_TIMESTAMP),
                 ColumnValue(f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}'),
+                ColumnValue(COLUMN_NAME.RMW_TAKE_TIMESTAMP),
             ]
         )
 
@@ -786,6 +786,7 @@ class TestNodeRecordsUseLatestMessage:
         )
 
         assert records.equals(expect_records)
+
 
 class TestNodeRecordsCallbackChain:
 
