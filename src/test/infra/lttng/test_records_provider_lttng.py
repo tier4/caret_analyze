@@ -129,10 +129,10 @@ class TestRecordsProviderLttng:
                 RecordCppImpl(
                     {
                         COLUMN_NAME.TID: 2,
-                        COLUMN_NAME.RMW_TAKE_TIMESTAMP: 3,
+                        COLUMN_NAME.RMW_TAKE_TIMESTAMP: 6,
                         COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE: 4,
                         COLUMN_NAME.MESSAGE: 5,
-                        COLUMN_NAME.SOURCE_TIMESTAMP: 6,
+                        COLUMN_NAME.SOURCE_TIMESTAMP: 3,
                     },
                 )
             ],
@@ -144,8 +144,7 @@ class TestRecordsProviderLttng:
                 ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
             ]
         )
-        mocker.patch.object(source_mock, '_grouped_rmw_records',
-                            return_value={4: records_mock})
+        mocker.patch.object(source_mock, '_grouped_rmw_records', {4: records_mock})
 
         subscription_mock = mocker.Mock(spec=SubscriptionStructValue)
         provider = RecordsProviderLttng(lttng_mock)
@@ -155,14 +154,14 @@ class TestRecordsProviderLttng:
             [
                 RecordCppImpl(
                     {
-                        COLUMN_NAME.RMW_TAKE_TIMESTAMP: 3,
-                        COLUMN_NAME.SOURCE_TIMESTAMP: 6,
+                        COLUMN_NAME.SOURCE_TIMESTAMP: 3,
+                        COLUMN_NAME.RMW_TAKE_TIMESTAMP: 6,
                     },
                 )
             ],
             [
+                ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
                 ColumnValue(COLUMN_NAME.RMW_TAKE_TIMESTAMP),
-                ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP)
             ]
         )
 
