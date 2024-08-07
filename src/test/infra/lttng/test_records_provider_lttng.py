@@ -683,6 +683,109 @@ class TestNodeRecordsUseLatestMessage:
 
         assert records.equals(expect_records)
 
+    # When node is implemented with subscription->take.
+    # there are cases where source_timestamp may become 0.
+    def test_source_timestamp_is_0(self, mocker):
+        provider_mock = mocker.Mock(spec=RecordsProviderLttng)
+        node_path_mock = mocker.Mock(spec=NodePathStructValue)
+
+        topic_name_1 = 'topic_1'
+        topic_name_2 = 'topic_2'
+
+        use_latest_message = mocker.Mock(spec=UseLatestMessage)
+        mocker.patch.object(node_path_mock, 'message_context', use_latest_message)
+
+        def noop(*args, **kwargs):
+            pass
+        mocker.patch.object(NodeRecordsUseLatestMessage, '_validate', noop)
+
+        records_data: list[RecordInterface]
+        records_data = [
+        ]
+        sub_records = RecordsCppImpl(
+            records_data,
+            [
+                ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
+            ]
+        )
+        mocker.patch.object(provider_mock, 'subscribe_records', return_value=sub_records)
+
+        take_records_data: list[RecordInterface]
+        take_records_data = [
+            RecordCppImpl({
+                COLUMN_NAME.RMW_TAKE_TIMESTAMP: 2,
+                f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 1,
+            }),
+            RecordCppImpl({
+                COLUMN_NAME.RMW_TAKE_TIMESTAMP: 7,
+                f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 0,
+            }),
+        ]
+        take_records = RecordsCppImpl(
+            take_records_data,
+            [
+                ColumnValue(COLUMN_NAME.RMW_TAKE_TIMESTAMP),
+                ColumnValue(f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}'),
+            ]
+        )
+
+        mocker.patch.object(provider_mock, 'subscription_take_records', return_value=take_records)
+
+        records_data: list[RecordInterface]
+        pub_records_data = [
+            RecordCppImpl({
+                f'{topic_name_2}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 2,
+                f'{topic_name_2}/{COLUMN_NAME.RCL_PUBLISH_TIMESTAMP}': 3,
+                f'{topic_name_2}/{COLUMN_NAME.DDS_WRITE_TIMESTAMP}': 4,
+                f'{topic_name_2}/{COLUMN_NAME.MESSAGE_TIMESTAMP}': 5,
+                f'{topic_name_2}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 6,
+            }),
+            RecordCppImpl({
+                f'{topic_name_2}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 8,
+                f'{topic_name_2}/{COLUMN_NAME.RCL_PUBLISH_TIMESTAMP}': 9,
+                f'{topic_name_2}/{COLUMN_NAME.DDS_WRITE_TIMESTAMP}': 10,
+                f'{topic_name_2}/{COLUMN_NAME.MESSAGE_TIMESTAMP}': 11,
+                f'{topic_name_2}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 12,
+            }),
+        ]
+
+        pub_records = RecordsCppImpl(
+            pub_records_data,
+            [
+                ColumnValue(f'{topic_name_2}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_2}/{COLUMN_NAME.RCL_PUBLISH_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_2}/{COLUMN_NAME.DDS_WRITE_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_2}/{COLUMN_NAME.MESSAGE_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_2}/{COLUMN_NAME.SOURCE_TIMESTAMP}'),
+            ]
+        )
+
+        mocker.patch.object(provider_mock, 'publish_records', return_value=pub_records)
+        mocker.patch.object(node_path_mock, 'publish_topic_name', topic_name_2)
+
+        node_records = NodeRecordsUseLatestMessage(provider_mock, node_path_mock)
+        records = node_records.to_records()
+
+        expect_data = [
+            RecordCppImpl({
+                f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 1,
+                f'{topic_name_2}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 2,
+            }),
+            RecordCppImpl({
+                f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 1,
+                f'{topic_name_2}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}': 8,
+            }),
+        ]
+        expect_records = RecordsCppImpl(
+            expect_data,
+            [
+                ColumnValue(f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}'),
+                ColumnValue(f'{topic_name_2}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'),
+            ]
+        )
+
+        assert records.equals(expect_records)
 
 class TestNodeRecordsCallbackChain:
 
