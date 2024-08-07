@@ -1232,11 +1232,13 @@ class TestNodeRecords:
             [
                 {
                     f'{subscription.callback_name}/callback_start_timestamp': 1,
+                    f'{subscription.topic_name}/source_timestamp': 3,
                     f'{publisher.topic_name}/rclcpp_publish_timestamp': 2,
                 }
             ],
             columns=[
                 f'{subscription.callback_name}/callback_start_timestamp',
+                f'{subscription.topic_name}/source_timestamp',
                 f'{publisher.topic_name}/rclcpp_publish_timestamp',
             ],
             dtype='Int64'
@@ -1378,6 +1380,7 @@ class TestCommunicationRecords:
         df_expect = pd.DataFrame(
             columns=[
                 f'{communication.topic_name}/rclcpp_publish_timestamp',
+                f'{communication.topic_name}/source_timestamp',
                 f'{callback.callback_name}/callback_start_timestamp',
             ],
             dtype='Int64'
@@ -1461,6 +1464,7 @@ class TestCommunicationRecords:
                     f'{communication.topic_name}/rcl_publish_timestamp': 2,
                     f'{communication.topic_name}/dds_write_timestamp': 3,
                     # f'{communication.topic_name}/message_timestamp': message_stamp,
+                    f'{communication.topic_name}/source_timestamp': 9,
                     f'{callback.callback_name}/callback_start_timestamp': 16,
                 }
             ],
@@ -1469,6 +1473,7 @@ class TestCommunicationRecords:
                 f'{communication.topic_name}/rcl_publish_timestamp',
                 f'{communication.topic_name}/dds_write_timestamp',
                 # f'{communication.topic_name}/message_timestamp',
+                f'{communication.topic_name}/source_timestamp',
                 f'{callback.callback_name}/callback_start_timestamp',
             ],
             dtype='Int64'
@@ -1599,18 +1604,22 @@ class TestCommunicationRecords:
             [
                 {
                     f'{communication.topic_name}/rclcpp_publish_timestamp': 1,
+                    f'{communication.topic_name}/source_timestamp': 9,
                     f'{callback.callback_name}/callback_start_timestamp': 16,
                 },
                 {
                     f'{communication.topic_name}/rclcpp_publish_timestamp': 17,
+                    f'{communication.topic_name}/source_timestamp': 109,
                 },
                 {
                     f'{communication.topic_name}/rclcpp_publish_timestamp': 19,
+                    f'{communication.topic_name}/source_timestamp': 209,
                     f'{callback.callback_name}/callback_start_timestamp': 22,
                 }
             ],
             columns=[
                 f'{communication.topic_name}/rclcpp_publish_timestamp',
+                f'{communication.topic_name}/source_timestamp',
                 f'{callback.callback_name}/callback_start_timestamp',
             ],
             dtype='Int64'

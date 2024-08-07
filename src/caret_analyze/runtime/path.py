@@ -157,8 +157,11 @@ class RecordsMerged:
                 right_records)
             right_records.rename_columns(rename_rule)
 
+            if 'source_timestamp' in right_records.columns[0]:
+                left_records.drop_columns([left_records.columns[-1]])
             if left_records.columns[-1] != right_records.columns[0]:
                 raise InvalidRecordsError('left columns[-1] != right columns[0]')
+
             left_stamp_key = left_records.columns[-1]
             right_stamp_key = right_records.columns[0]
 
@@ -207,19 +210,29 @@ class RecordsMerged:
             right_records.rename_columns(rename_rule)
             if left_records.columns[-1] != right_records.columns[0]:
                 raise InvalidRecordsError('left columns[-1] != right columns[0]')
-            left_records = merge(
-                left_records=left_records,
-                right_records=right_records,
-                join_left_key=left_records.columns[-1],
-                join_right_key=right_records.columns[0],
-                columns=Columns.from_str(
-                    left_records.columns + right_records.columns
-                ).column_names,
-                how='left'
-            )
+            if len(right_records.data) != 0:
+                left_records = merge(
+                    left_records=left_records,
+                    right_records=right_records,
+                    join_left_key=left_records.columns[-1],
+                    join_right_key=right_records.columns[0],
+                    columns=Columns.from_str(
+                        left_records.columns + right_records.columns
+                    ).column_names,
+                    how='left'
+                )
+            else:
+                msg = 'last_callback is None. Use last_callback = False\n'
+                msg += 'last Node is implemented using method of explicitly take message by user'
+                logger.warn(msg)
 
         logger.info('Finished merging path records.')
         left_records.sort(first_column)
+
+        # search drop columns, which contain 'source_timestamp'
+        source_columns = \
+            [column for column in left_records.columns if 'source_timestamp' in column]
+        left_records.drop_columns(source_columns)
 
         return left_records
 

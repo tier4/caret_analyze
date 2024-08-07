@@ -265,6 +265,30 @@ class TestLttng:
                             records_mock)
         assert lttng.compose_callback_records() == records_mock
 
+    def test_compose_rmw_take_records(self, mocker):
+        data_mock = mocker.Mock(spec=Ros2DataModel)
+        mocker.patch.object(Lttng, '_parse_lttng_data',
+                            return_value=(data_mock, {}, 0, 1))
+
+        lttng_info_mock = mocker.Mock(spec=LttngInfo)
+        mocker.patch('caret_analyze.infra.lttng.lttng.LttngInfo',
+                     return_value=lttng_info_mock)
+
+        records_source_mock = mocker.Mock(spec=RecordsSource)
+        mocker.patch('caret_analyze.infra.lttng.lttng.RecordsSource',
+                     return_value=records_source_mock)
+        counter_mock = mocker.Mock(spec=EventCounter)
+        mocker.patch('caret_analyze.infra.lttng.lttng.EventCounter',
+                     return_value=counter_mock)
+
+        lttng = Lttng('trace_dir')
+
+        records_mock = mocker.Mock(spec=RecordsInterface)
+        mocker.patch.object(records_mock, 'clone', return_value=records_mock)
+        mocker.patch.object(records_source_mock, 'rmw_take_records',
+                            records_mock)
+        assert lttng.compose_rmw_take_records() == records_mock
+
     def test_singleton_disabled(self, mocker):
         data = Ros2DataModel()
         data.finalize()

@@ -22,6 +22,7 @@ from logging import getLogger, Logger
 import pandas as pd
 
 from .data_model import Ros2DataModel
+from ....exceptions import InvalidArgumentError
 
 
 logger = getLogger(__name__)
@@ -182,6 +183,89 @@ class DataModelService:
             return [t.symbol for t in match_callback_symbols.itertuples()]
         except KeyError:
             return [None]
+
+    def _get_rmw_handle_from_callback_object(
+        self,
+        cb_addr: int
+    ) -> int | None:
+        try:
+            sub = self._get_sub_from_callback_object(cb_addr)
+            if sub is not None:
+                sub_handle = self._get_sub_handle_from_sub(sub)
+            if sub_handle is not None:
+                rmw_handle = self._get_rmw_handle_from_sub_handle(sub_handle)
+            return rmw_handle
+        except KeyError:
+            return None
+
+    def _get_sub_from_callback_object(
+        self,
+        cb_addr: int
+    ) -> int | None:
+        try:
+            target_df = self._ensure_dataframe(
+                self._data.callback_objects.df.reset_index()[['reference', 'callback_object']])
+            sub = target_df[target_df['callback_object'] == cb_addr]['reference'].values
+            if len(sub) == 1:
+                return sub[0]
+            elif len(sub) == 0:
+                msg = f'There is no subscription  that corresponds to callback_addr: {cb_addr}.'
+                raise InvalidArgumentError(msg)
+            else:
+                msg = f'Duplicated subscription : [{sub}] \
+                    that corresponds to callback_addr: {cb_addr}'
+                raise InvalidArgumentError(msg)
+        except KeyError:
+            return None
+
+    def _get_sub_handle_from_sub(
+        self,
+        subscription: int
+    ) -> int | None:
+        try:
+            target_df = self._ensure_dataframe(
+                self._data.subscription_objects.df.reset_index()[
+                        ['subscription', 'subscription_handle']
+                    ]
+                )
+            sub_handle = target_df[target_df['subscription'] == subscription][
+                    'subscription_handle'
+                ].values
+            if len(sub_handle) == 1:
+                return sub_handle[0]
+            elif len(sub_handle) == 0:
+                msg = f'There is no subscription_handle that \
+                    corresponds to subscription : {subscription}.'
+                raise InvalidArgumentError(msg)
+            else:
+                msg = f'Duplicated subscription_handle: [{sub_handle}] that \
+                    corresponds to subscription : {subscription}.'
+                raise InvalidArgumentError(msg)
+        except KeyError:
+            return None
+
+    def _get_rmw_handle_from_sub_handle(
+        self,
+        subscription_handle: int
+    ) -> int | None:
+        try:
+            target_df = self._ensure_dataframe(
+                self._data.subscriptions.df.reset_index()[['subscription_handle', 'rmw_handle']])
+            rmw_handle = target_df[
+                target_df['subscription_handle'] == subscription_handle
+                ]['rmw_handle'].values
+            if len(rmw_handle) == 1:
+                return rmw_handle[0]
+            elif len(rmw_handle) == 0:
+                msg = f'There is no rmw_handle that \
+                    corresponds to subscription_handle: {subscription_handle}.'
+                raise InvalidArgumentError(msg)
+            else:
+                msg = f'Duplicated rmw_handle: [{rmw_handle}] that \
+                    corresponds to subscription_handle: {subscription_handle}.'
+                raise InvalidArgumentError('len(rmw_handle) != 1')
+        except KeyError:
+            return None
 
     @staticmethod
     def _ensure_dataframe(
