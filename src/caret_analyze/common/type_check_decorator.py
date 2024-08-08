@@ -255,8 +255,12 @@ try:
                 bound_args = sig.bind(*args, **kwargs)
                 args_dict = bound_args.arguments
                 if 'self' in args_dict:
-                    return validate_arguments_wrapper(*args, **kwargs)
-                return validate_arguments_wrapper(**args_dict)
+                    args = (args_dict.pop('self'),)
+                    kwargs = args_dict
+                else:
+                    args = ()
+                    kwargs = args_dict
+                return validate_arguments_wrapper(*args, **kwargs)
 
             except ValidationError as e:
                 loc_tuple = e.errors()[0]['loc']

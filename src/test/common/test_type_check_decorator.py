@@ -221,3 +221,20 @@ class TestTypeCheckDecorator:
             mix_args(dummy_1, [dummy_2, 1])
         assert "'i'[1] must be 'DummyCustom2'. The given argument type is 'int'"\
                in str(e.value)
+
+    def test_method_case(self):
+        class ValidateTestClass:
+
+            @type_check_decorator
+            def bool_arg(self, a: bool, b: bool):
+                pass
+
+        v = ValidateTestClass()
+
+        # Ensure that it can be executed at the appropriate input
+        v.bool_arg(a=True, b=False)
+
+        with pytest.raises(UnsupportedTypeError) as e:
+            v.bool_arg(True, 'test')
+        assert "'b' must be 'bool'. The given argument type is 'str'"\
+               in str(e.value)
