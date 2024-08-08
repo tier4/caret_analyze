@@ -16,8 +16,9 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 from logging import getLogger
-from packaging import version
 from typing import Any
+
+from packaging import version
 
 from bokeh import __version__ as bokeh_version
 from bokeh.models import HoverTool
@@ -155,7 +156,7 @@ class HoverKeysBase(metaclass=ABCMeta):
                 tips_str += f'@{k} <br>'
         tips_str += '</div>'
 
-        if version.parse(bokeh_version) >= version.parse("3.4.0"):
+        if version.parse(bokeh_version) >= version.parse('3.4.0'):
             return HoverTool(
                 tooltips=tips_str, point_policy='follow_mouse', visible=False, **options
             )
