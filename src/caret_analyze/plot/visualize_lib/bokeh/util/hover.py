@@ -18,9 +18,9 @@ from abc import ABCMeta, abstractmethod
 from logging import getLogger
 from typing import Any
 
+from bokeh import __version__ as bokeh_version
 from packaging import version
 
-from bokeh import __version__ as bokeh_version
 from bokeh.models import HoverTool
 
 from .....exceptions import InvalidArgumentError
