@@ -117,6 +117,7 @@ class ResponseMap():
 
         """
         self._columns = columns
+        self._time_reversed_count = 0
         new_data = {}
 
         input_min_time = None
@@ -128,6 +129,7 @@ class ResponseMap():
             input_time, output_time = data.get(self.input_column), data.get(self.output_column)
 
             if self._has_reversed_timestamp(data):
+                self._time_reversed_count += 1
                 continue
 
             if input_min_time is None:
@@ -761,6 +763,21 @@ class ResponseTime:
 
         """
         return self._records.to_range_records('worst-with-external-latency')
+
+    def _has_invalid_timestamps(self) -> bool:
+        """
+        Invalid timestamp judgement.
+
+        Returns
+        -------
+        bool
+            Invalid timestamp judgement result.
+
+        """
+        if self._records._response_map._time_reversed_count != 0:
+            return True
+        else:
+            return False
 
 
 class ResponseRecords:

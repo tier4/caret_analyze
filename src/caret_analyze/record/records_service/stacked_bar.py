@@ -66,12 +66,17 @@ class StackedBar:
         if converter:
             series_seq = [round(converter.convert(float(t))) for t in series_seq if t is not None]
         series_list: list[int] = self._convert_sequence_to_list(series_seq)
-        stacked_bar_records = \
-            self._merge_column_series(
-                stacked_bar_records,
-                series_list,
-                xlabel,
-            )
+        if 'invalid_timestamps' in records.columns:
+            # if there is an invalid timestamp, only create a column
+            dummy_list: list[int] = []
+            stacked_bar_records.append_column(ColumnValue(xlabel), dummy_list)
+        else:
+            stacked_bar_records = \
+                self._merge_column_series(
+                    stacked_bar_records,
+                    series_list,
+                    xlabel,
+                )
         self._stacked_bar_records = stacked_bar_records
         self._columns = columns[:-1]
 
@@ -267,9 +272,10 @@ class StackedBar:
 
         """
         columns = records.columns
+        series_seq: Sequence[int | None]
         output_dict: dict[str, list[int]] = {}
         for column in columns:
-            series_seq: Sequence[int | None] = records.get_column_series(column)
+            series_seq = records.get_column_series(column)
             series_list: list[int] = self._convert_sequence_to_list(series_seq)
             output_dict[column] = series_list
         return output_dict
