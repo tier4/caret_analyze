@@ -19,9 +19,9 @@ from logging import getLogger
 from typing import Any
 
 from bokeh import __version__ as bokeh_version
-from packaging import version
-
 from bokeh.models import HoverTool
+
+from packaging import version
 
 from .....exceptions import InvalidArgumentError
 from .....runtime import CallbackBase, Communication, Path, Publisher, Subscription
