@@ -17,10 +17,13 @@ from __future__ import annotations
 from collections.abc import Sequence
 from logging import getLogger
 
+from bokeh import __version__ as bokeh_version
 from bokeh.models import HoverTool
 from bokeh.models.renderers import GlyphRenderer
 
 from bokeh.plotting import figure as Figure
+
+from packaging import version
 
 import numpy as np
 
@@ -223,9 +226,17 @@ class Bokeh(VisualizeLibInterface):
                     top=top, bottom=0, left=bins[i], right=bins[i+1],
                     color=color, alpha=1, line_color='white'
                     )
-                hover = HoverTool(
-                    tooltips=[(x_label, f'{bins[i]}'), ('The number of samples', f'{top}')],
-                    renderers=[quad]
+                if version.parse(bokeh_version) >= version.parse('3.4.0'):
+                    hover = HoverTool(
+                        tooltips=[(x_label, f'{bins[i]}'), ('The number of samples', f'{top}')],
+                        renderers=[quad],
+                        visible=False
+                        )
+                else:
+                    hover = HoverTool(
+                        tooltips=[(x_label, f'{bins[i]}'), ('The number of samples', f'{top}')],
+                        renderers=[quad],
+                        toggleable=False
                     )
                 plot.add_tools(hover)
                 quad_dicts[target_object] = quad_dicts[target_object] + [quad]
