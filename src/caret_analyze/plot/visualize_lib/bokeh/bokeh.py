@@ -23,9 +23,8 @@ from bokeh.models.renderers import GlyphRenderer
 
 from bokeh.plotting import figure as Figure
 
-from packaging import version
-
 import numpy as np
+from packaging import version
 
 from .callback_scheduling import BokehCallbackSched
 from .message_flow import BokehMessageFlow
