@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from collections.abc import Collection, Sequence
 from functools import wraps
+import inspect
 from inspect import get_annotations, getfullargspec
 from logging import getLogger
 from re import findall
@@ -24,7 +25,7 @@ from ..exceptions import UnsupportedTypeError
 
 try:
     from pydantic import ValidationError
-    from pydantic.deprecated.decorator import validate_arguments
+    from pydantic import validate_call
 
     def _get_given_arg(
         annotations: dict[str, Any],
@@ -160,7 +161,9 @@ try:
 
         """
         # Iterable or dict type case
-        if isinstance(given_arg, Sequence) or isinstance(given_arg, dict):
+        if isinstance(given_arg, str):
+            loc_str = f"'{given_arg_loc[0]}'"
+        elif isinstance(given_arg, Sequence) or isinstance(given_arg, dict):
             loc_str = f"'{given_arg_loc[0]}'[{given_arg_loc[1]}]"
         else:
             loc_str = f"'{given_arg_loc[0]}'"
@@ -198,7 +201,9 @@ try:
                 Class name input for argument <ARGUMENT_NAME>[<KEY>]
 
         """
-        if isinstance(given_arg, Sequence) or isinstance(given_arg, dict):
+        if isinstance(given_arg, str):
+            given_arg_type_str = f"'{given_arg.__class__.__name__}'"
+        elif isinstance(given_arg, Sequence) or isinstance(given_arg, dict):
             given_arg_type_str = f"'{given_arg[given_arg_loc[1]].__class__.__name__}'"
         else:
             given_arg_type_str = f"'{given_arg.__class__.__name__}'"
@@ -234,7 +239,7 @@ try:
 
     def decorator(func):
         validate_arguments_wrapper = \
-            validate_arguments(config={'arbitrary_types_allowed': True})(func)
+            validate_call(config={'arbitrary_types_allowed': True})(func)
 
         @wraps(func)
         def _custom_wrapper(*args, **kwargs):
@@ -246,6 +251,15 @@ try:
 
                 if varargs_name is not None:
                     args = args[:arg_len] + _parse_collection_or_unpack(args[arg_len:])
+                sig = inspect.signature(func)
+                bound_args = sig.bind(*args, **kwargs)
+                args_dict = bound_args.arguments
+                if 'self' in args_dict:
+                    args = (args_dict.pop('self'),)
+                    kwargs = args_dict
+                else:
+                    args = ()
+                    kwargs = args_dict
                 return validate_arguments_wrapper(*args, **kwargs)
 
             except ValidationError as e:
@@ -254,6 +268,12 @@ try:
 
                 given_arg = _get_given_arg(annotations, args, kwargs, loc_tuple, varargs_name)
                 expected_types = _get_expected_types(loc_tuple, annotations)
+                thrown_in_varargs = loc_tuple[0] == varargs_name
+                if thrown_in_varargs:
+                    for i, arg in enumerate(given_arg):
+                        if arg.__class__.__name__ not in expected_types:
+                            loc_tuple = (loc_tuple[0], i)
+
                 given_arg_loc_str = _get_given_arg_loc_str(loc_tuple, given_arg)
                 given_arg_type = _get_given_arg_type(given_arg, loc_tuple)
 
