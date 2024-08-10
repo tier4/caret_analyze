@@ -100,7 +100,7 @@ class LegendManager:
 
         legends: list[Legend] = []
         for i in range(0, len(self._legend_items)+separate_num, separate_num):
-            if not full_legends and i >= max_legends:
+            if not full_legends and i >= max_legends and len(self._legend_items) > i:
                 logger.warning(
                     f'The maximum number of legends drawn by default is {max_legends}. '
                     'If you want all legends to be displayed, '
