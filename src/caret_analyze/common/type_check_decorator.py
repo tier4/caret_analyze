@@ -254,16 +254,19 @@ try:
                 sig = inspect.signature(func)
                 bound_args = sig.bind(*args, **kwargs)
                 args_dict = bound_args.arguments
-                if 'self' in args_dict:
-                    args = (args_dict.pop('self'),)
-                    kwargs = args_dict
-                else:
-                    args = ()
-                    kwargs = args_dict
+                if varargs_name is None:
+                    if 'self' in args_dict:
+                        args = (args_dict.pop('self'),)
+                        kwargs = args_dict
+                    else:
+                        args = ()
+                        kwargs = args_dict
                 return validate_arguments_wrapper(*args, **kwargs)
 
             except ValidationError as e:
                 loc_tuple = e.errors()[0]['loc']
+                if varargs_name is not None:
+                    loc_tuple = (varargs_name,)
                 annotations = get_annotations(func)
 
                 given_arg = _get_given_arg(annotations, args, kwargs, loc_tuple, varargs_name)

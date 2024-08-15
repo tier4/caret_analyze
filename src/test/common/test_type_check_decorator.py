@@ -238,3 +238,23 @@ class TestTypeCheckDecorator:
             v.bool_arg(True, 'test')
         assert "'b' must be 'bool'. The given argument type is 'str'"\
                in str(e.value)
+
+    def test_method_case_variable_length_arg(self):
+        class ValidateTestClass:
+
+            @type_check_decorator
+            def bool_arg(self, *i: DummyCustom1):
+                pass
+
+        dummy_1 = DummyCustom1()
+        v = ValidateTestClass()
+
+        with pytest.raises(UnsupportedTypeError) as e:
+            v.bool_arg(4, dummy_1)
+        assert "'i'[1] must be 'DummyCustom1'. The given argument type is 'int'"\
+               in str(e.value)
+
+        with pytest.raises(UnsupportedTypeError) as e:
+            v.bool_arg(dummy_1, 4)
+        assert "'i'[2] must be 'DummyCustom1'. The given argument type is 'int'"\
+               in str(e.value)
