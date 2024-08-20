@@ -237,6 +237,55 @@ try:
             parsed_target_objects = tuple(target_arg)  # type: ignore
         return parsed_target_objects
 
+    def _change_loc_tuple(
+        args_dict: dict[str, Any],
+        loc_tuple: tuple[Any, ...],
+        list_key: list
+    ) -> tuple[Any, ...]:
+        count = 0
+        ng_pos1 = loc_tuple[0]
+        ng_pos2: int | str = 0
+        if len(loc_tuple) != 1:
+            ng_pos2 = loc_tuple[1]
+        for i in range(len(list_key)):
+            if type(args_dict[list_key[i]]) is tuple or type(args_dict[list_key[i]]) is list:
+                count2 = 0
+                for ii in args_dict[list_key[i]]:
+                    if count2 == ng_pos2:
+                        loc_tuple = (list_key[i], ng_pos2)
+                        count += 1
+                        break
+                    count += 1
+                    count2 += 1
+            else:
+                if count == ng_pos1:
+                    loc_tuple = (list_key[i], ng_pos2)
+                    break
+                count += 1
+        return loc_tuple
+
+    def _change_loc_tuple_varargs_name(
+        args_dict: dict[str, Any],
+        loc_tuple: tuple[Any, ...],
+        list_key: list
+    ) -> tuple[Any, ...]:
+        count = 0
+        ng_pos = loc_tuple[0]
+        for i in range(len(list_key)):
+            if type(args_dict[list_key[i]]) is tuple or type(args_dict[list_key[i]]) is list:
+                for ii in args_dict[list_key[i]]:
+                    if count == ng_pos:
+                        loc_tuple = (list_key[i],)
+                        count += 1
+                        break
+                    count += 1
+            else:
+                if count == ng_pos:
+                    loc_tuple = (list_key[i],)
+                    break
+                count += 1
+        return loc_tuple
+
     def decorator(func):
         validate_arguments_wrapper = \
             validate_call(config={'arbitrary_types_allowed': True})(func)
@@ -254,22 +303,26 @@ try:
                 sig = inspect.signature(func)
                 bound_args = sig.bind(*args, **kwargs)
                 args_dict = bound_args.arguments
-                if varargs_name is None:
-                    if 'self' in args_dict:
-                        args = (args_dict.pop('self'),)
-                        kwargs = args_dict
-                    else:
-                        args = ()
-                        kwargs = args_dict
                 return validate_arguments_wrapper(*args, **kwargs)
 
             except ValidationError as e:
+
                 loc_tuple = e.errors()[0]['loc']
-                if varargs_name is not None:
-                    loc_tuple = (varargs_name,)
                 annotations = get_annotations(func)
 
+                list_key = []
+                for key_value in args_dict.keys():
+                    list_key.append(key_value)
+                if varargs_name is None:
+                    loc_tuple = _change_loc_tuple(args_dict, loc_tuple, list_key)
+                else:
+                    loc_tuple = _change_loc_tuple_varargs_name(args_dict, loc_tuple, list_key)
+
+                is_method = 'self' in args_dict.keys()
+                if is_method:
+                    args = args[1:]
                 given_arg = _get_given_arg(annotations, args, kwargs, loc_tuple, varargs_name)
+                is_method = 'self' in args_dict.keys()
                 expected_types = _get_expected_types(loc_tuple, annotations)
                 thrown_in_varargs = loc_tuple[0] == varargs_name
                 if thrown_in_varargs:

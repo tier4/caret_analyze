@@ -188,6 +188,59 @@ class TestTypeCheckDecorator:
             kwarg(k=10)
         assert "'k' must be 'bool'. The given argument type is 'int'" in str(e.value)
 
+    def test_type_check_decorator_mix(self):
+        @type_check_decorator
+        def mix_arg(a: int,  b: bool, c: str = 'default'):
+            pass
+
+        with pytest.raises(UnsupportedTypeError) as e:
+            mix_arg(1, 2)
+        assert "'b' must be 'bool'. The given argument type is 'int'"\
+               in str(e.value)
+        with pytest.raises(UnsupportedTypeError) as e:
+            mix_arg('dummy', False)
+        assert "'a' must be 'int'. The given argument type is 'str'"\
+               in str(e.value)
+        with pytest.raises(UnsupportedTypeError) as e:
+            mix_arg(b=True, a='dummy', c='test')
+        assert "'a' must be 'int'. The given argument type is 'str'"\
+               in str(e.value)
+        with pytest.raises(UnsupportedTypeError) as e:
+            mix_arg(b=2, a=1, c='test')
+        assert "'b' must be 'bool'. The given argument type is 'int'"\
+               in str(e.value)
+
+    def test_type_check_decorator_variable_length_mix(self):
+        @type_check_decorator
+        def mix_arg(a: int, *b: bool, c: str = 'default'):
+            pass
+
+        with pytest.raises(UnsupportedTypeError) as e:
+            mix_arg('dummy', False, True)
+        assert "'a' must be 'int'. The given argument type is 'str'"\
+               in str(e.value)
+        with pytest.raises(UnsupportedTypeError) as e:
+            mix_arg(1, 10, True)
+        assert "'b'[0] must be 'bool'. The given argument type is 'int'"\
+               in str(e.value)
+        with pytest.raises(UnsupportedTypeError) as e:
+            mix_arg(1, True, 20, c='test')
+        assert "'b'[1] must be 'bool'. The given argument type is 'int'"\
+               in str(e.value)
+
+    def test_type_check_decorator_variable_length_union(self):
+        @type_check_decorator
+        def union_arg(*u: bool | set):
+            pass
+
+        with pytest.raises(UnsupportedTypeError) as e:
+            union_arg(10, True)
+        assert "'u'[0] must be ['bool', 'set']. The given argument type is 'int'" in str(e.value)
+
+        with pytest.raises(UnsupportedTypeError) as e:
+            union_arg(True, 20)
+        assert "'u'[1] must be ['bool', 'set']. The given argument type is 'int'" in str(e.value)
+
     def test_type_check_decorator_variable_length_arg(self):
         @type_check_decorator
         def var_len_args(*i: DummyCustom1 | DummyCustom2):
@@ -251,10 +304,10 @@ class TestTypeCheckDecorator:
 
         with pytest.raises(UnsupportedTypeError) as e:
             v.bool_arg(4, dummy_1)
-        assert "'i'[1] must be 'DummyCustom1'. The given argument type is 'int'"\
+        assert "'i'[0] must be 'DummyCustom1'. The given argument type is 'int'"\
                in str(e.value)
 
         with pytest.raises(UnsupportedTypeError) as e:
             v.bool_arg(dummy_1, 4)
-        assert "'i'[2] must be 'DummyCustom1'. The given argument type is 'int'"\
+        assert "'i'[1] must be 'DummyCustom1'. The given argument type is 'int'"\
                in str(e.value)
