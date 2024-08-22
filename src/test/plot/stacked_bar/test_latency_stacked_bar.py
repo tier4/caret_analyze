@@ -127,13 +127,16 @@ class TestLatencyStackedBar:
         output_df = stacked_bar_plot.to_dataframe()
         assert output_df.equals(expect_df)
 
-    def test_invalid_timestamps(self, mocker):
+    @pytest.mark.parametrize(
+        'case',
+        ['all', 'best', 'worst', 'worst-with-external-latency']
+    )
+    def test_invalid_timestamps(self, mocker, case):
         data = []
         columns = []
         records_columns = [ColumnValue(column) for column in columns]
         records = RecordsFactory.create_instance(data, columns=records_columns)
         target_objects = mocker.Mock(spec=Path)
-        recodes_objects = mocker.Mock(spec=RecordsInterface)
 
         records_raw = [
             {'start': 0, 'end': 1},
@@ -143,12 +146,21 @@ class TestLatencyStackedBar:
         columns = [ColumnValue('start'), ColumnValue('end')]
         records = create_records(records_raw, columns)
 
-        mocker.patch.object(recodes_objects, 'columns', ['start', 'end'])
-        mocker.patch.object(recodes_objects, 'data', records)
         mocker.patch.object(target_objects, 'column_names', ['start', 'end'])
         mocker.patch.object(target_objects, 'to_records', return_value=records)
 
+        mock_pass = 'caret_analyze.record.records_service.response_time.ResponseTime.'
+        mocker.patch(mock_pass+'to_all_stacked_bar',
+                     return_value=RecordsFactory.create_instance())
+        mocker.patch(mock_pass+'to_best_case_stacked_bar',
+                     return_value=RecordsFactory.create_instance())
+        mocker.patch(mock_pass+'to_worst_case_stacked_bar',
+                     return_value=RecordsFactory.create_instance())
+        mocker.patch(mock_pass+'to_worst_with_external_latency_case_stacked_bar',
+                     return_value=RecordsFactory.create_instance())
+
         stacked_bar_plot = LatencyStackedBar(target_objects)
+        stacked_bar_plot._case = case
         response_records: RecordsInterface = \
             stacked_bar_plot._get_response_time_record(stacked_bar_plot._target_objects)
         assert response_records.columns[2] == 'invalid_timestamps'
