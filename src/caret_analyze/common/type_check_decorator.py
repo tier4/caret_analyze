@@ -136,10 +136,7 @@ try:
         Parameters
         ----------
         given_arg_loc: tuple
-            (i) Not iterable type case
-                ('<ARGUMENT_NAME>,')
-
-            (ii) Iterable type except for dict case
+            (i) Iterable type except for dict case
                 ('<ARGUMENT_NAME>', '<INDEX>')
 
             (ii) Dict case
@@ -150,10 +147,7 @@ try:
         Returns
         -------
         str
-            (i) Not iterable type case
-                '<ARGUMENT_NAME>'
-
-            (ii) Iterable type except for dict case
+            (i) Iterable type except for dict case
                 '<ARGUMENT_NAME>'[INDEX]
 
             (ii) Dict case
@@ -247,19 +241,17 @@ try:
         ng_pos2: int | str = 0
         if len(loc_tuple) != 1:
             ng_pos2 = loc_tuple[1]
-        for i in range(len(list_key)):
-            if type(args_dict[list_key[i]]) is tuple or type(args_dict[list_key[i]]) is list:
-                count2 = 0
-                for ii in args_dict[list_key[i]]:
+        for key_value in list_key:
+            if type(args_dict[key_value]) is tuple or type(args_dict[key_value]) is list:
+                for count2 in range(len(args_dict[key_value])):
                     if count2 == ng_pos2:
-                        loc_tuple = (list_key[i], ng_pos2)
+                        loc_tuple = (key_value, ng_pos2)
                         count += 1
                         break
                     count += 1
-                    count2 += 1
             else:
                 if count == ng_pos1:
-                    loc_tuple = (list_key[i], ng_pos2)
+                    loc_tuple = (key_value, ng_pos2)
                     break
                 count += 1
         return loc_tuple
@@ -271,17 +263,17 @@ try:
     ) -> tuple[Any, ...]:
         count = 0
         ng_pos = loc_tuple[0]
-        for i in range(len(list_key)):
-            if type(args_dict[list_key[i]]) is tuple or type(args_dict[list_key[i]]) is list:
-                for ii in args_dict[list_key[i]]:
+        for key_value in list_key:
+            if type(args_dict[key_value]) is tuple or type(args_dict[key_value]) is list:
+                for count2 in args_dict[key_value]:
                     if count == ng_pos:
-                        loc_tuple = (list_key[i],)
+                        loc_tuple = (key_value, count2)
                         count += 1
                         break
                     count += 1
             else:
                 if count == ng_pos:
-                    loc_tuple = (list_key[i],)
+                    loc_tuple = (key_value, count)
                     break
                 count += 1
         return loc_tuple
@@ -310,9 +302,7 @@ try:
                 loc_tuple = e.errors()[0]['loc']
                 annotations = get_annotations(func)
 
-                list_key = []
-                for key_value in args_dict.keys():
-                    list_key.append(key_value)
+                list_key = list(args_dict.keys())
                 if varargs_name is None:
                     loc_tuple = _change_loc_tuple(args_dict, loc_tuple, list_key)
                 else:
@@ -322,7 +312,6 @@ try:
                 if is_method:
                     args = args[1:]
                 given_arg = _get_given_arg(annotations, args, kwargs, loc_tuple, varargs_name)
-                is_method = 'self' in args_dict.keys()
                 expected_types = _get_expected_types(loc_tuple, annotations)
                 thrown_in_varargs = loc_tuple[0] == varargs_name
                 if thrown_in_varargs:
