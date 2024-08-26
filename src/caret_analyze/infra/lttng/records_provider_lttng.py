@@ -233,8 +233,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         # get rmw_records, which relates to callback_object
         rmw_records: RecordsInterface
-        if rmw_handle is not None and rmw_handle in self._source._grouped_rmw_records:
-            rmw_records = self._source._grouped_rmw_records[rmw_handle].clone()
+        if rmw_handle is not None and rmw_handle in self._source._grouped_rmw_take_records:
+            rmw_records = self._source._grouped_rmw_take_records[rmw_handle].clone()
         else:
             rmw_records = RecordsFactory.create_instance(
                 None,
@@ -256,13 +256,12 @@ class RecordsProviderLttng(RuntimeDataProvider):
         rmw_records.reindex([COLUMN_NAME.SOURCE_TIMESTAMP, COLUMN_NAME.RMW_TAKE_TIMESTAMP])
 
         # add prefix to columns; e.g. [topic_name]/source_timestamp
-        if callback is not None:
-            self._rename_column(
-                rmw_records,
-                callback.callback_name,
-                subscription.topic_name,
-                None
-            )
+        self._rename_column(
+            rmw_records,
+            None if callback is None else callback.callback_name,
+            subscription.topic_name,
+            None
+        )
 
         return rmw_records
 
@@ -1961,7 +1960,7 @@ class FilteredRecordsSource:
         return self._expand_key_tuple(group)
 
     @cached_property
-    def _grouped_rmw_records(self) -> dict[int, RecordsInterface]:
+    def _grouped_rmw_take_records(self) -> dict[int, RecordsInterface]:
         records = self._lttng.compose_rmw_take_records()
         group = records.groupby([COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE])
         return self._expand_key_tuple(group)
