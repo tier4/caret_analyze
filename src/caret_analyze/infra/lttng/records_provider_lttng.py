@@ -226,14 +226,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
         if callback is not None:
             callback_objects = self._helper.get_subscription_callback_objects(callback)
 
-        try:
-            rmw_handle = self._srv._get_rmw_handle_from_callback_object(callback_objects[0])
-        except InvalidArgumentError:
-            rmw_handle = None
+            try:
+                rmw_handle = self._srv._get_rmw_handle_from_callback_object(callback_objects[0])
+            except InvalidArgumentError:
+                rmw_handle = None
 
         # get rmw_records, which relates to callback_object
         rmw_records: RecordsInterface
-        if rmw_handle is not None:
+        if rmw_handle is not None and rmw_handle in self._source._grouped_rmw_records:
             rmw_records = self._source._grouped_rmw_records[rmw_handle].clone()
         else:
             rmw_records = RecordsFactory.create_instance(
