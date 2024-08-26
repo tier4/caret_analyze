@@ -249,11 +249,11 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         # drop columns
         columns = rmw_records.columns
-        drop_columns = list(set(columns) - {'source_timestamp', 'rmw_take_timestamp'})
+        drop_columns = list(set(columns) - {COLUMN_NAME.SOURCE_TIMESTAMP, COLUMN_NAME.RMW_TAKE_TIMESTAMP})
         rmw_records.drop_columns(drop_columns)
 
         # reindex
-        rmw_records.reindex(['source_timestamp', 'rmw_take_timestamp'])
+        rmw_records.reindex([COLUMN_NAME.SOURCE_TIMESTAMP, COLUMN_NAME.RMW_TAKE_TIMESTAMP])
 
         # add prefix to columns; e.g. [topic_name]/source_timestamp
         if callback is not None:
@@ -1317,7 +1317,7 @@ class NodeRecordsUseLatestMessage:
 
         # If explicitly take message by user, there are cases that source_timestamp is 0.
         def fill_source_timestamp_with_latest_timestamp(records):
-            source_columns = [s for s in records.columns if 'source_timestamp' in s]
+            source_columns = [s for s in records.columns if COLUMN_NAME.SOURCE_TIMESTAMP in s]
             if len(source_columns) != 1:
                 return records
             source_column = source_columns[0]
@@ -1356,9 +1356,9 @@ class NodeRecordsUseLatestMessage:
             f'{self._node_path.publish_topic_name}/rclcpp_publish_timestamp',
         ]
         left_key = sub_records.columns[0]
-        if 'rmw_take_timestamp' in columns:
-            columns.remove('rmw_take_timestamp')
-            left_key = 'rmw_take_timestamp'
+        if COLUMN_NAME.RMW_TAKE_TIMESTAMP in columns:
+            columns.remove(COLUMN_NAME.RMW_TAKE_TIMESTAMP)
+            left_key = COLUMN_NAME.RMW_TAKE_TIMESTAMP
 
         pub_sub_records = merge_sequential(
             left_records=sub_records,
