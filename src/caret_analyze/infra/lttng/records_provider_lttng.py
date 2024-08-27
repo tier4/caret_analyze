@@ -227,7 +227,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             callback_objects = self._helper.get_subscription_callback_objects(callback)
 
             try:
-                rmw_handle = \
+                rmw_handle =\
                     self._srv.get_rmw_subscription_handle_from_callback_object(callback_objects[0])
             except InvalidArgumentError:
                 rmw_handle = None
@@ -250,7 +250,9 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         # drop columns
         columns = rmw_records.columns
-        drop_columns = list(set(columns) - {COLUMN_NAME.SOURCE_TIMESTAMP, COLUMN_NAME.RMW_TAKE_TIMESTAMP})
+        drop_columns = list(
+            set(columns) - {COLUMN_NAME.SOURCE_TIMESTAMP, COLUMN_NAME.RMW_TAKE_TIMESTAMP}
+            )
         rmw_records.drop_columns(drop_columns)
 
         # reindex

@@ -205,7 +205,9 @@ class DataModelService:
     ) -> int | None:
         try:
             target_df = self._ensure_dataframe(
-                self._data.callback_objects.clone().df.reset_index()[['reference', 'callback_object']])
+                self._data.callback_objects.clone().df.reset_index()[
+                    ['reference', 'callback_object']
+                ])
             sub = target_df[target_df['callback_object'] == cb_addr]['reference'].values
             if len(sub) == 1:
                 return sub[0]
@@ -251,7 +253,9 @@ class DataModelService:
     ) -> int | None:
         try:
             target_df = self._ensure_dataframe(
-                self._data.subscriptions.clone().df.reset_index()[['subscription_handle', 'rmw_handle']])
+                self._data.subscriptions.clone().df.reset_index()[
+                    ['subscription_handle', 'rmw_handle']
+                ])
             rmw_handle = target_df[
                 target_df['subscription_handle'] == subscription_handle
                 ]['rmw_handle'].values

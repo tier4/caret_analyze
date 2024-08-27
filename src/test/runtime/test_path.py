@@ -821,5 +821,5 @@ class TestRecordsMerged:
         with caplog.at_level(WARNING):
             RecordsMerged([comm_path, node_path], include_last_callback=True)
             msg = 'include_last_callback argument is ignored because last node receive messages '
-            msg +='by `take` method instead of subscription callback.'
+            msg += 'by `take` method instead of subscription callback.'
             assert caplog.messages[0] == msg
