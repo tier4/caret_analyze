@@ -184,16 +184,17 @@ class DataModelService:
         except KeyError:
             return [None]
 
-    def _get_rmw_handle_from_callback_object(
+    def get_rmw_subscription_handle_from_callback_object(
         self,
         cb_addr: int
     ) -> int | None:
         try:
             sub = self._get_sub_from_callback_object(cb_addr)
+            rmw_handle = None
             if sub is not None:
                 sub_handle = self._get_sub_handle_from_sub(sub)
-            if sub_handle is not None:
-                rmw_handle = self._get_rmw_handle_from_sub_handle(sub_handle)
+                if sub_handle is not None:
+                    rmw_handle = self._get_rmw_handle_from_sub_handle(sub_handle)
             return rmw_handle
         except KeyError:
             return None
@@ -204,7 +205,7 @@ class DataModelService:
     ) -> int | None:
         try:
             target_df = self._ensure_dataframe(
-                self._data.callback_objects.df.reset_index()[['reference', 'callback_object']])
+                self._data.callback_objects.clone().df.reset_index()[['reference', 'callback_object']])
             sub = target_df[target_df['callback_object'] == cb_addr]['reference'].values
             if len(sub) == 1:
                 return sub[0]
@@ -224,7 +225,7 @@ class DataModelService:
     ) -> int | None:
         try:
             target_df = self._ensure_dataframe(
-                self._data.subscription_objects.df.reset_index()[
+                self._data.subscription_objects.clone().df.reset_index()[
                         ['subscription', 'subscription_handle']
                     ]
                 )
@@ -250,7 +251,7 @@ class DataModelService:
     ) -> int | None:
         try:
             target_df = self._ensure_dataframe(
-                self._data.subscriptions.df.reset_index()[['subscription_handle', 'rmw_handle']])
+                self._data.subscriptions.clone().df.reset_index()[['subscription_handle', 'rmw_handle']])
             rmw_handle = target_df[
                 target_df['subscription_handle'] == subscription_handle
                 ]['rmw_handle'].values
@@ -263,7 +264,7 @@ class DataModelService:
             else:
                 msg = f'Duplicated rmw_handle: [{rmw_handle}] that \
                     corresponds to subscription_handle: {subscription_handle}.'
-                raise InvalidArgumentError('len(rmw_handle) != 1')
+                raise InvalidArgumentError(msg)
         except KeyError:
             return None
 

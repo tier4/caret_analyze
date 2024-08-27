@@ -227,7 +227,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
             callback_objects = self._helper.get_subscription_callback_objects(callback)
 
             try:
-                rmw_handle = self._srv._get_rmw_handle_from_callback_object(callback_objects[0])
+                rmw_handle = \
+                    self._srv.get_rmw_subscription_handle_from_callback_object(callback_objects[0])
             except InvalidArgumentError:
                 rmw_handle = None
 
