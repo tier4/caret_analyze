@@ -222,8 +222,9 @@ class RecordsMerged:
                     how='left'
                 )
             else:
-                msg = 'last_callback is None. Use last_callback = False\n'
-                msg += 'last Node is implemented using method of explicitly take message by user'
+                msg = 'include_last_callback argument is ignored '
+                msg += 'because last node receive messages '
+                msg += 'by `take` method instead of subscription callback.'
                 logger.warn(msg)
 
         logger.info('Finished merging path records.')
@@ -231,7 +232,7 @@ class RecordsMerged:
 
         # search drop columns, which contain 'source_timestamp'
         source_columns = \
-            [column for column in left_records.columns if 'source_timestamp' in column]
+            [column for column in left_records.columns if column.endswith('source_timestamp')]
         left_records.drop_columns(source_columns)
 
         return left_records
