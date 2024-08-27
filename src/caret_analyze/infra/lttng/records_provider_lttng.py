@@ -1347,6 +1347,10 @@ class NodeRecordsUseLatestMessage:
         is_take_node = len(sub_records) == 0
         if is_take_node:
             sub_records = self._provider.subscription_take_records(self._node_path.subscription)
+            # source_timestamp of rmw_take is 0 when no message is taken.
+            # We replace this 0 with the source_timestamp of preceding record because
+            # typical node which 'take' messages (instead of using subscription callback)
+            # use last message when no message is taken.
             sub_records = fill_source_timestamp_with_latest_timestamp(sub_records)
         pub_records = self._provider.publish_records(self._node_path.publisher)
 
