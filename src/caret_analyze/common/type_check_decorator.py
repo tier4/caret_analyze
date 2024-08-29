@@ -47,9 +47,6 @@ try:
             Keyword arguments of target function.
         given_arg_loc: tuple
             (i) Not Dict case
-                ('<ARGUMENT_NAME>,')
-
-            (ii) Iterable type except for dict case
                 ('<ARGUMENT_NAME>', '<INDEX>')
 
             (ii) Dict case
@@ -90,9 +87,6 @@ try:
         ----------
         given_arg_loc: tuple
             (i) Not Dict case
-                ('<ARGUMENT_NAME>,')
-
-            (ii) Iterable type except for dict case
                 ('<ARGUMENT_NAME>', '<INDEX>')
 
             (ii) Dict case
@@ -137,9 +131,6 @@ try:
         ----------
         given_arg_loc: tuple
             (i) Not Dict case
-                ('<ARGUMENT_NAME>,')
-
-            (ii) Iterable type except for dict case
                 ('<ARGUMENT_NAME>', '<INDEX>')
 
             (ii) Dict case
@@ -177,9 +168,6 @@ try:
             The argument which validation error occurs.
         given_arg_loc: tuple
             (i) Not Dict case
-                ('<ARGUMENT_NAME>,')
-
-            (ii) Iterable type except for dict case
                 ('<ARGUMENT_NAME>', '<INDEX>')
 
             (ii) Dict case
@@ -194,7 +182,7 @@ try:
             (ii) Iterable type except for dict case
                 Class name input for argument <ARGUMENT_NAME>[<INDEX>]
 
-            (ii) Dict case
+            (iii) Dict case
                 Class name input for argument <ARGUMENT_NAME>[<KEY>]
 
         """
