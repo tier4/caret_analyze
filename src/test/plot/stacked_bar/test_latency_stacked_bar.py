@@ -137,6 +137,7 @@ class TestLatencyStackedBar:
         records_columns = [ColumnValue(column) for column in columns]
         records = RecordsFactory.create_instance(data, columns=records_columns)
         target_objects = mocker.Mock(spec=Path)
+        records_Interface_mock = mocker.Mock(spec=RecordsInterface)
 
         records_raw = [
             {'start': 0, 'end': 1},
@@ -149,15 +150,15 @@ class TestLatencyStackedBar:
         mocker.patch.object(target_objects, 'column_names', ['start', 'end'])
         mocker.patch.object(target_objects, 'to_records', return_value=records)
 
-        mock_pass = 'caret_analyze.record.records_service.response_time.ResponseTime.'
-        mocker.patch(mock_pass+'to_all_stacked_bar',
-                     return_value=RecordsFactory.create_instance())
-        mocker.patch(mock_pass+'to_best_case_stacked_bar',
-                     return_value=RecordsFactory.create_instance())
-        mocker.patch(mock_pass+'to_worst_case_stacked_bar',
-                     return_value=RecordsFactory.create_instance())
-        mocker.patch(mock_pass+'to_worst_with_external_latency_case_stacked_bar',
-                     return_value=RecordsFactory.create_instance())
+        mock_path = 'caret_analyze.record.records_service.response_time.ResponseTime.'
+        mocker.patch(mock_path+'to_all_stacked_bar',
+                     return_value=records_Interface_mock)
+        mocker.patch(mock_path+'to_best_case_stacked_bar',
+                     return_value=records_Interface_mock)
+        mocker.patch(mock_path+'to_worst_case_stacked_bar',
+                     return_value=records_Interface_mock)
+        mocker.patch(mock_path+'to_worst_with_external_latency_case_stacked_bar',
+                     return_value=records_Interface_mock)
 
         stacked_bar_plot = LatencyStackedBar(target_objects)
         stacked_bar_plot._case = case
