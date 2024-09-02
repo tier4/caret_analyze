@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from collections.abc import Collection, Sequence
 from functools import wraps
+import inspect
 from inspect import get_annotations, getfullargspec
 from logging import getLogger
 from re import findall
@@ -24,7 +25,7 @@ from ..exceptions import UnsupportedTypeError
 
 try:
     from pydantic import ValidationError
-    from pydantic.deprecated.decorator import validate_arguments
+    from pydantic import validate_call
 
     def _get_given_arg(
         annotations: dict[str, Any],
@@ -45,10 +46,7 @@ try:
         kwargs: dict[str, Any]
             Keyword arguments of target function.
         given_arg_loc: tuple
-            (i) Not iterable type case
-                ('<ARGUMENT_NAME>,')
-
-            (ii) Iterable type except for dict case
+            (i) Not Dict case
                 ('<ARGUMENT_NAME>', '<INDEX>')
 
             (ii) Dict case
@@ -88,10 +86,7 @@ try:
         Parameters
         ----------
         given_arg_loc: tuple
-            (i) Not iterable type case
-                ('<ARGUMENT_NAME>,')
-
-            (ii) Iterable type except for dict case
+            (i) Not Dict case
                 ('<ARGUMENT_NAME>', '<INDEX>')
 
             (ii) Dict case
@@ -135,10 +130,7 @@ try:
         Parameters
         ----------
         given_arg_loc: tuple
-            (i) Not iterable type case
-                ('<ARGUMENT_NAME>,')
-
-            (ii) Iterable type except for dict case
+            (i) Not Dict case
                 ('<ARGUMENT_NAME>', '<INDEX>')
 
             (ii) Dict case
@@ -149,10 +141,7 @@ try:
         Returns
         -------
         str
-            (i) Not iterable type case
-                '<ARGUMENT_NAME>'
-
-            (ii) Iterable type except for dict case
+            (i) Iterable type except for dict case
                 '<ARGUMENT_NAME>'[INDEX]
 
             (ii) Dict case
@@ -160,7 +149,9 @@ try:
 
         """
         # Iterable or dict type case
-        if isinstance(given_arg, Sequence) or isinstance(given_arg, dict):
+        if isinstance(given_arg, str):
+            loc_str = f"'{given_arg_loc[0]}'"
+        elif isinstance(given_arg, Sequence) or isinstance(given_arg, dict):
             loc_str = f"'{given_arg_loc[0]}'[{given_arg_loc[1]}]"
         else:
             loc_str = f"'{given_arg_loc[0]}'"
@@ -176,10 +167,7 @@ try:
         given_arg: Any
             The argument which validation error occurs.
         given_arg_loc: tuple
-            (i) Not iterable type case
-                ('<ARGUMENT_NAME>,')
-
-            (ii) Iterable type except for dict case
+            (i) Not Dict case
                 ('<ARGUMENT_NAME>', '<INDEX>')
 
             (ii) Dict case
@@ -194,11 +182,13 @@ try:
             (ii) Iterable type except for dict case
                 Class name input for argument <ARGUMENT_NAME>[<INDEX>]
 
-            (ii) Dict case
+            (iii) Dict case
                 Class name input for argument <ARGUMENT_NAME>[<KEY>]
 
         """
-        if isinstance(given_arg, Sequence) or isinstance(given_arg, dict):
+        if isinstance(given_arg, str):
+            given_arg_type_str = f"'{given_arg.__class__.__name__}'"
+        elif isinstance(given_arg, Sequence) or isinstance(given_arg, dict):
             given_arg_type_str = f"'{given_arg[given_arg_loc[1]].__class__.__name__}'"
         else:
             given_arg_type_str = f"'{given_arg.__class__.__name__}'"
@@ -232,9 +222,56 @@ try:
             parsed_target_objects = tuple(target_arg)  # type: ignore
         return parsed_target_objects
 
+    def _change_loc_tuple(
+        args_dict: dict[str, Any],
+        loc_tuple: tuple[Any, ...],
+        list_key: list
+    ) -> tuple[Any, ...]:
+        count = 0
+        ng_pos1 = loc_tuple[0]
+        ng_pos2: int | str = 0
+        if len(loc_tuple) != 1:
+            ng_pos2 = loc_tuple[1]
+        for key_value in list_key:
+            if type(args_dict[key_value]) is tuple or type(args_dict[key_value]) is list:
+                for count2 in range(len(args_dict[key_value])):
+                    if count2 == ng_pos2:
+                        loc_tuple = (key_value, ng_pos2)
+                        count += 1
+                        break
+                    count += 1
+            else:
+                if count == ng_pos1:
+                    loc_tuple = (key_value, ng_pos2)
+                    break
+                count += 1
+        return loc_tuple
+
+    def _change_loc_tuple_varargs_name(
+        args_dict: dict[str, Any],
+        loc_tuple: tuple[Any, ...],
+        list_key: list
+    ) -> tuple[Any, ...]:
+        count = 0
+        ng_pos = loc_tuple[0]
+        for key_value in list_key:
+            if type(args_dict[key_value]) is tuple or type(args_dict[key_value]) is list:
+                for count2 in args_dict[key_value]:
+                    if count == ng_pos:
+                        loc_tuple = (key_value, count2)
+                        count += 1
+                        break
+                    count += 1
+            else:
+                if count == ng_pos:
+                    loc_tuple = (key_value, count)
+                    break
+                count += 1
+        return loc_tuple
+
     def decorator(func):
         validate_arguments_wrapper = \
-            validate_arguments(config={'arbitrary_types_allowed': True})(func)
+            validate_call(config={'arbitrary_types_allowed': True})(func)
 
         @wraps(func)
         def _custom_wrapper(*args, **kwargs):
@@ -246,14 +283,33 @@ try:
 
                 if varargs_name is not None:
                     args = args[:arg_len] + _parse_collection_or_unpack(args[arg_len:])
+                sig = inspect.signature(func)
+                bound_args = sig.bind(*args, **kwargs)
+                args_dict = bound_args.arguments
                 return validate_arguments_wrapper(*args, **kwargs)
 
             except ValidationError as e:
+
                 loc_tuple = e.errors()[0]['loc']
                 annotations = get_annotations(func)
 
+                list_key = list(args_dict.keys())
+                if varargs_name is None:
+                    loc_tuple = _change_loc_tuple(args_dict, loc_tuple, list_key)
+                else:
+                    loc_tuple = _change_loc_tuple_varargs_name(args_dict, loc_tuple, list_key)
+
+                is_method = 'self' in args_dict.keys()
+                if is_method:
+                    args = args[1:]
                 given_arg = _get_given_arg(annotations, args, kwargs, loc_tuple, varargs_name)
                 expected_types = _get_expected_types(loc_tuple, annotations)
+                thrown_in_varargs = loc_tuple[0] == varargs_name
+                if thrown_in_varargs:
+                    for i, arg in enumerate(given_arg):
+                        if arg.__class__.__name__ not in expected_types:
+                            loc_tuple = (loc_tuple[0], i)
+
                 given_arg_loc_str = _get_given_arg_loc_str(loc_tuple, given_arg)
                 given_arg_type = _get_given_arg_type(given_arg, loc_tuple)
 
