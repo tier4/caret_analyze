@@ -578,23 +578,25 @@ class TestRecordsMerged:
 
     def test_take_impl_case(self, mocker):
         comm_path = mocker.Mock(spec=Communication)
+        topic0 = 'topic_0'
+        topic1 = 'topic_1'
         mocker.patch.object(
             comm_path, 'to_records',
             return_value=RecordsCppImpl(
                 [
                     RecordCppImpl({
-                        'rclcpp_publish_timestamp': 0,
-                        'rcl_publish_timestamp': 1,
-                        'dds_write_timestamp': 2,
-                        'source_timestamp': 3,
+                        f'{topic0}/rclcpp_publish_timestamp': 0,
+                        f'{topic0}/rcl_publish_timestamp': 1,
+                        f'{topic0}/dds_write_timestamp': 2,
+                        f'{topic0}/source_timestamp': 3,
                     }),
                 ],
                 [
-                    ColumnValue('rclcpp_publish_timestamp'),
-                    ColumnValue('rcl_publish_timestamp'),
-                    ColumnValue('dds_write_timestamp'),
-                    ColumnValue('source_timestamp'),
-                    ColumnValue('callback_start_timestamp'),
+                    ColumnValue(f'{topic0}/rclcpp_publish_timestamp'),
+                    ColumnValue(f'{topic0}/rcl_publish_timestamp'),
+                    ColumnValue(f'{topic0}/dds_write_timestamp'),
+                    ColumnValue(f'{topic0}/source_timestamp'),
+                    ColumnValue(f'{topic0}/callback_start_timestamp'),
                 ]
             )
         )
@@ -605,13 +607,13 @@ class TestRecordsMerged:
             return_value=RecordsCppImpl(
                 [
                     RecordCppImpl({
-                        'source_timestamp': 3,
-                        'rclcpp_publish_timestamp': 4,
+                        f'{topic0}/source_timestamp': 3,
+                        f'{topic1}/rclcpp_publish_timestamp': 4,
                     }),
                 ],
                 [
-                    ColumnValue('source_timestamp'),
-                    ColumnValue('rclcpp_publish_timestamp'),
+                    ColumnValue(f'{topic0}/source_timestamp'),
+                    ColumnValue(f'{topic1}/rclcpp_publish_timestamp'),
                 ]
             )
         )
@@ -623,15 +625,19 @@ class TestRecordsMerged:
         def append_columns_and_return_rename_rule(records):
             if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
                 return {
-                        'rclcpp_publish_timestamp': 'rclcpp_publish_timestamp/0',
-                        'rcl_publish_timestamp': 'rcl_publish_timestamp/0',
-                        'dds_write_timestamp': 'dds_write_timestamp/0',
-                        'source_timestamp': 'source_timestamp/0',
+                        f'{topic0}/rclcpp_publish_timestamp': (
+                            f'{topic0}/rclcpp_publish_timestamp/0'
+                        ),
+                        f'{topic0}/rcl_publish_timestamp': f'{topic0}/rcl_publish_timestamp/0',
+                        f'{topic0}/dds_write_timestamp': f'{topic0}/dds_write_timestamp/0',
+                        f'{topic0}/source_timestamp': f'{topic0}/source_timestamp/0',
                         }
             if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
                 return {
-                        'source_timestamp': 'source_timestamp/0',
-                        'rclcpp_publish_timestamp': 'rclcpp_publish_timestamp/1',
+                        f'{topic0}/source_timestamp': f'{topic0}/source_timestamp/0',
+                        f'{topic1}/rclcpp_publish_timestamp': (
+                            f'{topic1}/rclcpp_publish_timestamp/0'
+                        ),
                 }
         mocker.patch.object(
             merger_mock, 'append_columns_and_return_rename_rule',
@@ -643,23 +649,25 @@ class TestRecordsMerged:
         expected = RecordsCppImpl(
             [
                 RecordCppImpl({
-                    'rclcpp_publish_timestamp/0': 0,
-                    'rcl_publish_timestamp/0': 1,
-                    'dds_write_timestamp/0': 2,
-                    'rclcpp_publish_timestamp/1': 4,
+                    f'{topic0}/rclcpp_publish_timestamp/0': 0,
+                    f'{topic0}/rcl_publish_timestamp/0': 1,
+                    f'{topic0}/dds_write_timestamp/0': 2,
+                    f'{topic1}/rclcpp_publish_timestamp/0': 4,
                 }),
             ],
             [
-                ColumnValue('rclcpp_publish_timestamp/0'),
-                ColumnValue('rcl_publish_timestamp/0'),
-                ColumnValue('dds_write_timestamp/0'),
-                ColumnValue('rclcpp_publish_timestamp/1'),
+                ColumnValue(f'{topic0}/rclcpp_publish_timestamp/0'),
+                ColumnValue(f'{topic0}/rcl_publish_timestamp/0'),
+                ColumnValue(f'{topic0}/dds_write_timestamp/0'),
+                ColumnValue(f'{topic1}/rclcpp_publish_timestamp/0'),
             ]
         )
 
         assert records.equals(expected)
 
     def test_take_impl_case_include_first_callback(self, mocker):
+        topic0 = 'topic_0'
+        topic1 = 'topic_1'
         node_path = mocker.Mock(spec=NodePath)
         mocker.patch.object(
             node_path, 'to_records',
@@ -670,13 +678,13 @@ class TestRecordsMerged:
             return_value=RecordsCppImpl(
                 [
                     RecordCppImpl({
-                        'callback_start_timestamp': 0,
-                        'rclcpp_publish_timestamp': 1,
+                        f'{topic0}/callback_start_timestamp': 0,
+                        f'{topic0}/rclcpp_publish_timestamp': 1,
                     }),
                 ],
                 [
-                    ColumnValue('callback_start_timestamp'),
-                    ColumnValue('rclcpp_publish_timestamp'),
+                    ColumnValue(f'{topic0}/callback_start_timestamp'),
+                    ColumnValue(f'{topic0}/rclcpp_publish_timestamp'),
                 ]
             )
         )
@@ -687,19 +695,19 @@ class TestRecordsMerged:
             return_value=RecordsCppImpl(
                 [
                     RecordCppImpl({
-                        'rclcpp_publish_timestamp': 1,
-                        'rcl_publish_timestamp': 2,
-                        'dds_write_timestamp': 3,
-                        'source_timestamp': 4,
-                        'callback_start_timestamp': 5
+                        f'{topic0}/rclcpp_publish_timestamp': 1,
+                        f'{topic0}/rcl_publish_timestamp': 2,
+                        f'{topic0}/dds_write_timestamp': 3,
+                        f'{topic0}/source_timestamp': 4,
+                        f'{topic1}/callback_start_timestamp': 5
                     }),
                 ],
                 [
-                    ColumnValue('rclcpp_publish_timestamp'),
-                    ColumnValue('rcl_publish_timestamp'),
-                    ColumnValue('dds_write_timestamp'),
-                    ColumnValue('source_timestamp'),
-                    ColumnValue('callback_start_timestamp'),
+                    ColumnValue(f'{topic0}/rclcpp_publish_timestamp'),
+                    ColumnValue(f'{topic0}/rcl_publish_timestamp'),
+                    ColumnValue(f'{topic0}/dds_write_timestamp'),
+                    ColumnValue(f'{topic0}/source_timestamp'),
+                    ColumnValue(f'{topic1}/callback_start_timestamp'),
                 ]
             )
         )
@@ -711,16 +719,24 @@ class TestRecordsMerged:
         def append_columns_and_return_rename_rule(records):
             if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
                 return {
-                        'callback_start_timestamp': 'callback_start_timestamp/0',
-                        'rclcpp_publish_timestamp': 'rclcpp_publish_timestamp/0',
+                        f'{topic0}/callback_start_timestamp': (
+                            f'{topic0}/callback_start_timestamp/0'
+                        ),
+                        f'{topic0}/rclcpp_publish_timestamp': (
+                            f'{topic0}/rclcpp_publish_timestamp/0'
+                        ),
                 }
             if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
                 return {
-                        'rclcpp_publish_timestamp': 'rclcpp_publish_timestamp/0',
-                        'rcl_publish_timestamp': 'rcl_publish_timestamp/0',
-                        'dds_write_timestamp': 'dds_write_timestamp/0',
-                        'source_timestamp': 'source_timestamp/0',
-                        'callback_start_timestamp': 'callback_start_timestamp/1',
+                        f'{topic0}/rclcpp_publish_timestamp': (
+                            f'{topic0}/rclcpp_publish_timestamp/0'
+                        ),
+                        f'{topic0}/rcl_publish_timestamp': f'{topic0}/rcl_publish_timestamp/0',
+                        f'{topic0}/dds_write_timestamp': f'{topic0}/dds_write_timestamp/0',
+                        f'{topic0}/source_timestamp': f'{topic0}/source_timestamp/0',
+                        f'{topic1}/callback_start_timestamp': (
+                            f'{topic1}/callback_start_timestamp/0'
+                        ),
                         }
         mocker.patch.object(
             merger_mock, 'append_columns_and_return_rename_rule',
@@ -732,44 +748,47 @@ class TestRecordsMerged:
         expected = RecordsCppImpl(
             [
                 RecordCppImpl({
-                    'callback_start_timestamp/0': 0,
-                    'rclcpp_publish_timestamp/0': 1,
-                    'rcl_publish_timestamp/0': 2,
-                    'dds_write_timestamp/0': 3,
-                    'callback_start_timestamp/1': 5,
+                    f'{topic0}/callback_start_timestamp/0': 0,
+                    f'{topic0}/rclcpp_publish_timestamp/0': 1,
+                    f'{topic0}/rcl_publish_timestamp/0': 2,
+                    f'{topic0}/dds_write_timestamp/0': 3,
+                    f'{topic1}/callback_start_timestamp/0': 5,
 
                 }),
             ],
             [
-                ColumnValue('callback_start_timestamp/0'),
-                ColumnValue('rclcpp_publish_timestamp/0'),
-                ColumnValue('rcl_publish_timestamp/0'),
-                ColumnValue('dds_write_timestamp/0'),
-                ColumnValue('callback_start_timestamp/1'),
+                ColumnValue(f'{topic0}/callback_start_timestamp/0'),
+                ColumnValue(f'{topic0}/rclcpp_publish_timestamp/0'),
+                ColumnValue(f'{topic0}/rcl_publish_timestamp/0'),
+                ColumnValue(f'{topic0}/dds_write_timestamp/0'),
+                ColumnValue(f'{topic1}/callback_start_timestamp/0'),
             ]
         )
 
         assert records.equals(expected)
 
     def test_take_impl_case_include_last_callback(self, mocker, caplog):
+        topic0 = 'topic_0'
+        topic1 = 'topic_1'
         comm_path = mocker.Mock(spec=Communication)
         mocker.patch.object(
             comm_path, 'to_records',
             return_value=RecordsCppImpl(
                 [
                     RecordCppImpl({
-                        'rclcpp_publish_timestamp': 1,
-                        'rcl_publish_timestamp': 2,
-                        'dds_write_timestamp': 3,
-                        'source_timestamp': 4,
+                        f'{topic0}/rclcpp_publish_timestamp': 1,
+                        f'{topic0}/rcl_publish_timestamp': 2,
+                        f'{topic0}/dds_write_timestamp': 3,
+                        f'{topic0}/source_timestamp': 4,
+                        f'{topic1}/callback_start_timestamp': 5
                     }),
                 ],
                 [
-                    ColumnValue('rclcpp_publish_timestamp'),
-                    ColumnValue('rcl_publish_timestamp'),
-                    ColumnValue('dds_write_timestamp'),
-                    ColumnValue('source_timestamp'),
-                    ColumnValue('callback_start_timestamp'),
+                    ColumnValue(f'{topic0}/rclcpp_publish_timestamp'),
+                    ColumnValue(f'{topic0}/rcl_publish_timestamp'),
+                    ColumnValue(f'{topic0}/dds_write_timestamp'),
+                    ColumnValue(f'{topic0}/source_timestamp'),
+                    ColumnValue(f'{topic1}/callback_start_timestamp'),
                 ]
             )
         )
@@ -784,8 +803,8 @@ class TestRecordsMerged:
             return_value=RecordsCppImpl(
                 [],
                 [
-                    ColumnValue('callback_start_timestamp'),
-                    ColumnValue('callback_end_timestamp'),
+                    ColumnValue(f'{topic1}/callback_start_timestamp'),
+                    ColumnValue(f'{topic1}/callback_end_timestamp'),
                 ]
             )
         )
@@ -797,23 +816,29 @@ class TestRecordsMerged:
         def append_columns_and_return_rename_rule(records):
             if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
                 return {
-                        'rclcpp_publish_timestamp': 'rclcpp_publish_timestamp/0',
-                        'rcl_publish_timestamp': 'rcl_publish_timestamp/0',
-                        'dds_write_timestamp': 'dds_write_timestamp/0',
-                        'source_timestamp': 'source_timestamp/0',
-                        'callback_start_timestamp': 'callback_start_timestamp/1',
+                        f'{topic0}/rclcpp_publish_timestamp': (
+                            f'{topic0}/rclcpp_publish_timestamp/0'
+                        ),
+                        f'{topic0}/rcl_publish_timestamp': f'{topic0}/rcl_publish_timestamp/0',
+                        f'{topic0}/dds_write_timestamp': f'{topic0}/dds_write_timestamp/0',
+                        f'{topic0}/source_timestamp': f'{topic0}/source_timestamp/0',
+                        f'{topic1}/callback_start_timestamp': (
+                            f'{topic1}/callback_start_timestamp/0'
+                        ),
                         }
             if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
                 return {
-                        'callback_start_timestamp': 'callback_start_timestamp/1',
-                        'callback_end_timestamp': 'callback_end_timestamp/1',
-                }
+                        f'{topic1}/callback_start_timestamp': (
+                            f'{topic1}/callback_start_timestamp/0'
+                        ),
+                        f'{topic1}/callback_end_timestamp': f'{topic1}/callback_end_timestamp/0',
+                        }
         mocker.patch.object(
             merger_mock, 'append_columns_and_return_rename_rule',
             side_effect=append_columns_and_return_rename_rule)
 
         with caplog.at_level(WARNING):
             RecordsMerged([comm_path, node_path], include_last_callback=True)
-            msg = 'last_callback is None. Use last_callback = False\n'
-            msg += 'last Node is implemented using method of explicitly take message by user'
+            msg = 'include_last_callback argument is ignored because last node receive messages '
+            msg += 'by `take` method instead of subscription callback.'
             assert caplog.messages[0] == msg

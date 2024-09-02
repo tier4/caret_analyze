@@ -205,10 +205,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
         """
         Provide subscription records.
 
-        This method is implemented for a node with a specific subscription usage.
-        Use this function when you get the message
-        using 'subscription->take' at any arbitrary timing
-        instead of using 'subscription_callback'.
+        This method is implemented for nodes which receive messages
+        by 'take' method instead of subscription callbacks.
 
         Parameters
         ----------
@@ -228,15 +226,16 @@ class RecordsProviderLttng(RuntimeDataProvider):
         if callback is not None:
             callback_objects = self._helper.get_subscription_callback_objects(callback)
 
-        try:
-            rmw_handle = self._srv._get_rmw_handle_from_callback_object(callback_objects[0])
-        except InvalidArgumentError:
-            rmw_handle = None
+            try:
+                rmw_handle =\
+                    self._srv.get_rmw_subscription_handle_from_callback_object(callback_objects[0])
+            except InvalidArgumentError:
+                rmw_handle = None
 
         # get rmw_records, which relates to callback_object
         rmw_records: RecordsInterface
-        if rmw_handle is not None:
-            rmw_records = self._source._grouped_rmw_records[rmw_handle].clone()
+        if rmw_handle is not None and rmw_handle in self._source._grouped_rmw_take_records:
+            rmw_records = self._source._grouped_rmw_take_records[rmw_handle].clone()
         else:
             rmw_records = RecordsFactory.create_instance(
                 None,
@@ -251,20 +250,21 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         # drop columns
         columns = rmw_records.columns
-        drop_columns = list(set(columns) - {'source_timestamp', 'rmw_take_timestamp'})
+        drop_columns = list(
+            set(columns) - {COLUMN_NAME.SOURCE_TIMESTAMP, COLUMN_NAME.RMW_TAKE_TIMESTAMP}
+            )
         rmw_records.drop_columns(drop_columns)
 
         # reindex
-        rmw_records.reindex(['source_timestamp', 'rmw_take_timestamp'])
+        rmw_records.reindex([COLUMN_NAME.SOURCE_TIMESTAMP, COLUMN_NAME.RMW_TAKE_TIMESTAMP])
 
         # add prefix to columns; e.g. [topic_name]/source_timestamp
-        if callback is not None:
-            self._rename_column(
-                rmw_records,
-                callback.callback_name,
-                subscription.topic_name,
-                None
-            )
+        self._rename_column(
+            rmw_records,
+            None if callback is None else callback.callback_name,
+            subscription.topic_name,
+            None
+        )
 
         return rmw_records
 
@@ -1319,7 +1319,7 @@ class NodeRecordsUseLatestMessage:
 
         # If explicitly take message by user, there are cases that source_timestamp is 0.
         def fill_source_timestamp_with_latest_timestamp(records):
-            source_columns = [s for s in records.columns if 'source_timestamp' in s]
+            source_columns = [s for s in records.columns if COLUMN_NAME.SOURCE_TIMESTAMP in s]
             if len(source_columns) != 1:
                 return records
             source_column = source_columns[0]
@@ -1350,6 +1350,10 @@ class NodeRecordsUseLatestMessage:
         is_take_node = len(sub_records) == 0
         if is_take_node:
             sub_records = self._provider.subscription_take_records(self._node_path.subscription)
+            # source_timestamp of rmw_take is 0 when no message is taken.
+            # We replace this 0 with the source_timestamp of preceding record because
+            # typical node which 'take' messages (instead of using subscription callback)
+            # use last message when no message is taken.
             sub_records = fill_source_timestamp_with_latest_timestamp(sub_records)
         pub_records = self._provider.publish_records(self._node_path.publisher)
 
@@ -1358,9 +1362,9 @@ class NodeRecordsUseLatestMessage:
             f'{self._node_path.publish_topic_name}/rclcpp_publish_timestamp',
         ]
         left_key = sub_records.columns[0]
-        if 'rmw_take_timestamp' in columns:
-            columns.remove('rmw_take_timestamp')
-            left_key = 'rmw_take_timestamp'
+        if COLUMN_NAME.RMW_TAKE_TIMESTAMP in columns:
+            columns.remove(COLUMN_NAME.RMW_TAKE_TIMESTAMP)
+            left_key = COLUMN_NAME.RMW_TAKE_TIMESTAMP
 
         pub_sub_records = merge_sequential(
             left_records=sub_records,
@@ -1963,7 +1967,7 @@ class FilteredRecordsSource:
         return self._expand_key_tuple(group)
 
     @cached_property
-    def _grouped_rmw_records(self) -> dict[int, RecordsInterface]:
+    def _grouped_rmw_take_records(self) -> dict[int, RecordsInterface]:
         records = self._lttng.compose_rmw_take_records()
         group = records.groupby([COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE])
         return self._expand_key_tuple(group)

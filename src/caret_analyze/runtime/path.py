@@ -123,6 +123,12 @@ class RecordsMerged:
     ) -> RecordsInterface:
         logger.info('Started merging path records.')
 
+        def is_source_timestamp_column(column: str) -> bool:
+            last_slash_index = column.rfind('/')
+            if last_slash_index >= 0:
+                column = column[:last_slash_index]
+            return column.endswith('source_timestamp')
+
         column_merger = ColumnMerger()
         if include_first_callback and isinstance(targets[0], NodePath):
             first_element = targets[0].to_path_beginning_records()
@@ -157,7 +163,7 @@ class RecordsMerged:
                 right_records)
             right_records.rename_columns(rename_rule)
 
-            if 'source_timestamp' in right_records.columns[0]:
+            if is_source_timestamp_column(right_records.columns[0]):
                 left_records.drop_columns([left_records.columns[-1]])
             if left_records.columns[-1] != right_records.columns[0]:
                 raise InvalidRecordsError('left columns[-1] != right columns[0]')
@@ -222,8 +228,9 @@ class RecordsMerged:
                     how='left'
                 )
             else:
-                msg = 'last_callback is None. Use last_callback = False\n'
-                msg += 'last Node is implemented using method of explicitly take message by user'
+                msg = 'include_last_callback argument is ignored '
+                msg += 'because last node receive messages '
+                msg += 'by `take` method instead of subscription callback.'
                 logger.warn(msg)
 
         logger.info('Finished merging path records.')
@@ -231,7 +238,7 @@ class RecordsMerged:
 
         # search drop columns, which contain 'source_timestamp'
         source_columns = \
-            [column for column in left_records.columns if 'source_timestamp' in column]
+            [column for column in left_records.columns if is_source_timestamp_column(column)]
         left_records.drop_columns(source_columns)
 
         return left_records
