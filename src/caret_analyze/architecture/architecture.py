@@ -31,7 +31,7 @@ from ..common import Summarizable, Summary, type_check_decorator, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError, UnsupportedTypeError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, DiffNode, ExecutorStructValue,
-                             NodePathStructValue, NodeStructValue, PathStructValue,
+                             NodePathStructValue, NodeStructValue, NodeValue, PathStructValue,
                              PublisherStructValue, ServiceStructValue, SubscriptionStructValue)
 
 logger = logging.getLogger(__name__)
@@ -762,13 +762,13 @@ class AssignContextReader(ArchitectureReader):
     def get_message_contexts(self, _) -> Sequence[dict]:
         return self._contexts
 
-    def get_callback_groups(self):
+    def get_callback_groups(self, node: NodeValue):
         pass
 
     def get_executors(self):
         pass
 
-    def get_node_names_and_cb_symbols(self):
+    def get_node_names_and_cb_symbols(self, callback_group_id: str):
         pass
 
     def get_nodes(self):
@@ -777,28 +777,28 @@ class AssignContextReader(ArchitectureReader):
     def get_paths(self):
         pass
 
-    def get_publishers(self):
+    def get_publishers(self, node: NodeValue):
         pass
 
-    def get_service_callbacks(self):
+    def get_service_callbacks(self, node: NodeValue):
         pass
 
-    def get_services(self):
+    def get_services(self, node: NodeValue):
         pass
 
-    def get_subscription_callbacks(self):
+    def get_subscription_callbacks(self, node: NodeValue):
         pass
 
-    def get_subscriptions(self):
+    def get_subscriptions(self, node: NodeValue):
         pass
 
-    def get_timer_callbacks(self):
+    def get_timer_callbacks(self, node: NodeValue):
         pass
 
-    def get_timers(self):
+    def get_timers(self, node: NodeValue):
         pass
 
-    def get_variable_passings(self):
+    def get_variable_passings(self, node: NodeValue):
         pass
 
 
