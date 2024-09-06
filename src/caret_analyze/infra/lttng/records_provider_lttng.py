@@ -82,7 +82,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         comm_val : CommunicationStructValue
             communication value.
 
-        Returns
+        Returns (inter procces communication)
         -------
         RecordsInterface
             Columns
@@ -91,6 +91,15 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/rcl_publish_timestamp (Optional)
             - [topic_name]/dds_publish_timestamp (Optional)
             - [topic_name]/source_timestamp (only inter process)
+            - [callback_name]/callback_start_timestamp
+        -------
+
+        Returns (intra procces communication)
+        -------
+        RecordsInterface
+            Columns
+
+            - [topic_name]/rclcpp_publish_timestamp
             - [callback_name]/callback_start_timestamp
 
         """
@@ -1570,6 +1579,12 @@ class FilteredRecordsSource:
                 ]
             )
 
+            columns:
+            - callback_start_timestamp
+            - callback_object
+            - is_intra_process
+            - source_timestamp
+
         """
         grouped_records = self._grouped_sub_records
         if len(grouped_records) == 0:
@@ -1613,6 +1628,15 @@ class FilteredRecordsSource:
         Returns
         -------
         RecordsInterface
+            columns:
+            - callback_object
+            - callback_start_timestamp
+            - publisher_handle
+            - rclcpp_publish_timestamp
+            - rcl_publish_timestamp (Optional)
+            - dds_write_timestamp (Optional)
+            - message_timestamp
+            - source_timestamp
 
         """
         pub_records = self.publish_records(publisher_handles)
@@ -1677,6 +1701,13 @@ class FilteredRecordsSource:
                 lambda x: x.get('callback_object') == callback_object and
                           x.get('publisher_handle') in publisher_handles
             )
+
+            columns:
+            - callback_object
+            - callback_start_timestamp
+            - publisher_handle
+            - rclcpp_publish_timestamp
+            - message_timestamp
 
 
         """
@@ -1855,6 +1886,12 @@ class FilteredRecordsSource:
             records.filter_if(
                 lambda x: x.['callback_object] in [inter_callback_object, intra_callback_object]
             )
+
+        columns:
+        - callback_start_timestamp
+        - callback_end_timestamp
+        - is_intra_process
+        - callback_object
 
         """
         records = self._grouped_callback_records

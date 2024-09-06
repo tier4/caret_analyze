@@ -914,7 +914,7 @@ class Lttng(InfraBase):
         -------
         RecordsInterface
             Columns
-
+            - tid
             - callback_object
             - callback_start_timestamp
             - publisher_handle
@@ -937,7 +937,6 @@ class Lttng(InfraBase):
 
             - callback_start_timestamp
             - callback_end_timestamp
-            - is_intra_process
             - callback_object
 
         """
