@@ -82,7 +82,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         comm_val : CommunicationStructValue
             communication value.
 
-        Returns (inter procces communication)
+        Returns (inter proc communication)
         -------
         RecordsInterface
             Columns
@@ -94,7 +94,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [callback_name]/callback_start_timestamp
         -------
 
-        Returns (intra procces communication)
+        Returns (intra proc communication)
         -------
         RecordsInterface
             Columns
