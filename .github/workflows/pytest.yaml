@@ -27,7 +27,12 @@ jobs:
           rosdep update
           rosdep install -i --skip-keys "caret_analyze_cpp_impl" --from-paths . -y --rosdistro humble
       - name: Install dependent packages
-        run: python3 -m pip install -r src/requirements.txt
+        run: |
+          python3 -m pip install -r src/requirements.txt
+          if dpkg -l | grep -q python3-typeguard; then
+            sudo apt remove -y python3-typeguard
+            pip install typeguard
+          fi
 
       - name: Get package list
         run: |
