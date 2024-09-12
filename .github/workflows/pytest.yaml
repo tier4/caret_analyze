@@ -32,7 +32,6 @@ jobs:
           # cSpell:ignore typeguard
           if dpkg -l | grep -q python3-typeguard; then
             sudo apt remove -y python3-typeguard
-            pip install typeguard
           fi
 
       - name: Get package list
