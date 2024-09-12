@@ -29,6 +29,7 @@ jobs:
       - name: Install dependent packages
         run: |
           python3 -m pip install -r src/requirements.txt
+          # cSpell:ignore typeguard
           if dpkg -l | grep -q python3-typeguard; then
             sudo apt remove -y python3-typeguard
             pip install typeguard
