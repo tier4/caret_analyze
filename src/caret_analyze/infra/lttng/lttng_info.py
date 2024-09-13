@@ -1042,7 +1042,7 @@ class DataFrameFormatted:
             - executor_type_name
 
         """
-        return self._executor_df.clone()
+        return self._executor_df
 
     @property
     def callback_groups(self) -> TracePointData:
