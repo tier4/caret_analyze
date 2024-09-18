@@ -13,3 +13,4 @@ pymdown-extensions
 python-markdown-math
 mkdocstrings<=0.23
 mkdocstrings[python]
+griffe<1.0.0
