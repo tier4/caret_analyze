@@ -84,20 +84,22 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Returns
         -------
-        If inter proc communication
-            RecordsInterface
-                Columns
-                - [topic_name]/rclcpp_publish_timestamp
-                - [topic_name]/rcl_publish_timestamp (Optional)
-                - [topic_name]/dds_publish_timestamp (Optional)
-                - [topic_name]/source_timestamp (only inter process)
-                - [callback_name]/callback_start_timestamp
+        RecordsInterface (If inter-proc communication)
+            Columns
 
-        If intra proc communication
-            RecordsInterface
-                Columns
-                - [topic_name]/rclcpp_publish_timestamp
-                - [callback_name]/callback_start_timestamp
+            - [topic_name]/rclcpp_publish_timestamp
+            - [topic_name]/rcl_publish_timestamp (Optional)
+            - [topic_name]/dds_publish_timestamp (Optional)
+            - [topic_name]/source_timestamp (only inter process)
+            - [callback_name]/callback_start_timestamp
+
+        Returns
+        -------
+        RecordsInterface (If intra-proc communication)
+            Columns
+
+            - [topic_name]/rclcpp_publish_timestamp
+            - [callback_name]/callback_start_timestamp
 
         """
         assert comm_val.subscribe_callback_name is not None
@@ -739,6 +741,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             Columns
+
             - [node_name]/callback_start_timestamp
             - [topic_name]/rclcpp_publish_timestamp
 
@@ -770,6 +773,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             Columns
+
             - [callback_name]/callback_start_timestamp
             - [callback_name]/callback_end_timestamp
 
