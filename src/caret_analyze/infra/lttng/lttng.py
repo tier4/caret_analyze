@@ -913,6 +913,7 @@ class Lttng(InfraBase):
         Returns
         -------
         RecordsInterface
+
             Columns
             - tid
             - callback_object
