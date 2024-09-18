@@ -82,25 +82,22 @@ class RecordsProviderLttng(RuntimeDataProvider):
         comm_val : CommunicationStructValue
             communication value.
 
-        Returns (inter proc communication)
+        Returns
         -------
-        RecordsInterface
-            Columns
+        If inter proc communication
+            RecordsInterface
+                Columns
+                - [topic_name]/rclcpp_publish_timestamp
+                - [topic_name]/rcl_publish_timestamp (Optional)
+                - [topic_name]/dds_publish_timestamp (Optional)
+                - [topic_name]/source_timestamp (only inter process)
+                - [callback_name]/callback_start_timestamp
 
-            - [topic_name]/rclcpp_publish_timestamp
-            - [topic_name]/rcl_publish_timestamp (Optional)
-            - [topic_name]/dds_publish_timestamp (Optional)
-            - [topic_name]/source_timestamp (only inter process)
-            - [callback_name]/callback_start_timestamp
-        -------
-
-        Returns (intra proc communication)
-        -------
-        RecordsInterface
-            Columns
-
-            - [topic_name]/rclcpp_publish_timestamp
-            - [callback_name]/callback_start_timestamp
+        If intra proc communication
+            RecordsInterface
+                Columns
+                - [topic_name]/rclcpp_publish_timestamp
+                - [callback_name]/callback_start_timestamp
 
         """
         assert comm_val.subscribe_callback_name is not None

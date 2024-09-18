@@ -989,7 +989,7 @@ class Lttng(InfraBase):
             - callback_start_timestamp
             - rclcpp_publish_timestamp
             - callback_object
-            - publisher_object
+            - publisher_handle
 
         """
         return self._source.path_beginning_records.clone()
