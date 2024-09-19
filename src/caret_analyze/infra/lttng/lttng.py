@@ -915,6 +915,7 @@ class Lttng(InfraBase):
         RecordsInterface
             Columns
 
+            - tid
             - callback_object
             - callback_start_timestamp
             - publisher_handle
@@ -937,7 +938,6 @@ class Lttng(InfraBase):
 
             - callback_start_timestamp
             - callback_end_timestamp
-            - is_intra_process
             - callback_object
 
         """
@@ -990,7 +990,7 @@ class Lttng(InfraBase):
             - callback_start_timestamp
             - rclcpp_publish_timestamp
             - callback_object
-            - publisher_object
+            - publisher_handle
 
         """
         return self._source.path_beginning_records.clone()
