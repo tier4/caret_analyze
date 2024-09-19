@@ -966,8 +966,8 @@ class DataFrameFormatted:
         Returns
         -------
         pd.DataFrame
-
             Columns
+
             - publisher_id
             - publisher_handle
             - node_handle
