@@ -84,19 +84,18 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Returns
         -------
-        RecordsInterface (If inter-proc communication)
+        RecordsInterface
             Columns
+
+            If inter-proc communication
 
             - [topic_name]/rclcpp_publish_timestamp
             - [topic_name]/rcl_publish_timestamp (Optional)
             - [topic_name]/dds_publish_timestamp (Optional)
-            - [topic_name]/source_timestamp (only inter process)
+            - [topic_name]/source_timestamp
             - [callback_name]/callback_start_timestamp
 
-        Returns
-        -------
-        RecordsInterface (If intra-proc communication)
-            Columns
+            If intra-proc communication
 
             - [topic_name]/rclcpp_publish_timestamp
             - [callback_name]/callback_start_timestamp
