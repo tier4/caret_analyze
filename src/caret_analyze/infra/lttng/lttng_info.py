@@ -870,6 +870,7 @@ class DataFrameFormatted:
         -------
         pd.DataFrame
             Column
+
             - callback_id
             - callback_object
             - node_handle
@@ -894,6 +895,7 @@ class DataFrameFormatted:
         Returns
         -------
         pd.DataFrame
+
             columns
             - callback_id
             - callback_object
@@ -922,6 +924,7 @@ class DataFrameFormatted:
         -------
         pd.DataFrame
             Columns
+
             - callback_id
             - callback_object
             - node_handle
@@ -947,6 +950,7 @@ class DataFrameFormatted:
         -------
         pd.DataFrame
             Columns
+
             - node_id
             - node_handle
             - node_name
@@ -962,6 +966,7 @@ class DataFrameFormatted:
         Returns
         -------
         pd.DataFrame
+
             Columns
             - publisher_id
             - publisher_handle
@@ -982,6 +987,7 @@ class DataFrameFormatted:
         -------
         pd.DataFrame
             Columns
+
             - subscription_id
             - subscription_handle
             - node_handle
@@ -1001,6 +1007,7 @@ class DataFrameFormatted:
         -------
         pd.DataFrame
             Columns
+
             - service_id
             - service_handle
             - node_handle
@@ -1019,6 +1026,7 @@ class DataFrameFormatted:
         -------
         pd.DataFrame
             Columns
+
             - timer_id
             - timer_handle
             - node_handle
@@ -1037,6 +1045,7 @@ class DataFrameFormatted:
         -------
         pd.DataFrame
             Columns
+
             - executor_id
             - executor_addr
             - executor_type_name
@@ -1053,6 +1062,7 @@ class DataFrameFormatted:
         -------
         pd.DataFrame
             Columns
+
             - callback_group_id
             - callback_group_addr
             - executor_addr
@@ -1070,6 +1080,7 @@ class DataFrameFormatted:
         -------
         pd.DataFrame
             Columns
+
             - tilde_publisher
             - tilde_subscription
             - node_name

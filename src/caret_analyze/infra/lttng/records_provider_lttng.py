@@ -1630,6 +1630,7 @@ class FilteredRecordsSource:
         -------
         RecordsInterface
             columns:
+
             - callback_object
             - callback_start_timestamp
             - publisher_handle
@@ -1704,6 +1705,7 @@ class FilteredRecordsSource:
             )
 
             columns:
+
             - callback_object
             - callback_start_timestamp
             - publisher_handle
@@ -1889,6 +1891,7 @@ class FilteredRecordsSource:
             )
 
         columns:
+
         - callback_start_timestamp
         - callback_end_timestamp
         - is_intra_process
