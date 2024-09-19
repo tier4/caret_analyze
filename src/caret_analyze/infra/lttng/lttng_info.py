@@ -895,8 +895,8 @@ class DataFrameFormatted:
         Returns
         -------
         pd.DataFrame
-
             columns
+
             - callback_id
             - callback_object
             - callback_object_intra
