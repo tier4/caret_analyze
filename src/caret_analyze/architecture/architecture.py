@@ -31,7 +31,7 @@ from ..common import Summarizable, Summary, type_check_decorator, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError, UnsupportedTypeError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, DiffNode, ExecutorStructValue,
-                             NodePathStructValue, NodeStructValue, NodeValue, PathStructValue,
+                             NodePathStructValue, NodeStructValue, PathStructValue,
                              PublisherStructValue, ServiceStructValue, SubscriptionStructValue)
 
 logger = logging.getLogger(__name__)
