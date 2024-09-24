@@ -870,6 +870,8 @@ class DataFrameFormatted:
         -------
         pd.DataFrame
             Column
+
+            - callback_id
             - callback_object
             - node_handle
             - timer_handle
@@ -877,7 +879,6 @@ class DataFrameFormatted:
             - period_ns,
             - symbol
             - construction_order
-            - callback_id
 
         """
         return self._timer_callbacks
@@ -895,6 +896,8 @@ class DataFrameFormatted:
         -------
         pd.DataFrame
             columns
+
+            - callback_id
             - callback_object
             - callback_object_intra
             - node_handle
@@ -902,9 +905,8 @@ class DataFrameFormatted:
             - callback_group_addr
             - topic_name
             - symbol
-            - construction_order
-            - callback_id
             - depth
+            - construction_order
 
         """
         return self._sub_callbacks
@@ -922,11 +924,12 @@ class DataFrameFormatted:
         -------
         pd.DataFrame
             Columns
+
             - callback_id
             - callback_object
-            - callback_group_addr
             - node_handle
             - service_handle
+            - callback_group_addr
             - service_name
             - symbol
             - construction_order
@@ -947,6 +950,8 @@ class DataFrameFormatted:
         -------
         pd.DataFrame
             Columns
+
+            - node_id
             - node_handle
             - node_name
 
@@ -962,6 +967,8 @@ class DataFrameFormatted:
         -------
         pd.DataFrame
             Columns
+
+            - publisher_id
             - publisher_handle
             - node_handle
             - topic_name
@@ -980,6 +987,8 @@ class DataFrameFormatted:
         -------
         pd.DataFrame
             Columns
+
+            - subscription_id
             - subscription_handle
             - node_handle
             - topic_name
@@ -998,6 +1007,8 @@ class DataFrameFormatted:
         -------
         pd.DataFrame
             Columns
+
+            - service_id
             - service_handle
             - node_handle
             - service_name
@@ -1015,6 +1026,8 @@ class DataFrameFormatted:
         -------
         pd.DataFrame
             Columns
+
+            - timer_id
             - timer_handle
             - node_handle
             - period
@@ -1032,11 +1045,13 @@ class DataFrameFormatted:
         -------
         pd.DataFrame
             Columns
+
+            - executor_id
             - executor_addr
             - executor_type_name
 
         """
-        return self._executor_df.clone()
+        return self._executor_df
 
     @property
     def callback_groups(self) -> TracePointData:
@@ -1047,10 +1062,11 @@ class DataFrameFormatted:
         -------
         pd.DataFrame
             Columns
+
+            - callback_group_id
             - callback_group_addr
             - executor_addr
             - group_type_name
-            - callback_group_id
 
         """
         return self._cbg
@@ -1064,7 +1080,9 @@ class DataFrameFormatted:
         -------
         pd.DataFrame
             Columns
+
             - tilde_publisher
+            - tilde_subscription
             - node_name
             - topic_name
 

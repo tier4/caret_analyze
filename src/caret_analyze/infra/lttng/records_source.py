@@ -701,10 +701,11 @@ class RecordsSource():
         -------
         RecordsInterface
             columns:
+
             - callback_start_timestamp
             - rclcpp_publish_timestamp
             - callback_object
-            - publisher_object
+            - publisher_handle
 
         """
         records_inter: RecordsInterface
