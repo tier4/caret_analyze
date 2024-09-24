@@ -41,7 +41,7 @@ def check_procedure(
 
     paths = NodeValuesLoaded._search_node_paths(
                                 node,
-                                reader,
+                                reader.get_message_contexts(node),
                                 app_arch._max_callback_construction_order_on_path_searching
                             )
 
