@@ -398,7 +398,7 @@ class Architecture(Summarizable):
         node.update_node_path(
             NodeValuesLoaded._search_node_paths(
                                 node,
-                                context_updater.get_message_contexts(node),
+                                context_updater.get_message_contexts(),
                                 self._max_callback_construction_order_on_path_searching)
                             )
 
@@ -428,7 +428,7 @@ class Architecture(Summarizable):
         node.update_node_path(
             NodeValuesLoaded._search_node_paths(
                                 node,
-                                ContextUpdater(node).get_message_contexts(node),
+                                ContextUpdater(node).get_message_contexts(),
                                 self._max_callback_construction_order_on_path_searching)
                             )
 
@@ -454,7 +454,7 @@ class Architecture(Summarizable):
         node.update_node_path(
             NodeValuesLoaded._search_node_paths(
                                 node,
-                                ContextUpdater(node).get_message_contexts(node),
+                                ContextUpdater(node).get_message_contexts(),
                                 self._max_callback_construction_order_on_path_searching)
                             )
 
@@ -484,7 +484,7 @@ class Architecture(Summarizable):
         node.update_node_path(
             NodeValuesLoaded._search_node_paths(
                                 node,
-                                ContextUpdater(node).get_message_contexts(node),
+                                ContextUpdater(node).get_message_contexts(),
                                 self._max_callback_construction_order_on_path_searching)
                             )
 
@@ -524,7 +524,7 @@ class Architecture(Summarizable):
             node.update_node_path(
                 NodeValuesLoaded._search_node_paths(
                                     node,
-                                    context_updater.get_message_contexts(node),
+                                    context_updater.get_message_contexts(),
                                     self._max_callback_construction_order_on_path_searching)
                                 )
 
@@ -762,7 +762,7 @@ class ContextUpdater:
                                              'callback_chain')
         ]
 
-    def get_message_contexts(self, _) -> Sequence[dict]:
+    def get_message_contexts(self) -> Sequence[dict]:
         return self._contexts
 
 
