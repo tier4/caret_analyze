@@ -23,7 +23,7 @@ from .architecture_reader_factory import ArchitectureReaderFactory
 from .combine_path import CombinePath
 from .graph_search import NodePathSearcher
 
-from .reader_interface import ArchitectureReader, IGNORE_TOPICS
+from .reader_interface import IGNORE_TOPICS
 from .struct import (CallbackStruct, CommunicationStruct, ExecutorStruct,
                      NodePathStruct, NodeStruct, PathStruct,
                      ServiceCallbackStruct, SubscriptionCallbackStruct, TimerCallbackStruct)
@@ -31,7 +31,7 @@ from ..common import Summarizable, Summary, type_check_decorator, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError, UnsupportedTypeError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, DiffNode, ExecutorStructValue,
-                             NodePathStructValue, NodeStructValue, NodeValue, PathStructValue,
+                             NodePathStructValue, NodeStructValue, PathStructValue,
                              PublisherStructValue, ServiceStructValue, SubscriptionStructValue)
 
 logger = logging.getLogger(__name__)
@@ -389,13 +389,16 @@ class Architecture(Summarizable):
         if subscribe_topic_name not in node.subscribe_topic_names:
             raise ItemNotFoundError('{sub_topic_name} is not found in {node_name}')
 
-        context_reader = AssignContextReader(node)
-        context_reader.update_message_context(context_type,
-                                              subscribe_topic_name, publish_topic_name)
+        context_updater = ContextUpdater(node)
+        context_updater.update_message_context(
+                                        context_type,
+                                        subscribe_topic_name,
+                                        publish_topic_name
+                                    )
         node.update_node_path(
             NodeValuesLoaded._search_node_paths(
                                 node,
-                                context_reader,
+                                context_updater.get_message_contexts(),
                                 self._max_callback_construction_order_on_path_searching)
                             )
 
@@ -425,7 +428,7 @@ class Architecture(Summarizable):
         node.update_node_path(
             NodeValuesLoaded._search_node_paths(
                                 node,
-                                AssignContextReader(node),
+                                ContextUpdater(node).get_message_contexts(),
                                 self._max_callback_construction_order_on_path_searching)
                             )
 
@@ -451,7 +454,7 @@ class Architecture(Summarizable):
         node.update_node_path(
             NodeValuesLoaded._search_node_paths(
                                 node,
-                                AssignContextReader(node),
+                                ContextUpdater(node).get_message_contexts(),
                                 self._max_callback_construction_order_on_path_searching)
                             )
 
@@ -481,7 +484,7 @@ class Architecture(Summarizable):
         node.update_node_path(
             NodeValuesLoaded._search_node_paths(
                                 node,
-                                AssignContextReader(node),
+                                ContextUpdater(node).get_message_contexts(),
                                 self._max_callback_construction_order_on_path_searching)
                             )
 
@@ -510,10 +513,10 @@ class Architecture(Summarizable):
             Util.find_one(lambda x: x.callback_name == callback_name_write, self.callbacks)
 
         if callback_read.publish_topics:
-            context_reader = AssignContextReader(node)
+            context_updater = ContextUpdater(node)
             for publish_topic in callback_read.publish_topics:
                 if callback_write.subscribe_topic_name and publish_topic is not None:
-                    context_reader.remove_callback_chain(
+                    context_updater.remove_callback_chain(
                         callback_write.subscribe_topic_name,
                         callback_write.construction_order,
                         publish_topic.topic_name,
@@ -521,7 +524,7 @@ class Architecture(Summarizable):
             node.update_node_path(
                 NodeValuesLoaded._search_node_paths(
                                     node,
-                                    context_reader,
+                                    context_updater.get_message_contexts(),
                                     self._max_callback_construction_order_on_path_searching)
                                 )
 
@@ -709,8 +712,8 @@ class Architecture(Summarizable):
         return DiffNode(left_node, right_node).diff_node_subs()
 
 
-class AssignContextReader(ArchitectureReader):
-    """MessageContext of NodeStruct implemented version of ArchitectureReader."""
+class ContextUpdater:
+    """MessageContext updater of NodeStruct."""
 
     def __init__(self, node: NodeStruct) -> None:
         contexts = [path.message_context for path in node.paths]
@@ -759,47 +762,8 @@ class AssignContextReader(ArchitectureReader):
                                              'callback_chain')
         ]
 
-    def get_message_contexts(self, _) -> Sequence[dict]:
+    def get_message_contexts(self) -> Sequence[dict]:
         return self._contexts
-
-    def get_callback_groups(self, node: NodeValue):
-        pass
-
-    def get_executors(self):
-        pass
-
-    def get_node_names_and_cb_symbols(self, callback_group_id: str):
-        pass
-
-    def get_nodes(self):
-        pass
-
-    def get_paths(self):
-        pass
-
-    def get_publishers(self, node: NodeValue):
-        pass
-
-    def get_service_callbacks(self, node: NodeValue):
-        pass
-
-    def get_services(self, node: NodeValue):
-        pass
-
-    def get_subscription_callbacks(self, node: NodeValue):
-        pass
-
-    def get_subscriptions(self, node: NodeValue):
-        pass
-
-    def get_timer_callbacks(self, node: NodeValue):
-        pass
-
-    def get_timers(self, node: NodeValue):
-        pass
-
-    def get_variable_passings(self, node: NodeValue):
-        pass
 
 
 # NOTE: DiffArchitecture may be changed when it is refactored.

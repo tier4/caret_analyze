@@ -484,7 +484,7 @@ class NodeValuesLoaded():
             node_paths = \
                     NodeValuesLoaded._search_node_paths(
                         node_struct,
-                        reader,
+                        reader.get_message_contexts(node),
                         max_callback_construction_order_on_path_searching
                     )
             node_path_added = NodeStruct(
@@ -506,7 +506,7 @@ class NodeValuesLoaded():
     @staticmethod
     def _search_node_paths(
         node: NodeStruct,
-        reader: ArchitectureReader,
+        contexts: Sequence[dict],
         max_callback_construction_order: int
     ) -> list[NodePathStruct]:
 
@@ -587,7 +587,7 @@ class NodeValuesLoaded():
                 )
 
         message_contexts: list[MessageContextStruct] = []
-        message_contexts += list(MessageContextsLoaded(reader, node, node_paths).data)
+        message_contexts += list(MessageContextsLoaded(contexts, node, node_paths).data)
 
         # assign message context to each node paths
         node_paths = NodeValuesLoaded._message_context_assigned(
@@ -641,14 +641,13 @@ class NodeValuesLoaded():
 class MessageContextsLoaded:
     def __init__(
         self,
-        reader: ArchitectureReader,
+        context_dicts: Sequence[dict],
         node: NodeStruct,
         node_paths: Sequence[NodePathStruct]
     ) -> None:
         self._data: list[MessageContextStruct]
         data: list[MessageContextStruct] = []
 
-        context_dicts = reader.get_message_contexts(NodeValue(node.node_name, None))
         pub_sub_pairs: list[tuple[str | None, str | None]] = []
         for context_dict in context_dicts:
             try:
