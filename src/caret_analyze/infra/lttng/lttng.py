@@ -862,6 +862,14 @@ class Lttng(InfraBase):
                     system_times_filtered.append(system_time)
                     sim_times_filtered.append(sim_time)
 
+        if (len(system_times_filtered) < 2):
+            logger.warning(
+                'Out-of-range time is used to convert sim_time, '
+                'due to no time data within the operating time of the target object.')
+            # Use all time data
+            system_times_filtered = system_times
+            sim_times_filtered = sim_times
+
         try:
             return ClockConverter.create_from_series(system_times_filtered, sim_times_filtered)
         except InvalidArgumentError:
