@@ -868,7 +868,7 @@ class Lttng(InfraBase):
                 'due to no time data within the operating time of the target object.')
             # Use all time data
             system_times_filtered = [t for t in system_times if t is not None]
-            sim_times_filtered = [t for t in system_times if t is not None]
+            sim_times_filtered = [t for t in sim_times if t is not None]
 
         try:
             return ClockConverter.create_from_series(system_times_filtered, sim_times_filtered)
