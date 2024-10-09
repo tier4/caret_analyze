@@ -2039,6 +2039,7 @@ class TestSimTimeConverter:
     def test_converter_compare(
         self,
         create_lttng,
+        caplog
     ):
         data = Ros2DataModel()
         # pid, tid = 4, 5
@@ -2064,3 +2065,4 @@ class TestSimTimeConverter:
 
         assert (s100 == d100)
         assert (s300 == d300)
+        assert 'Out-of-range time is used to convert sim_time' in caplog.messages[0]
