@@ -163,8 +163,6 @@ class RecordsMerged:
                 right_records)
             right_records.rename_columns(rename_rule)
 
-            if is_source_timestamp_column(right_records.columns[0]):
-                left_records.drop_columns([left_records.columns[-1]])
             if left_records.columns[-1] != right_records.columns[0]:
                 raise InvalidRecordsError('left columns[-1] != right columns[0]')
 
@@ -209,7 +207,9 @@ class RecordsMerged:
                     how='left'
                 )
 
-        if include_last_callback and isinstance(targets[-1], NodePath):
+        if include_last_callback and \
+            isinstance(targets[-1], NodePath) and \
+            len(targets[-1].to_records().data):
             right_records = targets[-1].to_path_end_records()
 
             rename_rule = column_merger.append_columns_and_return_rename_rule(right_records)

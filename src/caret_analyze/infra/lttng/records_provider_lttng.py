@@ -922,7 +922,11 @@ class RecordsProviderLttng(RuntimeDataProvider):
         if COLUMN_NAME.DDS_WRITE_TIMESTAMP in records.columns:
             columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
         columns.append(COLUMN_NAME.SOURCE_TIMESTAMP)
-        columns.append(COLUMN_NAME.CALLBACK_START_TIMESTAMP)
+
+        sub_records = self._source.sub_records(callback_object, None)
+        is_take_node = len(sub_records) == 0
+        if not is_take_node:
+            columns.append(COLUMN_NAME.CALLBACK_START_TIMESTAMP)
 
         self._format(records, columns)
 
@@ -981,6 +985,10 @@ class RecordsProviderLttng(RuntimeDataProvider):
         if COLUMN_NAME.SOURCE_TIMESTAMP in records.columns:
             rename_dict[COLUMN_NAME.SOURCE_TIMESTAMP] = \
                 f'{topic_name}/{COLUMN_NAME.SOURCE_TIMESTAMP}'
+
+        if COLUMN_NAME.RMW_TAKE_TIMESTAMP in records.columns:
+            rename_dict[COLUMN_NAME.RMW_TAKE_TIMESTAMP] =\
+                f'{topic_name}/{COLUMN_NAME.RMW_TAKE_TIMESTAMP}'
 
         if COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP in records.columns:
             rename_dict[COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP] = \
