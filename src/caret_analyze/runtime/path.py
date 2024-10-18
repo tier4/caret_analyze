@@ -207,9 +207,11 @@ class RecordsMerged:
                     how='left'
                 )
 
-        if include_last_callback and \
-            isinstance(targets[-1], NodePath) and \
-            len(targets[-1].to_records().data):
+        if (
+            include_last_callback
+            and isinstance(targets[-1], NodePath)
+            and len(targets[-1].to_records().data)
+        ):
             right_records = targets[-1].to_path_end_records()
 
             rename_rule = column_merger.append_columns_and_return_rename_rule(right_records)
