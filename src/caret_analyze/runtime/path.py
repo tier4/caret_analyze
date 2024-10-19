@@ -244,7 +244,7 @@ class RecordsMerged:
         source_columns = \
             [column for column in left_records.columns if is_source_timestamp_column(column)]
         left_records.drop_columns(source_columns)
-        
+
         rmw_take_column = \
             [column for column in left_records.columns if is_rmw_take_column(column)]
         left_records.drop_columns(rmw_take_column)
