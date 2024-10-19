@@ -839,8 +839,6 @@ class TestRecordsMerged:
         merged = RecordsMerged([comm_path, node_path], include_last_callback=True)
         records = merged.data
 
-        df = records.to_dataframe()
-
         expected = RecordsCppImpl(
             [
                 RecordCppImpl({
