@@ -596,7 +596,6 @@ class TestRecordsMerged:
                     ColumnValue(f'{topic0}/rcl_publish_timestamp'),
                     ColumnValue(f'{topic0}/dds_write_timestamp'),
                     ColumnValue(f'{topic0}/source_timestamp'),
-                    ColumnValue(f'{topic0}/callback_start_timestamp'),
                 ]
             )
         )
@@ -837,8 +836,27 @@ class TestRecordsMerged:
             merger_mock, 'append_columns_and_return_rename_rule',
             side_effect=append_columns_and_return_rename_rule)
 
-        with caplog.at_level(WARNING):
-            RecordsMerged([comm_path, node_path], include_last_callback=True)
-            msg = 'include_last_callback argument is ignored because last node receive messages '
-            msg += 'by `take` method instead of subscription callback.'
-            assert caplog.messages[0] == msg
+        merged = RecordsMerged([comm_path, node_path], include_last_callback=True)
+        records = merged.data
+
+        df = records.to_dataframe()
+
+        expected = RecordsCppImpl(
+            [
+                RecordCppImpl({
+                    f'{topic0}/rclcpp_publish_timestamp/0': 1,
+                    f'{topic0}/rcl_publish_timestamp/0': 2,
+                    f'{topic0}/dds_write_timestamp/0': 3,
+                    f'{topic1}/callback_start_timestamp/0': 5,
+
+                }),
+            ],
+            [
+                ColumnValue(f'{topic0}/rclcpp_publish_timestamp/0'),
+                ColumnValue(f'{topic0}/rcl_publish_timestamp/0'),
+                ColumnValue(f'{topic0}/dds_write_timestamp/0'),
+                ColumnValue(f'{topic1}/callback_start_timestamp/0'),
+            ]
+        )
+
+        assert records.equals(expected)

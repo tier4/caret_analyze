@@ -1381,7 +1381,6 @@ class TestCommunicationRecords:
             columns=[
                 f'{communication.topic_name}/rclcpp_publish_timestamp',
                 f'{communication.topic_name}/source_timestamp',
-                f'{callback.callback_name}/callback_start_timestamp',
             ],
             dtype='Int64'
         )

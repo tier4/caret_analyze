@@ -207,16 +207,12 @@ class RecordsMerged:
                     how='left'
                 )
 
-        if (
-            include_last_callback
-            and isinstance(targets[-1], NodePath)
-            and len(targets[-1].to_records().data)
-        ):
+        if include_last_callback and isinstance(targets[-1], NodePath):
             right_records = targets[-1].to_path_end_records()
 
             rename_rule = column_merger.append_columns_and_return_rename_rule(right_records)
             right_records.rename_columns(rename_rule)
-            if left_records.columns[-1] != right_records.columns[0]:
+            if len(right_records.data) and (left_records.columns[-1] != right_records.columns[0]):
                 raise InvalidRecordsError('left columns[-1] != right columns[0]')
             if len(right_records.data) != 0:
                 left_records = merge(
@@ -230,9 +226,9 @@ class RecordsMerged:
                     how='left'
                 )
             else:
-                msg = 'include_last_callback argument is ignored '
-                msg += 'because last node receive messages '
-                msg += 'by `take` method instead of subscription callback.'
+                msg = 'If include_last_callback is True, '
+                msg += 'there are no records to merge.'
+                msg += 'It may be an exception in nature.'
                 logger.warn(msg)
 
         logger.info('Finished merging path records.')
