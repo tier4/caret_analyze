@@ -129,6 +129,12 @@ class RecordsMerged:
                 column = column[:last_slash_index]
             return column.endswith('source_timestamp')
 
+        def is_rmw_take_column(column):
+            last_slash_index = column.rfind('/')
+            if last_slash_index >= 0:
+                column = column[:last_slash_index]
+            return column.endswith('rmw_take_timestamp')
+
         column_merger = ColumnMerger()
         if include_first_callback and isinstance(targets[0], NodePath):
             first_element = targets[0].to_path_beginning_records()
@@ -238,6 +244,11 @@ class RecordsMerged:
         source_columns = \
             [column for column in left_records.columns if is_source_timestamp_column(column)]
         left_records.drop_columns(source_columns)
+        
+        rmw_take_column = \
+            [column for column in left_records.columns if is_rmw_take_column(column)]
+        # if show rmw_take_timestamp in messageflow, comment out following line.
+        left_records.drop_columns(rmw_take_column)
 
         return left_records
 
