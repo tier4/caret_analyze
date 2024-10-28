@@ -777,7 +777,6 @@ class TestRecordsMerged:
                         f'{topic0}/rcl_publish_timestamp': 2,
                         f'{topic0}/dds_write_timestamp': 3,
                         f'{topic0}/source_timestamp': 4,
-                        f'{topic1}/callback_start_timestamp': 5
                     }),
                 ],
                 [
@@ -785,7 +784,6 @@ class TestRecordsMerged:
                     ColumnValue(f'{topic0}/rcl_publish_timestamp'),
                     ColumnValue(f'{topic0}/dds_write_timestamp'),
                     ColumnValue(f'{topic0}/source_timestamp'),
-                    ColumnValue(f'{topic1}/callback_start_timestamp'),
                 ]
             )
         )
@@ -800,7 +798,7 @@ class TestRecordsMerged:
             return_value=RecordsCppImpl(
                 [],
                 [
-                    ColumnValue(f'{topic1}/callback_start_timestamp'),
+                    ColumnValue(f'{topic1}/source_timestamp'),
                     ColumnValue(f'{topic1}/callback_end_timestamp'),
                 ]
             )
@@ -819,14 +817,11 @@ class TestRecordsMerged:
                         f'{topic0}/rcl_publish_timestamp': f'{topic0}/rcl_publish_timestamp/0',
                         f'{topic0}/dds_write_timestamp': f'{topic0}/dds_write_timestamp/0',
                         f'{topic0}/source_timestamp': f'{topic0}/source_timestamp/0',
-                        f'{topic1}/callback_start_timestamp': (
-                            f'{topic1}/callback_start_timestamp/0'
-                        ),
                         }
             if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
                 return {
-                        f'{topic1}/callback_start_timestamp': (
-                            f'{topic1}/callback_start_timestamp/0'
+                        f'{topic1}/source_timestamp': (
+                            f'{topic1}/source_timestamp/0'
                         ),
                         f'{topic1}/callback_end_timestamp': f'{topic1}/callback_end_timestamp/0',
                         }
@@ -843,15 +838,12 @@ class TestRecordsMerged:
                     f'{topic0}/rclcpp_publish_timestamp/0': 1,
                     f'{topic0}/rcl_publish_timestamp/0': 2,
                     f'{topic0}/dds_write_timestamp/0': 3,
-                    f'{topic1}/callback_start_timestamp/0': 5,
-
                 }),
             ],
             [
                 ColumnValue(f'{topic0}/rclcpp_publish_timestamp/0'),
                 ColumnValue(f'{topic0}/rcl_publish_timestamp/0'),
                 ColumnValue(f'{topic0}/dds_write_timestamp/0'),
-                ColumnValue(f'{topic1}/callback_start_timestamp/0'),
             ]
         )
 
