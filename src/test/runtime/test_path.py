@@ -624,19 +624,15 @@ class TestRecordsMerged:
         def append_columns_and_return_rename_rule(records):
             if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
                 return {
-                        f'{topic0}/rclcpp_publish_timestamp': (
-                            f'{topic0}/rclcpp_publish_timestamp/0'
-                        ),
-                        f'{topic0}/rcl_publish_timestamp': f'{topic0}/rcl_publish_timestamp/0',
-                        f'{topic0}/dds_write_timestamp': f'{topic0}/dds_write_timestamp/0',
-                        f'{topic0}/source_timestamp': f'{topic0}/source_timestamp/0',
-                        }
+                    f'{topic0}/rclcpp_publish_timestamp': f'{topic0}/rclcpp_publish_timestamp/0',
+                    f'{topic0}/rcl_publish_timestamp': f'{topic0}/rcl_publish_timestamp/0',
+                    f'{topic0}/dds_write_timestamp': f'{topic0}/dds_write_timestamp/0',
+                    f'{topic0}/source_timestamp': f'{topic0}/source_timestamp/0',
+                }
             if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
                 return {
-                        f'{topic0}/source_timestamp': f'{topic0}/source_timestamp/0',
-                        f'{topic1}/rclcpp_publish_timestamp': (
-                            f'{topic1}/rclcpp_publish_timestamp/0'
-                        ),
+                    f'{topic0}/source_timestamp': f'{topic0}/source_timestamp/0',
+                    f'{topic1}/rclcpp_publish_timestamp': f'{topic1}/rclcpp_publish_timestamp/0',
                 }
         mocker.patch.object(
             merger_mock, 'append_columns_and_return_rename_rule',
@@ -718,25 +714,17 @@ class TestRecordsMerged:
         def append_columns_and_return_rename_rule(records):
             if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
                 return {
-                        f'{topic0}/callback_start_timestamp': (
-                            f'{topic0}/callback_start_timestamp/0'
-                        ),
-                        f'{topic0}/rclcpp_publish_timestamp': (
-                            f'{topic0}/rclcpp_publish_timestamp/0'
-                        ),
+                    f'{topic0}/callback_start_timestamp': f'{topic0}/callback_start_timestamp/0',
+                    f'{topic0}/rclcpp_publish_timestamp': f'{topic0}/rclcpp_publish_timestamp/0',
                 }
             if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
                 return {
-                        f'{topic0}/rclcpp_publish_timestamp': (
-                            f'{topic0}/rclcpp_publish_timestamp/0'
-                        ),
-                        f'{topic0}/rcl_publish_timestamp': f'{topic0}/rcl_publish_timestamp/0',
-                        f'{topic0}/dds_write_timestamp': f'{topic0}/dds_write_timestamp/0',
-                        f'{topic0}/source_timestamp': f'{topic0}/source_timestamp/0',
-                        f'{topic1}/callback_start_timestamp': (
-                            f'{topic1}/callback_start_timestamp/0'
-                        ),
-                        }
+                    f'{topic0}/rclcpp_publish_timestamp': f'{topic0}/rclcpp_publish_timestamp/0',
+                    f'{topic0}/rcl_publish_timestamp': f'{topic0}/rcl_publish_timestamp/0',
+                    f'{topic0}/dds_write_timestamp': f'{topic0}/dds_write_timestamp/0',
+                    f'{topic0}/source_timestamp': f'{topic0}/source_timestamp/0',
+                    f'{topic1}/callback_start_timestamp': f'{topic1}/callback_start_timestamp/0',
+                }
         mocker.patch.object(
             merger_mock, 'append_columns_and_return_rename_rule',
             side_effect=append_columns_and_return_rename_rule)
@@ -813,19 +801,16 @@ class TestRecordsMerged:
         def append_columns_and_return_rename_rule(records):
             if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
                 return {
-                        f'{topic0}/rclcpp_publish_timestamp': (
-                            f'{topic0}/rclcpp_publish_timestamp/0'
-                        ),
-                        f'{topic0}/rcl_publish_timestamp': f'{topic0}/rcl_publish_timestamp/0',
-                        f'{topic0}/dds_write_timestamp': f'{topic0}/dds_write_timestamp/0',
-                        f'{topic0}/source_timestamp': f'{topic0}/source_timestamp/0',
-                        }
+                    f'{topic0}/rclcpp_publish_timestamp': f'{topic0}/rclcpp_publish_timestamp/0',
+                    f'{topic0}/rcl_publish_timestamp': f'{topic0}/rcl_publish_timestamp/0',
+                    f'{topic0}/dds_write_timestamp': f'{topic0}/dds_write_timestamp/0',
+                    f'{topic0}/source_timestamp': f'{topic0}/source_timestamp/0',
+                }
             if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
                 return {
-                        f'{topic1}/callback_start_timestamp':
-                        f'{topic1}/callback_start_timestamp/0',
-                        f'{topic1}/callback_end_timestamp': f'{topic1}/callback_end_timestamp/0',
-                        }
+                    f'{topic1}/callback_start_timestamp': f'{topic1}/callback_start_timestamp/0',
+                    f'{topic1}/callback_end_timestamp': f'{topic1}/callback_end_timestamp/0',
+                }
         mocker.patch.object(
             merger_mock, 'append_columns_and_return_rename_rule',
             side_effect=append_columns_and_return_rename_rule)
