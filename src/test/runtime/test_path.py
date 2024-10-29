@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import WARNING
+
 from caret_analyze.exceptions import InvalidArgumentError
 from caret_analyze.infra import RecordsProvider
 from caret_analyze.record.column import ColumnValue
@@ -798,7 +800,7 @@ class TestRecordsMerged:
             return_value=RecordsCppImpl(
                 [],
                 [
-                    ColumnValue(f'{topic1}/source_timestamp'),
+                    ColumnValue(f'{topic1}/callback_start_timestamp'),
                     ColumnValue(f'{topic1}/callback_end_timestamp'),
                 ]
             )
@@ -848,3 +850,8 @@ class TestRecordsMerged:
         )
 
         assert records.equals(expected)
+
+        caplog.set_level(WARNING)
+        expect = 'Since the path cannot be extended, '
+        expect += 'the merge process for the last callback record is skipped.'
+        assert expect in caplog.text

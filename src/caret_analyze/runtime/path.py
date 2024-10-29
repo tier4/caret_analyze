@@ -230,8 +230,8 @@ class RecordsMerged:
                     msg = 'Empty records are not merged.'
                     logger.warn(msg)
             else:
-                msg = 'If the last record is a take implementation, '
-                msg += 'the path cannot be extended, so the merge process is skipped.'
+                msg = 'Since the path cannot be extended, '
+                msg += 'the merge process for the last callback record is skipped.'
                 logger.warn(msg)
 
         logger.info('Finished merging path records.')
