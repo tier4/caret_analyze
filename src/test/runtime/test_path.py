@@ -822,9 +822,7 @@ class TestRecordsMerged:
                         }
             if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
                 return {
-                        f'{topic1}/source_timestamp': (
-                            f'{topic1}/source_timestamp/0'
-                        ),
+                        f'{topic1}/source_timestamp': f'{topic1}/source_timestamp/0',
                         f'{topic1}/callback_end_timestamp': f'{topic1}/callback_end_timestamp/0',
                         }
         mocker.patch.object(
