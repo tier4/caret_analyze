@@ -1,4 +1,4 @@
-setuptools>=68.2.2,<72.0.0
+setuptools>=68.2.2
 colorcet
 pandas>=2.1.1
 bokeh>=3
