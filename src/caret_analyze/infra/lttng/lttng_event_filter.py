@@ -125,6 +125,8 @@ class InitEventPassFilter(LttngEventFilter):
             'ros2_caret:rmw_implementation',
             'ros2_caret:add_callback_group',
             'ros2_caret:add_callback_group_static_executor',
+            'ros2_caret:callback_group_to_executor_entity_collector',
+            'ros2_caret:executor_entity_collector_to_executor',
             'ros2_caret:construct_executor',
             'ros2_caret:construct_static_executor',
             'ros2_caret:callback_group_add_timer',
