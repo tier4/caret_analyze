@@ -851,16 +851,36 @@ class Lttng(InfraBase):
         min_ns: float,
         max_ns: float
     ) -> ClockConverter:
+        def extract_longest_monotonic_sequence(system_times, sim_times):
+            max_length = 0
+            start_index = 0
+            end_index = 0
+            current_length = 1
+            for i in range(1, len(sim_times)):
+                if sim_times[i] > sim_times[i-1]:
+                    current_length += 1
+                else:
+                    logger.warning('A sim_time reversal has occurred.')
+                    if current_length > max_length:
+                        max_length = current_length
+                        start_index = i - max_length
+                        end_index = i
+                    current_length = 1
+            return system_times[start_index:end_index], sim_times[start_index:end_index]
+
         records: RecordsInterface = self._source.system_and_sim_times
         system_times = records.get_column_series('system_time')
         sim_times = records.get_column_series('sim_time')
         system_times_filtered: list[int] = []
         sim_times_filtered: list[int] = []
+        system_times_filtered, sim_times_filtered = extract_longest_monotonic_sequence(system_times, sim_times)
+        """
         for system_time, sim_time in zip(system_times, sim_times):
             if system_time is not None and sim_time is not None:
                 if min_ns <= system_time <= max_ns:
                     system_times_filtered.append(system_time)
                     sim_times_filtered.append(sim_time)
+        """
 
         if (len(system_times_filtered) < 2):
             logger.warning(
