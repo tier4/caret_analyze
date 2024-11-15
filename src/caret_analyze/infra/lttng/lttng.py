@@ -856,16 +856,19 @@ class Lttng(InfraBase):
             start_index = 0
             end_index = 0
             current_length = 1
+            revert = False
             for i in range(1, len(sim_times)):
                 if sim_times[i] > sim_times[i-1]:
                     current_length += 1
                 else:
-                    logger.warning('A sim_time reversal has occurred.')
+                    revert = True
                     if current_length > max_length:
                         max_length = current_length
                         start_index = i - max_length
                         end_index = i
                     current_length = 1
+            if revert: 
+                logger.warning('A sim_time reversal has occurred.')
             return system_times[start_index:end_index], sim_times[start_index:end_index]
 
         records: RecordsInterface = self._source.system_and_sim_times
