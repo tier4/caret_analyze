@@ -254,7 +254,7 @@ class EventCounter:
                 node_handle_to_node_name.get(row['node_handle'], '-')
             sub_handle_to_topic_name[handler] = row['topic_name']
             rmw_handle_to_node_name[row['rmw_handle']] = \
-                node_handle_to_node_name.get([row['node_handle']], '-')
+                node_handle_to_node_name.get(row['node_handle'], '-')
             rmw_handle_to_topic_name[row['rmw_handle']] = row['topic_name']
 
         for handler, row in data.timer_node_links.df.iterrows():
