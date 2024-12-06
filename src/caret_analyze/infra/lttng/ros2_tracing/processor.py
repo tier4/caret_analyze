@@ -18,13 +18,14 @@
 from __future__ import annotations
 
 from collections import defaultdict
+
+import os
+
 from typing import Any, TYPE_CHECKING
 
 import bt2
 
 from .data_model import Ros2DataModel
-
-import os
 
 if TYPE_CHECKING:
     from ..id_remapper import IDRemapperCollection
@@ -883,8 +884,15 @@ class Ros2Handler():
         timestamp = get_field(event, '_timestamp')
         message = get_field(event, 'message')
         tid = get_field(event, '_vtid')
+        # memo: "timestamp" is not read because alternative data is used
+        # memo: "timestamp" and "_timestamp" are different
 
-        self.data.add_dds_write_instance(tid, timestamp, message)
+        ros_version = os.environ['ROS_DISTRO']
+        if ros_version[0] >= 'jazzy'[0]:
+            rmw_publisher_handle = get_field(event, 'rmw_publisher_handle')
+            self.data.add_dds_write_instance(tid, timestamp, rmw_publisher_handle, message)
+        else:
+            self.data.add_dds_write_instance(tid, timestamp, 0, message)
 
     def _handle_dds_bind_addr_to_stamp(
         self,
@@ -927,15 +935,16 @@ class Ros2Handler():
         timestamp = get_field(event, '_timestamp')
         executor_entities_collector_addr = get_field(event, 'executor_entities_collector_addr')
         callback_group_addr = get_field(event, 'callback_group_addr')
+        group_type_name = get_field(event, 'group_type_name')
 
         executor_entities_collector_addr = \
-            self._remapper.executor_entities_collector_addr_remapper.register_and_get_object_id(
-            executor_entities_collector_addr, event)
+            self._remapper.executor_entities_collector_addr_remapper.get_nearest_object_id(
+                executor_entities_collector_addr, event)
         callback_group_addr = \
             self._remapper.callback_group_addr_remapper.register_and_get_object_id(
                 callback_group_addr, event)
         self.data.add_callback_group_to_executor_entity_collector(
-            executor_entities_collector_addr, callback_group_addr, timestamp)
+            executor_entities_collector_addr, callback_group_addr, group_type_name, timestamp)
 
     def _handle_executor_entity_collector_to_executor(
         self,
@@ -948,7 +957,7 @@ class Ros2Handler():
         executor_addr = self._remapper.executor_addr_remapper.register_and_get_object_id(
             executor_addr, event)
         executor_entities_collector_addr = \
-            self._remapper.executor_entities_collector_addr_remapper.get_nearest_object_id(
+            self._remapper.executor_entities_collector_addr_remapper.register_and_get_object_id(
                 executor_entities_collector_addr, event)
         self.data.add_executor_entity_collector_to_executor(
             executor_addr, executor_entities_collector_addr, timestamp)
@@ -963,7 +972,7 @@ class Ros2Handler():
 
         ros_version = os.environ['ROS_DISTRO']
 
-        if ros_version == 'jazzy':
+        if ros_version[0] >= 'jazzy'[0]:
             executor_addr = \
                 self._remapper.executor_addr_remapper.get_nearest_object_id(executor_addr, event)
         else:
@@ -983,7 +992,7 @@ class Ros2Handler():
 
         ros_version = os.environ['ROS_DISTRO']
 
-        if ros_version == 'jazzy':
+        if ros_version[0] >= 'jazzy'[0]:
             executor_addr = \
                 self._remapper.executor_addr_remapper.get_nearest_object_id(executor_addr, event)
         else:

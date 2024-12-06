@@ -19,6 +19,7 @@ from collections.abc import Sequence
 from functools import cached_property, lru_cache
 from logging import getLogger, WARN
 
+import os
 
 import pandas as pd
 
@@ -1263,20 +1264,31 @@ class DataFrameFormatted:
         data: Ros2DataModel,
     ) -> TracePointData:
         columns = ['callback_group_id', 'callback_group_addr', 'group_type_name', 'executor_addr']
-        callback_groups = data.callback_groups.clone()
-        callback_groups.reset_index()
 
-        callback_groups_static = data.callback_groups_static.clone()
-        callback_groups_static.reset_index()
+        ros_version = os.environ['ROS_DISTRO']
+        if ros_version[0] >= 'jazzy'[0]:
+            callback_groups = data.callback_group_to_executor_entity_collector.clone()
+            callback_groups.reset_index()
 
-        executors_static = data.executors_static.clone()
-        executors_static.reset_index()
+            executor_entity = data.executor_entity_collector_to_executor.clone()
+            executor_entity.reset_index()
 
-        if len(callback_groups_static) > 0 and len(executors_static) > 0:
-            merge(callback_groups_static, executors_static, 'entities_collector_addr')
-            columns_ = columns[1:]  # ignore callback_group_id
-            callback_groups = TracePointData.concat(
-                [callback_groups, callback_groups_static], columns_)
+            merge(callback_groups, executor_entity, 'executor_entities_collector_addr')
+        else:
+            callback_groups = data.callback_groups.clone()
+            callback_groups.reset_index()
+
+            callback_groups_static = data.callback_groups_static.clone()
+            callback_groups_static.reset_index()
+
+            executors_static = data.executors_static.clone()
+            executors_static.reset_index()
+
+            if len(callback_groups_static) > 0 and len(executors_static) > 0:
+                merge(callback_groups_static, executors_static, 'entities_collector_addr')
+                columns_ = columns[1:]  # ignore callback_group_id
+                callback_groups = TracePointData.concat(
+                    [callback_groups, callback_groups_static], columns_)
 
         def to_callback_group_id(row: pd.Series) -> str:
             addr = row['callback_group_addr']

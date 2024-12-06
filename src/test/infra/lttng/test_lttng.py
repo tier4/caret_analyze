@@ -16,6 +16,8 @@
 from datetime import datetime
 import functools
 
+import os
+
 from caret_analyze.infra.lttng import Lttng
 from caret_analyze.infra.lttng.event_counter import EventCounter
 from caret_analyze.infra.lttng.lttng import EventCollection, IterableEvents, MultiHostIdRemapper
@@ -29,8 +31,6 @@ from caret_analyze.infra.lttng.value_objects import (PublisherValueLttng,
 from caret_analyze.record.interface import RecordsInterface
 from caret_analyze.value_objects import ExecutorValue
 from caret_analyze.value_objects.node import NodeValue
-
-import os
 
 import pytest
 
@@ -324,16 +324,20 @@ class TestLttng:
         ros_version = os.environ['ROS_DISTRO']
         TIME_ORDER = 0
         SORT_ORDER_ADD_IRON = 4
-        if ros_version == 'jazzy':
-            SORT_ORDER_ADD_JAZZY = 10
-            SORT_ORDER = 12
+        if ros_version[0] >= 'jazzy'[0]:
+            SORT_ORDER_EXE_AND_CB = 10
+            SORT_ORDER_INIT = 20
             SMALL_ORDER = 50
-            RESULT_ORDER_ADD_JAZZY = 34
-            RESULT_ORDER = 36
+            RESULT_ORDER_INIT = 0
+            RESULT_ORDER_EXE_AND_CB = 34
+            RESULT_ORDER_ETC = 47
         else:
-            SORT_ORDER = 10
+            SORT_ORDER_EXE_AND_CB = 10
+            SORT_ORDER_INIT = 18
             SMALL_ORDER = 48
-            RESULT_ORDER = 34
+            RESULT_ORDER_INIT = 0
+            RESULT_ORDER_EXE_AND_CB = 34
+            RESULT_ORDER_ETC = 45
 
         # for testing sorting with _timestamp
         event_collection[TIME_ORDER+0] = {
@@ -360,88 +364,106 @@ class TestLttng:
         event_collection[SORT_ORDER_ADD_IRON+5] = {
             '_name': 'ros2_caret:rclcpp_construct_ring_buffer', '_timestamp': 600, }
 
-        if ros_version == 'jazzy':
-            event_collection[SORT_ORDER_ADD_JAZZY+0] = {
-                '_name': 'ros2_caret:callback_group_to_executor_entity_collector', \
-                    '_timestamp': 600, }
-            event_collection[SORT_ORDER_ADD_JAZZY+1] = {
+        # executor and callback group
+        if ros_version[0] >= 'jazzy'[0]:
+            event_collection[SORT_ORDER_EXE_AND_CB+0] = {
+                '_name': 'ros2_caret:callback_group_add_client', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+1] = {
+                '_name': 'ros2_caret:callback_group_add_service', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+2] = {
+                '_name': 'ros2_caret:callback_group_add_subscription', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+3] = {
+                '_name': 'ros2_caret:callback_group_add_timer', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+4] = {
+                '_name': 'ros2_caret:add_callback_group_static_executor', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+5] = {
+                '_name': 'ros2_caret:add_callback_group', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+6] = {
+                '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
+                '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+7] = {
+                '_name': 'ros2_caret:construct_static_executor', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+8] = {
+                '_name': 'ros2_caret:construct_executor', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+9] = {
                 '_name': 'ros2_caret:executor_entity_collector_to_executor', '_timestamp': 600, }
-
-        event_collection[SORT_ORDER+0] = {
-            '_name': 'ros2_caret:callback_group_add_client', '_timestamp': 600, }
-        event_collection[SORT_ORDER+1] = {
-            '_name': 'ros2_caret:callback_group_add_service', '_timestamp': 600, }
-        event_collection[SORT_ORDER+2] = {
-            '_name': 'ros2_caret:callback_group_add_subscription', '_timestamp': 600, }
-        event_collection[SORT_ORDER+3] = {
-            '_name': 'ros2_caret:callback_group_add_timer', '_timestamp': 600, }
-        event_collection[SORT_ORDER+4] = {
-            '_name': 'ros2_caret:add_callback_group_static_executor', '_timestamp': 600, }
-        event_collection[SORT_ORDER+5] = {
-            '_name': 'ros2_caret:add_callback_group', '_timestamp': 600, }
-        event_collection[SORT_ORDER+6] = {
-            '_name': 'ros2_caret:construct_static_executor', '_timestamp': 600, }
-        event_collection[SORT_ORDER+7] = {
-            '_name': 'ros2_caret:construct_executor', '_timestamp': 600, }
-        event_collection[SORT_ORDER+8] = {
+        else:
+            event_collection[SORT_ORDER_EXE_AND_CB+0] = {
+                '_name': 'ros2_caret:callback_group_add_client', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+1] = {
+                '_name': 'ros2_caret:callback_group_add_service', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+2] = {
+                '_name': 'ros2_caret:callback_group_add_subscription', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+3] = {
+                '_name': 'ros2_caret:callback_group_add_timer', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+4] = {
+                '_name': 'ros2_caret:add_callback_group_static_executor', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+5] = {
+                '_name': 'ros2_caret:add_callback_group', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+6] = {
+                '_name': 'ros2_caret:construct_static_executor', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+7] = {
+                '_name': 'ros2_caret:construct_executor', '_timestamp': 600, }
+        # initialization trace points
+        event_collection[SORT_ORDER_INIT+0] = {
             '_name': 'ros2_caret:rmw_implementation', '_timestamp': 600, }
-        event_collection[SORT_ORDER+9] = {
+        event_collection[SORT_ORDER_INIT+1] = {
             '_name': 'ros2_caret:caret_init', '_timestamp': 600, }
-        event_collection[SORT_ORDER+10] = {
+        event_collection[SORT_ORDER_INIT+2] = {
             '_name': 'ros2:rcl_lifecycle_state_machine_init', '_timestamp': 600, }
-        event_collection[SORT_ORDER+11] = {
+        event_collection[SORT_ORDER_INIT+3] = {
             '_name': 'ros2_caret:rcl_lifecycle_state_machine_init', '_timestamp': 600, }
-        event_collection[SORT_ORDER+12] = {
+        event_collection[SORT_ORDER_INIT+4] = {
             '_name': 'ros2:rclcpp_callback_register', '_timestamp': 600, }
-        event_collection[SORT_ORDER+13] = {
+        event_collection[SORT_ORDER_INIT+5] = {
             '_name': 'ros2_caret:rclcpp_callback_register', '_timestamp': 600, }
-        event_collection[SORT_ORDER+14] = {
+        event_collection[SORT_ORDER_INIT+6] = {
             '_name': 'ros2:rclcpp_timer_link_node', '_timestamp': 600, }
-        event_collection[SORT_ORDER+15] = {
+        event_collection[SORT_ORDER_INIT+7] = {
             '_name': 'ros2_caret:rclcpp_timer_link_node', '_timestamp': 600, }
-        event_collection[SORT_ORDER+16] = {
+        event_collection[SORT_ORDER_INIT+8] = {
             '_name': 'ros2:rclcpp_timer_callback_added', '_timestamp': 600, }
-        event_collection[SORT_ORDER+17] = {
+        event_collection[SORT_ORDER_INIT+9] = {
             '_name': 'ros2_caret:rclcpp_timer_callback_added', '_timestamp': 600, }
-        event_collection[SORT_ORDER+18] = {
+        event_collection[SORT_ORDER_INIT+10] = {
             '_name': 'ros2:rcl_timer_init', '_timestamp': 600, }
-        event_collection[SORT_ORDER+19] = {
+        event_collection[SORT_ORDER_INIT+11] = {
             '_name': 'ros2_caret:rcl_timer_init', '_timestamp': 600, }
-        event_collection[SORT_ORDER+20] = {
+        event_collection[SORT_ORDER_INIT+12] = {
             '_name': 'ros2:rcl_client_init', '_timestamp': 600, }
-        event_collection[SORT_ORDER+21] = {
+        event_collection[SORT_ORDER_INIT+13] = {
             '_name': 'ros2_caret:rcl_client_init', '_timestamp': 600, }
-        event_collection[SORT_ORDER+22] = {
+        event_collection[SORT_ORDER_INIT+14] = {
             '_name': 'ros2:rclcpp_service_callback_added', '_timestamp': 600, }
-        event_collection[SORT_ORDER+23] = {
+        event_collection[SORT_ORDER_INIT+15] = {
             '_name': 'ros2_caret:rclcpp_service_callback_added', '_timestamp': 600, }
-        event_collection[SORT_ORDER+24] = {
+        event_collection[SORT_ORDER_INIT+16] = {
             '_name': 'ros2:rcl_service_init', '_timestamp': 600, }
-        event_collection[SORT_ORDER+25] = {
+        event_collection[SORT_ORDER_INIT+17] = {
             '_name': 'ros2_caret:rcl_service_init', '_timestamp': 600, }
-        event_collection[SORT_ORDER+26] = {
+        event_collection[SORT_ORDER_INIT+18] = {
             '_name': 'ros2:rclcpp_subscription_callback_added', '_timestamp': 600, }
-        event_collection[SORT_ORDER+27] = {
+        event_collection[SORT_ORDER_INIT+19] = {
             '_name': 'ros2_caret:rclcpp_subscription_callback_added', '_timestamp': 600, }
-        event_collection[SORT_ORDER+28] = {
+        event_collection[SORT_ORDER_INIT+20] = {
             '_name': 'ros2:rclcpp_subscription_init', '_timestamp': 600, }
-        event_collection[SORT_ORDER+29] = {
+        event_collection[SORT_ORDER_INIT+21] = {
             '_name': 'ros2_caret:rclcpp_subscription_init', '_timestamp': 600, }
-        event_collection[SORT_ORDER+30] = {
+        event_collection[SORT_ORDER_INIT+22] = {
             '_name': 'ros2:rcl_subscription_init', '_timestamp': 600, }
-        event_collection[SORT_ORDER+31] = {
+        event_collection[SORT_ORDER_INIT+23] = {
             '_name': 'ros2_caret:rcl_subscription_init', '_timestamp': 600, }
-        event_collection[SORT_ORDER+32] = {
+        event_collection[SORT_ORDER_INIT+24] = {
             '_name': 'ros2:rcl_publisher_init', '_timestamp': 600, }
-        event_collection[SORT_ORDER+33] = {
+        event_collection[SORT_ORDER_INIT+25] = {
             '_name': 'ros2_caret:rcl_publisher_init', '_timestamp': 600, }
-        event_collection[SORT_ORDER+34] = {
+        event_collection[SORT_ORDER_INIT+26] = {
             '_name': 'ros2:rcl_node_init', '_timestamp': 600, }
-        event_collection[SORT_ORDER+35] = {
+        event_collection[SORT_ORDER_INIT+27] = {
             '_name': 'ros2_caret:rcl_node_init', '_timestamp': 600, }
-        event_collection[SORT_ORDER+36] = {
+        event_collection[SORT_ORDER_INIT+28] = {
             '_name': 'ros2:rcl_init', '_timestamp': 600, }
-        event_collection[SORT_ORDER+37] = {
+        event_collection[SORT_ORDER_INIT+29] = {
             '_name': 'ros2_caret:rcl_init', '_timestamp': 600, }
         # also check when _timestamp is small
         event_collection[SMALL_ORDER+0] = {
@@ -459,118 +481,167 @@ class TestLttng:
         # Sorted in the following priority
         # first  : sorted by _prioritized_init_events order
         # second : sorted by timestamp
-        assert init_events[0]['_timestamp'] == 600 and \
-            init_events[0]['_name'] == 'ros2_caret:rcl_init'
-        assert init_events[1]['_timestamp'] == 600 and \
-            init_events[1]['_name'] == 'ros2:rcl_init'
-        assert init_events[2]['_timestamp'] == 600 and \
-            init_events[2]['_name'] == 'ros2_caret:rcl_node_init'
-        assert init_events[3]['_timestamp'] == 600 and \
-            init_events[3]['_name'] == 'ros2:rcl_node_init'
-        assert init_events[4]['_timestamp'] == 600 and \
-            init_events[4]['_name'] == 'ros2_caret:rcl_publisher_init'
-        assert init_events[5]['_timestamp'] == 600 and \
-            init_events[5]['_name'] == 'ros2:rcl_publisher_init'
-        assert init_events[6]['_timestamp'] == 600 and \
-            init_events[6]['_name'] == 'ros2_caret:rcl_subscription_init'
-        assert init_events[7]['_timestamp'] == 600 and \
-            init_events[7]['_name'] == 'ros2:rcl_subscription_init'
-        assert init_events[8]['_timestamp'] == 600 and \
-            init_events[8]['_name'] == 'ros2_caret:rclcpp_subscription_init'
-        assert init_events[9]['_timestamp'] == 600 and \
-            init_events[9]['_name'] == 'ros2:rclcpp_subscription_init'
-        assert init_events[10]['_timestamp'] == 600 and \
-            init_events[10]['_name'] == 'ros2_caret:rclcpp_subscription_callback_added'
-        assert init_events[11]['_timestamp'] == 600 and \
-            init_events[11]['_name'] == 'ros2:rclcpp_subscription_callback_added'
-        assert init_events[12]['_timestamp'] == 600 and \
-            init_events[12]['_name'] == 'ros2_caret:rcl_service_init'
-        assert init_events[13]['_timestamp'] == 600 and \
-            init_events[13]['_name'] == 'ros2:rcl_service_init'
-        assert init_events[14]['_timestamp'] == 600 and \
-            init_events[14]['_name'] == 'ros2_caret:rclcpp_service_callback_added'
-        assert init_events[15]['_timestamp'] == 600 and \
-            init_events[15]['_name'] == 'ros2:rclcpp_service_callback_added'
-        assert init_events[16]['_timestamp'] == 600 and \
-            init_events[16]['_name'] == 'ros2_caret:rcl_client_init'
-        assert init_events[17]['_timestamp'] == 600 and \
-            init_events[17]['_name'] == 'ros2:rcl_client_init'
-        assert init_events[18]['_timestamp'] == 600 and \
-            init_events[18]['_name'] == 'ros2_caret:rcl_timer_init'
-        assert init_events[19]['_timestamp'] == 600 and \
-            init_events[19]['_name'] == 'ros2:rcl_timer_init'
-        assert init_events[20]['_timestamp'] == 600 and \
-            init_events[20]['_name'] == 'ros2_caret:rclcpp_timer_callback_added'
-        assert init_events[21]['_timestamp'] == 600 and \
-            init_events[21]['_name'] == 'ros2:rclcpp_timer_callback_added'
-        assert init_events[22]['_timestamp'] == 600 and \
-            init_events[22]['_name'] == 'ros2_caret:rclcpp_timer_link_node'
-        assert init_events[23]['_timestamp'] == 600 and \
-            init_events[23]['_name'] == 'ros2:rclcpp_timer_link_node'
-        assert init_events[24]['_timestamp'] == 500 and \
-            init_events[24]['_name'] == 'ros2_caret:rclcpp_callback_register'
-        assert init_events[25]['_timestamp'] == 501 and \
-            init_events[25]['_name'] == 'ros2_caret:rclcpp_callback_register'
-        assert init_events[26]['_timestamp'] == 502 and \
-            init_events[26]['_name'] == 'ros2_caret:rclcpp_callback_register'
-        assert init_events[27]['_timestamp'] == 503 and \
-            init_events[27]['_name'] == 'ros2_caret:rclcpp_callback_register'
-        assert init_events[28]['_timestamp'] == 600 and \
-            init_events[28]['_name'] == 'ros2_caret:rclcpp_callback_register'
-        assert init_events[29]['_timestamp'] == 600 and \
-            init_events[29]['_name'] == 'ros2:rclcpp_callback_register'
-        assert init_events[30]['_timestamp'] == 600 and \
-            init_events[30]['_name'] == 'ros2_caret:rcl_lifecycle_state_machine_init'
-        assert init_events[31]['_timestamp'] == 600 and \
-            init_events[31]['_name'] == 'ros2:rcl_lifecycle_state_machine_init'
-        assert init_events[32]['_timestamp'] == 600 and \
-            init_events[32]['_name'] == 'ros2_caret:caret_init'
-        assert init_events[33]['_timestamp'] == 600 and \
-            init_events[33]['_name'] == 'ros2_caret:rmw_implementation'
+        assert init_events[RESULT_ORDER_INIT+0]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+0]['_name'] == 'ros2_caret:rcl_init'
+        assert init_events[RESULT_ORDER_INIT+1]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+1]['_name'] == 'ros2:rcl_init'
+        assert init_events[RESULT_ORDER_INIT+2]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+2]['_name'] == 'ros2_caret:rcl_node_init'
+        assert init_events[RESULT_ORDER_INIT+3]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+3]['_name'] == 'ros2:rcl_node_init'
+        assert init_events[RESULT_ORDER_INIT+4]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+4]['_name'] == 'ros2_caret:rcl_publisher_init'
+        assert init_events[RESULT_ORDER_INIT+5]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+5]['_name'] == 'ros2:rcl_publisher_init'
+        assert init_events[RESULT_ORDER_INIT+6]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+6]['_name'] == 'ros2_caret:rcl_subscription_init'
+        assert init_events[RESULT_ORDER_INIT+7]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+7]['_name'] == 'ros2:rcl_subscription_init'
+        assert init_events[RESULT_ORDER_INIT+8]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+8]['_name'] == 'ros2_caret:rclcpp_subscription_init'
+        assert init_events[RESULT_ORDER_INIT+9]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+9]['_name'] == 'ros2:rclcpp_subscription_init'
+        assert init_events[RESULT_ORDER_INIT+10]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+10]['_name'] == \
+            'ros2_caret:rclcpp_subscription_callback_added'
+        assert init_events[RESULT_ORDER_INIT+11]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+11]['_name'] == \
+            'ros2:rclcpp_subscription_callback_added'
+        assert init_events[RESULT_ORDER_INIT+12]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+12]['_name'] == 'ros2_caret:rcl_service_init'
+        assert init_events[RESULT_ORDER_INIT+13]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+13]['_name'] == 'ros2:rcl_service_init'
+        assert init_events[RESULT_ORDER_INIT+14]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+14]['_name'] == \
+            'ros2_caret:rclcpp_service_callback_added'
+        assert init_events[RESULT_ORDER_INIT+15]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+15]['_name'] == 'ros2:rclcpp_service_callback_added'
+        assert init_events[RESULT_ORDER_INIT+16]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+16]['_name'] == 'ros2_caret:rcl_client_init'
+        assert init_events[RESULT_ORDER_INIT+17]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+17]['_name'] == 'ros2:rcl_client_init'
+        assert init_events[RESULT_ORDER_INIT+18]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+18]['_name'] == 'ros2_caret:rcl_timer_init'
+        assert init_events[RESULT_ORDER_INIT+19]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+19]['_name'] == 'ros2:rcl_timer_init'
+        assert init_events[RESULT_ORDER_INIT+20]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+20]['_name'] == \
+            'ros2_caret:rclcpp_timer_callback_added'
+        assert init_events[RESULT_ORDER_INIT+21]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+21]['_name'] == 'ros2:rclcpp_timer_callback_added'
+        assert init_events[RESULT_ORDER_INIT+22]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+22]['_name'] == 'ros2_caret:rclcpp_timer_link_node'
+        assert init_events[RESULT_ORDER_INIT+23]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+23]['_name'] == 'ros2:rclcpp_timer_link_node'
+        assert init_events[RESULT_ORDER_INIT+24]['_timestamp'] == 500 and \
+            init_events[RESULT_ORDER_INIT+24]['_name'] == 'ros2_caret:rclcpp_callback_register'
+        assert init_events[RESULT_ORDER_INIT+25]['_timestamp'] == 501 and \
+            init_events[RESULT_ORDER_INIT+25]['_name'] == 'ros2_caret:rclcpp_callback_register'
+        assert init_events[RESULT_ORDER_INIT+26]['_timestamp'] == 502 and \
+            init_events[RESULT_ORDER_INIT+26]['_name'] == 'ros2_caret:rclcpp_callback_register'
+        assert init_events[RESULT_ORDER_INIT+27]['_timestamp'] == 503 and \
+            init_events[RESULT_ORDER_INIT+27]['_name'] == 'ros2_caret:rclcpp_callback_register'
+        assert init_events[RESULT_ORDER_INIT+28]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+28]['_name'] == 'ros2_caret:rclcpp_callback_register'
+        assert init_events[RESULT_ORDER_INIT+29]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+29]['_name'] == 'ros2:rclcpp_callback_register'
+        assert init_events[RESULT_ORDER_INIT+30]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+30]['_name'] == \
+            'ros2_caret:rcl_lifecycle_state_machine_init'
+        assert init_events[RESULT_ORDER_INIT+31]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+31]['_name'] == 'ros2:rcl_lifecycle_state_machine_init'
+        assert init_events[RESULT_ORDER_INIT+32]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+32]['_name'] == 'ros2_caret:caret_init'
+        assert init_events[RESULT_ORDER_INIT+33]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_INIT+33]['_name'] == 'ros2_caret:rmw_implementation'
 
-        if ros_version == 'jazzy':
-            assert init_events[RESULT_ORDER_ADD_JAZZY+0]['_timestamp'] == 600 and \
-                init_events[RESULT_ORDER_ADD_JAZZY+0]['_name'] == \
-                    'ros2_caret:callback_group_to_executor_entity_collector'
-            assert init_events[RESULT_ORDER_ADD_JAZZY+1]['_timestamp'] == 600 and \
-                init_events[RESULT_ORDER_ADD_JAZZY+1]['_name'] == \
-                    'ros2_caret:executor_entity_collector_to_executor'
-
-        assert init_events[RESULT_ORDER+0]['_timestamp'] == 600 and \
-            init_events[RESULT_ORDER+0]['_name'] == 'ros2_caret:construct_executor'
-        assert init_events[RESULT_ORDER+1]['_timestamp'] == 600 and \
-            init_events[RESULT_ORDER+1]['_name'] == 'ros2_caret:construct_static_executor'
-        assert init_events[RESULT_ORDER+2]['_timestamp'] == 600 and \
-            init_events[RESULT_ORDER+2]['_name'] == 'ros2_caret:add_callback_group'
-        assert init_events[RESULT_ORDER+3]['_timestamp'] == 600 and \
-            init_events[RESULT_ORDER+3]['_name'] == \
+        if ros_version[0] >= 'jazzy'[0]:
+            assert init_events[RESULT_ORDER_EXE_AND_CB+0]['_timestamp'] == 600 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+0]['_name'] == \
+                'ros2_caret:executor_entity_collector_to_executor'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+1]['_timestamp'] == 600 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+1]['_name'] == \
+                'ros2_caret:construct_executor'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+2]['_timestamp'] == 600 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+2]['_name'] == \
+                'ros2_caret:construct_static_executor'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+3]['_timestamp'] == 600 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+3]['_name'] == \
+                'ros2_caret:callback_group_to_executor_entity_collector'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+4]['_timestamp'] == 600 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+4]['_name'] == \
+                'ros2_caret:add_callback_group'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+5]['_timestamp'] == 600 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+5]['_name'] == \
                 'ros2_caret:add_callback_group_static_executor'
-        assert init_events[RESULT_ORDER+4]['_timestamp'] == 600 and \
-            init_events[RESULT_ORDER+4]['_name'] == 'ros2_caret:callback_group_add_timer'
-        assert init_events[RESULT_ORDER+5]['_timestamp'] == 400 and \
-            init_events[RESULT_ORDER+5]['_name'] == 'ros2_caret:callback_group_add_subscription'
-        assert init_events[RESULT_ORDER+6]['_timestamp'] == 600 and \
-            init_events[RESULT_ORDER+6]['_name'] == 'ros2_caret:callback_group_add_subscription'
-        assert init_events[RESULT_ORDER+7]['_timestamp'] == 400 and \
-            init_events[RESULT_ORDER+7]['_name'] == 'ros2_caret:callback_group_add_service'
-        assert init_events[RESULT_ORDER+8]['_timestamp'] == 600 and \
-            init_events[RESULT_ORDER+8]['_name'] == 'ros2_caret:callback_group_add_service'
-        assert init_events[RESULT_ORDER+9]['_timestamp'] == 400 and \
-            init_events[RESULT_ORDER+9]['_name'] == 'ros2_caret:callback_group_add_client'
-        assert init_events[RESULT_ORDER+10]['_timestamp'] == 600 and \
-            init_events[RESULT_ORDER+10]['_name'] == 'ros2_caret:callback_group_add_client'
-        assert init_events[RESULT_ORDER+11]['_timestamp'] == 600 and \
-            init_events[RESULT_ORDER+11]['_name'] == 'ros2_caret:rclcpp_construct_ring_buffer'
-        assert init_events[RESULT_ORDER+12]['_timestamp'] == 600 and \
-            init_events[RESULT_ORDER+12]['_name'] == 'ros2:rclcpp_construct_ring_buffer'
-        assert init_events[RESULT_ORDER+13]['_timestamp'] == 600 and \
-            init_events[RESULT_ORDER+13]['_name'] == 'ros2_caret:rclcpp_buffer_to_ipb'
-        assert init_events[RESULT_ORDER+14]['_timestamp'] == 600 and \
-            init_events[RESULT_ORDER+14]['_name'] == 'ros2:rclcpp_buffer_to_ipb'
-        assert init_events[RESULT_ORDER+15]['_timestamp'] == 600 and \
-            init_events[RESULT_ORDER+15]['_name'] == 'ros2_caret:rclcpp_ipb_to_subscription'
-        assert init_events[RESULT_ORDER+16]['_timestamp'] == 600 and \
-            init_events[RESULT_ORDER+16]['_name'] == 'ros2:rclcpp_ipb_to_subscription'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+6]['_timestamp'] == 600 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+6]['_name'] == \
+                'ros2_caret:callback_group_add_timer'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+7]['_timestamp'] == 400 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+7]['_name'] == \
+                'ros2_caret:callback_group_add_subscription'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+8]['_timestamp'] == 600 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+8]['_name'] == \
+                'ros2_caret:callback_group_add_subscription'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+9]['_timestamp'] == 400 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+9]['_name'] == \
+                'ros2_caret:callback_group_add_service'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+10]['_timestamp'] == 600 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+10]['_name'] == \
+                'ros2_caret:callback_group_add_service'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+11]['_timestamp'] == 400 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+11]['_name'] == \
+                'ros2_caret:callback_group_add_client'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+12]['_timestamp'] == 600 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+12]['_name'] == \
+                'ros2_caret:callback_group_add_client'
+        else:
+            assert init_events[RESULT_ORDER_EXE_AND_CB+0]['_timestamp'] == 600 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+0]['_name'] == \
+                'ros2_caret:construct_executor'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+1]['_timestamp'] == 600 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+1]['_name'] == \
+                'ros2_caret:construct_static_executor'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+2]['_timestamp'] == 600 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+2]['_name'] == \
+                'ros2_caret:add_callback_group'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+3]['_timestamp'] == 600 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+3]['_name'] == \
+                'ros2_caret:add_callback_group_static_executor'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+4]['_timestamp'] == 600 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+4]['_name'] == \
+                'ros2_caret:callback_group_add_timer'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+5]['_timestamp'] == 400 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+5]['_name'] == \
+                'ros2_caret:callback_group_add_subscription'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+6]['_timestamp'] == 600 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+6]['_name'] == \
+                'ros2_caret:callback_group_add_subscription'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+7]['_timestamp'] == 400 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+7]['_name'] == \
+                'ros2_caret:callback_group_add_service'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+8]['_timestamp'] == 600 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+8]['_name'] == \
+                'ros2_caret:callback_group_add_service'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+9]['_timestamp'] == 400 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+9]['_name'] == \
+                'ros2_caret:callback_group_add_client'
+            assert init_events[RESULT_ORDER_EXE_AND_CB+10]['_timestamp'] == 600 and \
+                init_events[RESULT_ORDER_EXE_AND_CB+10]['_name'] == \
+                'ros2_caret:callback_group_add_client'
+
+        assert init_events[RESULT_ORDER_ETC+0]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_ETC+0]['_name'] == 'ros2_caret:rclcpp_construct_ring_buffer'
+        assert init_events[RESULT_ORDER_ETC+1]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_ETC+1]['_name'] == 'ros2:rclcpp_construct_ring_buffer'
+        assert init_events[RESULT_ORDER_ETC+2]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_ETC+2]['_name'] == 'ros2_caret:rclcpp_buffer_to_ipb'
+        assert init_events[RESULT_ORDER_ETC+3]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_ETC+3]['_name'] == 'ros2:rclcpp_buffer_to_ipb'
+        assert init_events[RESULT_ORDER_ETC+4]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_ETC+4]['_name'] == 'ros2_caret:rclcpp_ipb_to_subscription'
+        assert init_events[RESULT_ORDER_ETC+5]['_timestamp'] == 600 and \
+            init_events[RESULT_ORDER_ETC+5]['_name'] == 'ros2:rclcpp_ipb_to_subscription'
 
     def test_duplicated_events_contexts(self, mocker):
         HDL_CONTEXT = 1000101
@@ -1249,18 +1320,20 @@ class TestLttng:
         assert lttng.data.rmw_impl.df.iloc[0]['rmw_impl'] == 10
 
     def test_duplicated_events_entities_collector(self, mocker):
+        HDL_EXECUTOR = 1001101
         EXECUTOR_CALLBACK = 1001261
         HDL_EXECUTOR_ENTITIY = 1000701
         VTID1 = 500001
         VPID1 = 600001
 
         ros_version = os.environ['ROS_DISTRO']
-        if ros_version == 'jazzy':
+        if ros_version[0] >= 'jazzy'[0]:
             events = [
                 {
                     '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
                     'executor_entities_collector_addr': HDL_EXECUTOR_ENTITIY,
                     'callback_group_addr': EXECUTOR_CALLBACK,
+                    'group_type_name': 'reentrant',
                     '_timestamp': 100101101,
                     '_vtid': VTID1,
                     '_vpid': VPID1
@@ -1269,7 +1342,24 @@ class TestLttng:
                     '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
                     'executor_entities_collector_addr': HDL_EXECUTOR_ENTITIY,
                     'callback_group_addr': EXECUTOR_CALLBACK,
-                    '_timestamp': 100101105,
+                    'group_type_name': 'mutually_exclusive',
+                    '_timestamp': 100101260,
+                    '_vtid': VTID1,
+                    '_vpid': VPID1
+                },
+                {
+                    '_name': 'ros2_caret:executor_entity_collector_to_executor',
+                    'executor_addr': HDL_EXECUTOR,
+                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITIY,
+                    '_timestamp': 100101102,
+                    '_vtid': VTID1,
+                    '_vpid': VPID1
+                },
+                {
+                    '_name': 'ros2_caret:executor_entity_collector_to_executor',
+                    'executor_addr': HDL_EXECUTOR,
+                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITIY,
+                    '_timestamp': 100101261,
                     '_vtid': VTID1,
                     '_vpid': VPID1
                 },
@@ -1279,18 +1369,26 @@ class TestLttng:
 
             # executors
             # ['timestamp', 'callback_group_addr', 'callback_group_collection_addr']
-            assert lttng.data.callback_group_to_executor_entity_collector.df.index \
-                [0] == HDL_EXECUTOR_ENTITIY and \
-                lttng.data.callback_group_to_executor_entity_collector.df.iloc \
-                    [0]['timestamp'] == 100101101 and \
-                lttng.data.callback_group_to_executor_entity_collector.df.iloc \
-                    [0]['callback_group_addr'] == EXECUTOR_CALLBACK
+            assert lttng.data.callback_group_to_executor_entity_collector.\
+                df.iloc[0]['group_type_name'] == 'reentrant'
 
-            assert lttng.data.callback_group_to_executor_entity_collector.df.index[1] == 1 and \
-                lttng.data.callback_group_to_executor_entity_collector.df.iloc \
-                    [1]['timestamp'] == 100101105 and \
-                lttng.data.callback_group_to_executor_entity_collector.df.iloc \
-                    [1]['callback_group_addr'] == 1
+            assert lttng.data.callback_group_to_executor_entity_collector.\
+                df.index[0] == HDL_EXECUTOR_ENTITIY and \
+                lttng.data.callback_group_to_executor_entity_collector.\
+                df.iloc[0]['group_type_name'] == 'reentrant' and \
+                lttng.data.callback_group_to_executor_entity_collector.\
+                df.iloc[0]['timestamp'] == 100101101 and \
+                lttng.data.callback_group_to_executor_entity_collector.\
+                df.iloc[0]['callback_group_addr'] == EXECUTOR_CALLBACK
+
+            assert lttng.data.callback_group_to_executor_entity_collector.\
+                df.index[1] == 1 and \
+                lttng.data.callback_group_to_executor_entity_collector.\
+                df.iloc[1]['group_type_name'] == 'mutually_exclusive' and \
+                lttng.data.callback_group_to_executor_entity_collector.\
+                df.iloc[1]['timestamp'] == 100101260 and \
+                lttng.data.callback_group_to_executor_entity_collector.\
+                df.iloc[1]['callback_group_addr'] == 1
 
     def test_duplicated_events_executors(self, mocker):
         HDL_EXECUTOR = 1001101
@@ -1300,7 +1398,7 @@ class TestLttng:
         VPID1 = 600001
 
         ros_version = os.environ['ROS_DISTRO']
-        if ros_version == 'jazzy':
+        if ros_version[0] >= 'jazzy'[0]:
             EXECUTOR_CALLBACK = 1001261
             HDL_EXECUTOR_ENTITIY = 1000701
 
@@ -1309,6 +1407,7 @@ class TestLttng:
                     '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
                     'executor_entities_collector_addr': HDL_EXECUTOR_ENTITIY,
                     'callback_group_addr': EXECUTOR_CALLBACK,
+                    'group_type_name': 'reentrant',
                     '_timestamp': 100101101,
                     '_vtid': VTID1,
                     '_vpid': VPID1
@@ -1317,7 +1416,8 @@ class TestLttng:
                     '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
                     'executor_entities_collector_addr': HDL_EXECUTOR_ENTITIY,
                     'callback_group_addr': EXECUTOR_CALLBACK,
-                    '_timestamp': 100101105,
+                    '_timestamp': 100101260,
+                    'group_type_name': 'mutually_exclusive',
                     '_vtid': VTID1,
                     '_vpid': VPID1
                 },
@@ -1343,18 +1443,18 @@ class TestLttng:
 
             # executors
             # ['timestamp', 'executor_entities_collector_addr']
-            assert lttng.data.executor_entity_collector_to_executor.df.index \
-                [0] == HDL_EXECUTOR and \
-                lttng.data.executor_entity_collector_to_executor.df.iloc \
-                    [0]['timestamp'] == 100101102 and \
-                lttng.data.executor_entity_collector_to_executor.df.iloc \
-                    [0]['executor_entities_collector_addr'] == HDL_EXECUTOR_ENTITIY
+            assert lttng.data.executor_entity_collector_to_executor.\
+                df.index[0] == HDL_EXECUTOR and \
+                lttng.data.executor_entity_collector_to_executor.\
+                df.iloc[0]['timestamp'] == 100101102 and \
+                lttng.data.executor_entity_collector_to_executor.\
+                df.iloc[0]['executor_entities_collector_addr'] == HDL_EXECUTOR_ENTITIY
 
             assert lttng.data.executor_entity_collector_to_executor.df.index[1] == 1 and \
-                lttng.data.executor_entity_collector_to_executor.df.iloc \
-                    [1]['timestamp'] == 100101261 and \
-                lttng.data.executor_entity_collector_to_executor.df.iloc \
-                    [1]['executor_entities_collector_addr'] == 1
+                lttng.data.executor_entity_collector_to_executor.\
+                df.iloc[1]['timestamp'] == 100101261 and \
+                lttng.data.executor_entity_collector_to_executor.\
+                df.iloc[1]['executor_entities_collector_addr'] == 1
         else:
             events = [
                 # Initialization trace points
@@ -1447,7 +1547,7 @@ class TestLttng:
         VPID1 = 600001
 
         ros_version = os.environ['ROS_DISTRO']
-        if ros_version == 'jazzy':
+        if ros_version[0] >= 'jazzy'[0]:
             HDL_EXECUTOR_ENTITIY = 1000701
             events = [
                 # Initialization trace points
@@ -1582,6 +1682,7 @@ class TestLttng:
                     '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
                     'executor_entities_collector_addr': HDL_EXECUTOR_ENTITIY,
                     'callback_group_addr': EXECUTOR_CALLBACK,
+                    'group_type_name': 'reentrant',
                     '_timestamp': 100101101,
                     '_vtid': VTID1,
                     '_vpid': VPID1
@@ -1590,7 +1691,8 @@ class TestLttng:
                     '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
                     'executor_entities_collector_addr': HDL_EXECUTOR_ENTITIY,
                     'callback_group_addr': EXECUTOR_CALLBACK,
-                    '_timestamp': 100101105,
+                    'group_type_name': 'mutually_exclusive',
+                    '_timestamp': 100101260,
                     '_vtid': VTID1,
                     '_vpid': VPID1
                 },
@@ -2036,22 +2138,26 @@ class TestLttng:
 
         lttng = Lttng(events, event_filters=[], validate=False)
 
-        if ros_version == 'jazzy':
-            assert lttng.data.callback_group_to_executor_entity_collector.df.index \
-                    [0] == HDL_EXECUTOR_ENTITIY and \
-                lttng.data.callback_group_to_executor_entity_collector.df.iloc \
-                    [0]['timestamp'] == 100101101 and \
-                lttng.data.callback_group_to_executor_entity_collector.df.iloc \
-                    [0]['callback_group_addr'] == EXECUTOR_CALLBACK
+        if ros_version[0] >= 'jazzy'[0]:
+            assert lttng.data.callback_group_to_executor_entity_collector.\
+                df.index[0] == HDL_EXECUTOR_ENTITIY and \
+                lttng.data.callback_group_to_executor_entity_collector.\
+                df.iloc[0]['group_type_name'] == 'reentrant' and \
+                lttng.data.callback_group_to_executor_entity_collector.\
+                df.iloc[0]['timestamp'] == 100101101 and \
+                lttng.data.callback_group_to_executor_entity_collector.\
+                df.iloc[0]['callback_group_addr'] == EXECUTOR_CALLBACK
 
-            assert lttng.data.callback_group_to_executor_entity_collector.df.index \
-                    [1] == 1 and \
-                lttng.data.callback_group_to_executor_entity_collector.df.iloc \
-                    [1]['timestamp'] == 100101105 and \
-                lttng.data.callback_group_to_executor_entity_collector.df.iloc \
-                    [1]['callback_group_addr'] == 1
+            assert lttng.data.callback_group_to_executor_entity_collector.\
+                df.index[1] == 1 and \
+                lttng.data.callback_group_to_executor_entity_collector.\
+                df.iloc[1]['group_type_name'] == 'mutually_exclusive' and \
+                lttng.data.callback_group_to_executor_entity_collector.\
+                df.iloc[1]['timestamp'] == 100101260 and \
+                lttng.data.callback_group_to_executor_entity_collector.\
+                df.iloc[1]['callback_group_addr'] == 1
         else:
-            ### jazzy does not have this trace point ###
+            # jazzy does not have this trace point #
             # ['timestamp', 'executor_addr', 'group_type_name']
             assert lttng.data.callback_groups.df.index[0] == EXECUTOR_CALLBACK and \
                 lttng.data.callback_groups.df.iloc[0]['timestamp'] == 100101102 and \
@@ -2069,9 +2175,6 @@ class TestLttng:
             assert lttng.data.callback_groups_static.df.index[1] == 2 and \
                 lttng.data.callback_groups_static.df.iloc[1]['timestamp'] == 100101281 and \
                 lttng.data.callback_groups_static.df.iloc[1]['entities_collector_addr'] == 2
-
-
-
 
         # ['timestamp', 'timer_handle']
         assert lttng.data.callback_group_timer.df.index[0] == EXECUTOR_CALLBACK and \
@@ -2608,6 +2711,7 @@ class TestLttng:
             },
             {
                 '_name': 'ros2_caret:dds_write',
+                'rmw_publisher_handle': 200,
                 'message': 100,
                 '_timestamp': 100102901,
                 '_vtid': VTID1,
@@ -2875,12 +2979,23 @@ class TestLttng:
             lttng.data.rclcpp_publish_instances.\
             data[2].data['rclcpp_inter_publish_timestamp'] == 100102804
 
-        # dds_write_instances
-        # ['tid', 'dds_write_timestamp', 'message']
-        assert lttng.data.dds_write_instances.\
-            data[0].data['message'] == 100 and \
-            lttng.data.dds_write_instances.\
-            data[0].data['dds_write_timestamp'] == 100102901
+        ros_version = os.environ['ROS_DISTRO']
+        if ros_version[0] >= 'jazzy'[0]:
+            # dds_write_instances
+            # ['tid', 'dds_write_timestamp', 'rmw_publisher_handle', 'message']
+            assert lttng.data.dds_write_instances.\
+                data[0].data['rmw_publisher_handle'] == 200 and \
+                lttng.data.dds_write_instances.\
+                data[0].data['message'] == 100 and \
+                lttng.data.dds_write_instances.\
+                data[0].data['dds_write_timestamp'] == 100102901
+        else:
+            # dds_write_instances
+            # ['tid', 'dds_write_timestamp', 'message']
+            assert lttng.data.dds_write_instances.\
+                data[0].data['message'] == 100 and \
+                lttng.data.dds_write_instances.\
+                data[0].data['dds_write_timestamp'] == 100102901
 
         # dds_bind_addr_to_stamp
         # ['tid', 'dds_bind_addr_to_stamp_timestamp', 'addr', 'source_timestamp']
