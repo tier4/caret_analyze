@@ -1400,12 +1400,12 @@ class TestLttng:
         ros_version = os.environ['ROS_DISTRO']
         if ros_version[0] >= 'jazzy'[0]:
             EXECUTOR_CALLBACK = 1001261
-            HDL_EXECUTOR_ENTITIY = 1000701
+            HDL_EXECUTOR_ENTITY = 1000701
 
             events = [
                 {
                     '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITIY,
+                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
                     'callback_group_addr': EXECUTOR_CALLBACK,
                     'group_type_name': 'reentrant',
                     '_timestamp': 100101101,
@@ -1414,7 +1414,7 @@ class TestLttng:
                 },
                 {
                     '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITIY,
+                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
                     'callback_group_addr': EXECUTOR_CALLBACK,
                     '_timestamp': 100101260,
                     'group_type_name': 'mutually_exclusive',
@@ -1424,7 +1424,7 @@ class TestLttng:
                 {
                     '_name': 'ros2_caret:executor_entity_collector_to_executor',
                     'executor_addr': HDL_EXECUTOR,
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITIY,
+                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
                     '_timestamp': 100101102,
                     '_vtid': VTID1,
                     '_vpid': VPID1
@@ -1432,7 +1432,7 @@ class TestLttng:
                 {
                     '_name': 'ros2_caret:executor_entity_collector_to_executor',
                     'executor_addr': HDL_EXECUTOR,
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITIY,
+                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
                     '_timestamp': 100101261,
                     '_vtid': VTID1,
                     '_vpid': VPID1
@@ -1448,7 +1448,7 @@ class TestLttng:
                 lttng.data.executor_entity_collector_to_executor.\
                 df.iloc[0]['timestamp'] == 100101102 and \
                 lttng.data.executor_entity_collector_to_executor.\
-                df.iloc[0]['executor_entities_collector_addr'] == HDL_EXECUTOR_ENTITIY
+                df.iloc[0]['executor_entities_collector_addr'] == HDL_EXECUTOR_ENTITY
 
             assert lttng.data.executor_entity_collector_to_executor.df.index[1] == 1 and \
                 lttng.data.executor_entity_collector_to_executor.\
@@ -1548,7 +1548,7 @@ class TestLttng:
 
         ros_version = os.environ['ROS_DISTRO']
         if ros_version[0] >= 'jazzy'[0]:
-            HDL_EXECUTOR_ENTITIY = 1000701
+            HDL_EXECUTOR_ENTITY = 1000701
             events = [
                 # Initialization trace points
                 {
@@ -1680,7 +1680,7 @@ class TestLttng:
                 # JAZZY added>
                 {
                     '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITIY,
+                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
                     'callback_group_addr': EXECUTOR_CALLBACK,
                     'group_type_name': 'reentrant',
                     '_timestamp': 100101101,
@@ -1689,7 +1689,7 @@ class TestLttng:
                 },
                 {
                     '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITIY,
+                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
                     'callback_group_addr': EXECUTOR_CALLBACK,
                     'group_type_name': 'mutually_exclusive',
                     '_timestamp': 100101260,
@@ -1699,7 +1699,7 @@ class TestLttng:
                 {
                     '_name': 'ros2_caret:executor_entity_collector_to_executor',
                     'executor_addr': HDL_EXECUTOR,
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITIY,
+                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
                     '_timestamp': 100101102,
                     '_vtid': VTID1,
                     '_vpid': VPID1
@@ -1707,7 +1707,7 @@ class TestLttng:
                 {
                     '_name': 'ros2_caret:executor_entity_collector_to_executor',
                     'executor_addr': HDL_EXECUTOR,
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITIY,
+                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
                     '_timestamp': 100101261,
                     '_vtid': VTID1,
                     '_vpid': VPID1
@@ -2140,7 +2140,7 @@ class TestLttng:
 
         if ros_version[0] >= 'jazzy'[0]:
             assert lttng.data.callback_group_to_executor_entity_collector.\
-                df.index[0] == HDL_EXECUTOR_ENTITIY and \
+                df.index[0] == HDL_EXECUTOR_ENTITY and \
                 lttng.data.callback_group_to_executor_entity_collector.\
                 df.iloc[0]['group_type_name'] == 'reentrant' and \
                 lttng.data.callback_group_to_executor_entity_collector.\
