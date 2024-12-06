@@ -1322,7 +1322,7 @@ class TestLttng:
     def test_duplicated_events_entities_collector(self, mocker):
         HDL_EXECUTOR = 1001101
         EXECUTOR_CALLBACK = 1001261
-        HDL_EXECUTOR_ENTITIY = 1000701
+        HDL_EXECUTOR_ENTITY = 1000701
         VTID1 = 500001
         VPID1 = 600001
 
@@ -1331,7 +1331,7 @@ class TestLttng:
             events = [
                 {
                     '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITIY,
+                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
                     'callback_group_addr': EXECUTOR_CALLBACK,
                     'group_type_name': 'reentrant',
                     '_timestamp': 100101101,
@@ -1340,7 +1340,7 @@ class TestLttng:
                 },
                 {
                     '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITIY,
+                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
                     'callback_group_addr': EXECUTOR_CALLBACK,
                     'group_type_name': 'mutually_exclusive',
                     '_timestamp': 100101260,
@@ -1350,7 +1350,7 @@ class TestLttng:
                 {
                     '_name': 'ros2_caret:executor_entity_collector_to_executor',
                     'executor_addr': HDL_EXECUTOR,
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITIY,
+                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
                     '_timestamp': 100101102,
                     '_vtid': VTID1,
                     '_vpid': VPID1
@@ -1358,7 +1358,7 @@ class TestLttng:
                 {
                     '_name': 'ros2_caret:executor_entity_collector_to_executor',
                     'executor_addr': HDL_EXECUTOR,
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITIY,
+                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
                     '_timestamp': 100101261,
                     '_vtid': VTID1,
                     '_vpid': VPID1
@@ -1373,7 +1373,7 @@ class TestLttng:
                 df.iloc[0]['group_type_name'] == 'reentrant'
 
             assert lttng.data.callback_group_to_executor_entity_collector.\
-                df.index[0] == HDL_EXECUTOR_ENTITIY and \
+                df.index[0] == HDL_EXECUTOR_ENTITY and \
                 lttng.data.callback_group_to_executor_entity_collector.\
                 df.iloc[0]['group_type_name'] == 'reentrant' and \
                 lttng.data.callback_group_to_executor_entity_collector.\
