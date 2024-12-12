@@ -61,7 +61,7 @@ class TestEventCounter:
         data.add_rclcpp_ring_buffer_dequeue_instance(0, 0, 0, 0, 0)
         data.add_rclcpp_publish_instance(0, 0, 0, 0, 0)
         data.add_rcl_publish_instance(0, 0, 0, 0)
-        data.add_dds_write_instance(0, 0, 0, 0)
+        data.add_dds_write_instance(0, 0, 0)
         data.add_dds_bind_addr_to_addr(0, 0, 0)
         data.add_dds_bind_addr_to_stamp(0, 0, 0, 0)
         data.add_on_data_available_instance(0, 0)
@@ -113,7 +113,7 @@ class TestEventCounter:
     ):
         data = Ros2DataModel()
         data.add_dispatch_subscription_callback_instance(0, 0, 0, 0, 0)  # pass rclcpp-check
-        data.add_dds_write_instance(0, 0, 0, 0)  # pass LD_PRELOAD check
+        data.add_dds_write_instance(0, 0, 0)  # pass LD_PRELOAD check
         data.finalize()
 
         logger = getLogger('caret_analyze.infra.lttng.event_counter')
@@ -136,7 +136,7 @@ class TestEventCounter:
         has_rmw_take,
     ):
         data = Ros2DataModel()
-        data.add_dds_write_instance(0, 0, 0, 0)  # pass LD_PRELOAD check
+        data.add_dds_write_instance(0, 0, 0)  # pass LD_PRELOAD check
         data.add_dds_bind_addr_to_stamp(0, 0, 0, 0)  # pass dds layer check
         if has_rmw_take:
             data.add_rmw_take_instance(0, 0, 0, 0, 0)  # pass rmw_take check
@@ -176,7 +176,7 @@ class TestEventCounter:
     ):
         data = Ros2DataModel()
         # pass rclcpp-check
-        data.add_dds_write_instance(0, 0, 0, 0)  # pass LD_PRELOAD check
+        data.add_dds_write_instance(0, 0, 0)  # pass LD_PRELOAD check
         data.add_dds_bind_addr_to_stamp(0, 0, 0, 0)  # pass dds layer check
         data.add_rmw_take_instance(0, 0, 0, 0, 0)  # pass rmw_take check
         if use_caret_rclcpp:
@@ -205,7 +205,7 @@ class TestEventCounter:
 
         distribution = 'distribution'
         data.add_caret_init(0, 0, distribution)
-        data.add_dds_write_instance(0, 0, 0, 0)  # pass LD_PRELOAD check
+        data.add_dds_write_instance(0, 0, 0)  # pass LD_PRELOAD check
         data.add_dds_bind_addr_to_stamp(0, 0, 0, 0)  # pass dds layer check
         data.finalize()
 
@@ -223,7 +223,7 @@ class TestEventCounter:
     ):
         data = Ros2DataModel()
         data.add_caret_init(0, 0, distribution)
-        data.add_dds_write_instance(0, 0, 0, 0)  # pass LD_PRELOAD check
+        data.add_dds_write_instance(0, 0, 0)  # pass LD_PRELOAD check
         data.add_dds_bind_addr_to_stamp(0, 0, 0, 0)  # pass dds layer check
         data.finalize()
 
@@ -243,7 +243,7 @@ class TestEventCounter:
     ):
         data = Ros2DataModel()
         data.add_dispatch_subscription_callback_instance(0, 0, 0, 0, 0)  # pass rclcpp-check
-        data.add_dds_write_instance(0, 0, 0, 0)  # pass LD_PRELOAD check
+        data.add_dds_write_instance(0, 0, 0)  # pass LD_PRELOAD check
         data.add_dds_bind_addr_to_stamp(0, 0, 0, 0)  # pass dds layer check
         data.finalize()
 

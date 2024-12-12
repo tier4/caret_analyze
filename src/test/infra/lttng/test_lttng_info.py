@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-
 from caret_analyze.infra.lttng.lttng_info import (DataFrameFormatted,
                                                   LttngInfo)
 from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
@@ -1242,15 +1240,19 @@ class TestDataFrameFormatted:
         ).convert_dtypes()
         assert nodes.df.equals(expect)
 
-    def test_build_callback_group_to_executor_entity_collector_df(self):
-        ros_version = os.environ['ROS_DISTRO']
-        if ros_version[0] >= 'jazzy'[0]:
+    @pytest.mark.parametrize(
+        'distribution',
+        ['jazzy', 'iron'],
+    )
+    def test_build_callback_group_to_executor_entity_collector_df(self, distribution):
+        if distribution[0] >= 'jazzy'[0]:
             executor_entities_collector_addr = 2
             callback_group_addr = 3
             group_type_name = 'reentrant'
             executor_addr = 4
 
             data = Ros2DataModel()
+            data.add_caret_init(0, 0, 'jazzy')
             data.add_callback_group_to_executor_entity_collector(
                 executor_entities_collector_addr, callback_group_addr, group_type_name, 0)
             data.add_executor_entity_collector_to_executor(
@@ -1269,14 +1271,18 @@ class TestDataFrameFormatted:
             ).convert_dtypes()
             assert cbg.df.equals(expect)
 
-    def test_build_callback_groups_df(self):
-        ros_version = os.environ['ROS_DISTRO']
-        if ros_version[0] < 'jazzy'[0]:
+    @pytest.mark.parametrize(
+        'distribution',
+        ['jazzy', 'iron'],
+    )
+    def test_build_callback_groups_df(self, distribution):
+        if distribution[0] < 'jazzy'[0]:
             exec_addr = 2
             callback_group_addr = 3
             group_type = 'reentrant'
 
             data = Ros2DataModel()
+            data.add_caret_init(0, 0, distribution)
             data.add_callback_group(exec_addr, 0, callback_group_addr, group_type)
             data.finalize()
 
@@ -1292,15 +1298,19 @@ class TestDataFrameFormatted:
             ).convert_dtypes()
             assert cbg.df.equals(expect)
 
-    def test_build_callback_groups_static_df(self):
-        ros_version = os.environ['ROS_DISTRO']
-        if ros_version[0] < 'jazzy'[0]:
+    @pytest.mark.parametrize(
+        'distribution',
+        ['jazzy', 'iron'],
+    )
+    def test_build_callback_groups_static_df(self, distribution):
+        if distribution[0] < 'jazzy'[0]:
             group_type = 'reentrant'
             collector_addr = 2
             cbg_addr = 3
             exec_addr = 4
 
             data = Ros2DataModel()
+            data.add_caret_init(0, 0, distribution)
             data.add_callback_group_static_executor(collector_addr, 0, cbg_addr, group_type)
             data.add_executor_static(exec_addr, collector_addr, 0, 'exec_type')
             data.finalize()

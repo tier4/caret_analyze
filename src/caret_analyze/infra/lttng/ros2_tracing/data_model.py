@@ -124,7 +124,6 @@ class Ros2DataModel():
             columns=[
                 ColumnValue('tid'),
                 ColumnValue('dds_write_timestamp'),
-                ColumnValue('rmw_publisher_handle'),
                 ColumnValue('message'),
             ]
         )
@@ -536,13 +535,11 @@ class Ros2DataModel():
         self,
         tid: int,
         timestamp: int,
-        rmw_publisher_handle: int,
         message: int,
     ) -> None:
         record = {
             'tid': tid,
             'dds_write_timestamp': timestamp,
-            'rmw_publisher_handle': rmw_publisher_handle,
             'message': message,
         }
         self.dds_write_instances.append(record)

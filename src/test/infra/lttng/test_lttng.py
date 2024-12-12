@@ -16,8 +16,6 @@
 from datetime import datetime
 import functools
 
-import os
-
 from caret_analyze.infra.lttng import Lttng
 from caret_analyze.infra.lttng.event_counter import EventCounter
 from caret_analyze.infra.lttng.lttng import EventCollection, IterableEvents, MultiHostIdRemapper
@@ -317,14 +315,17 @@ class TestLttng:
         assert lttng_.events == events_
         assert lttng.events != lttng_.events
 
-    def test_compare_init_event(self):
+    @pytest.mark.parametrize(
+        'distribution',
+        ['jazzy', 'iron'],
+    )
+    def test_compare_init_event(self, distribution):
         init_events = []
         event_collection = {}
 
-        ros_version = os.environ['ROS_DISTRO']
         TIME_ORDER = 0
         SORT_ORDER_ADD_IRON = 4
-        if ros_version[0] >= 'jazzy'[0]:
+        if distribution[0] >= 'jazzy'[0]:
             SORT_ORDER_EXE_AND_CB = 10
             SORT_ORDER_INIT = 20
             SMALL_ORDER = 50
@@ -365,7 +366,7 @@ class TestLttng:
             '_name': 'ros2_caret:rclcpp_construct_ring_buffer', '_timestamp': 600, }
 
         # executor and callback group
-        if ros_version[0] >= 'jazzy'[0]:
+        if distribution[0] >= 'jazzy'[0]:
             event_collection[SORT_ORDER_EXE_AND_CB+0] = {
                 '_name': 'ros2_caret:callback_group_add_client', '_timestamp': 600, }
             event_collection[SORT_ORDER_EXE_AND_CB+1] = {
@@ -374,19 +375,20 @@ class TestLttng:
                 '_name': 'ros2_caret:callback_group_add_subscription', '_timestamp': 600, }
             event_collection[SORT_ORDER_EXE_AND_CB+3] = {
                 '_name': 'ros2_caret:callback_group_add_timer', '_timestamp': 600, }
+
             event_collection[SORT_ORDER_EXE_AND_CB+4] = {
-                '_name': 'ros2_caret:add_callback_group_static_executor', '_timestamp': 600, }
-            event_collection[SORT_ORDER_EXE_AND_CB+5] = {
-                '_name': 'ros2_caret:add_callback_group', '_timestamp': 600, }
-            event_collection[SORT_ORDER_EXE_AND_CB+6] = {
                 '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
                 '_timestamp': 600, }
-            event_collection[SORT_ORDER_EXE_AND_CB+7] = {
-                '_name': 'ros2_caret:construct_static_executor', '_timestamp': 600, }
-            event_collection[SORT_ORDER_EXE_AND_CB+8] = {
-                '_name': 'ros2_caret:construct_executor', '_timestamp': 600, }
-            event_collection[SORT_ORDER_EXE_AND_CB+9] = {
+            event_collection[SORT_ORDER_EXE_AND_CB+5] = {
                 '_name': 'ros2_caret:executor_entity_collector_to_executor', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+6] = {
+                '_name': 'ros2_caret:add_callback_group_static_executor', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+7] = {
+                '_name': 'ros2_caret:add_callback_group', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+8] = {
+                '_name': 'ros2_caret:construct_static_executor', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+9] = {
+                '_name': 'ros2_caret:construct_executor', '_timestamp': 600, }
         else:
             event_collection[SORT_ORDER_EXE_AND_CB+0] = {
                 '_name': 'ros2_caret:callback_group_add_client', '_timestamp': 600, }
@@ -555,25 +557,25 @@ class TestLttng:
         assert init_events[RESULT_ORDER_INIT+33]['_timestamp'] == 600 and \
             init_events[RESULT_ORDER_INIT+33]['_name'] == 'ros2_caret:rmw_implementation'
 
-        if ros_version[0] >= 'jazzy'[0]:
+        if distribution[0] >= 'jazzy'[0]:
             assert init_events[RESULT_ORDER_EXE_AND_CB+0]['_timestamp'] == 600 and \
                 init_events[RESULT_ORDER_EXE_AND_CB+0]['_name'] == \
-                'ros2_caret:executor_entity_collector_to_executor'
+                'ros2_caret:construct_executor'
             assert init_events[RESULT_ORDER_EXE_AND_CB+1]['_timestamp'] == 600 and \
                 init_events[RESULT_ORDER_EXE_AND_CB+1]['_name'] == \
-                'ros2_caret:construct_executor'
+                'ros2_caret:construct_static_executor'
             assert init_events[RESULT_ORDER_EXE_AND_CB+2]['_timestamp'] == 600 and \
                 init_events[RESULT_ORDER_EXE_AND_CB+2]['_name'] == \
-                'ros2_caret:construct_static_executor'
+                'ros2_caret:add_callback_group'
             assert init_events[RESULT_ORDER_EXE_AND_CB+3]['_timestamp'] == 600 and \
                 init_events[RESULT_ORDER_EXE_AND_CB+3]['_name'] == \
-                'ros2_caret:callback_group_to_executor_entity_collector'
+                'ros2_caret:add_callback_group_static_executor'
             assert init_events[RESULT_ORDER_EXE_AND_CB+4]['_timestamp'] == 600 and \
                 init_events[RESULT_ORDER_EXE_AND_CB+4]['_name'] == \
-                'ros2_caret:add_callback_group'
+                'ros2_caret:executor_entity_collector_to_executor'
             assert init_events[RESULT_ORDER_EXE_AND_CB+5]['_timestamp'] == 600 and \
                 init_events[RESULT_ORDER_EXE_AND_CB+5]['_name'] == \
-                'ros2_caret:add_callback_group_static_executor'
+                'ros2_caret:callback_group_to_executor_entity_collector'
             assert init_events[RESULT_ORDER_EXE_AND_CB+6]['_timestamp'] == 600 and \
                 init_events[RESULT_ORDER_EXE_AND_CB+6]['_name'] == \
                 'ros2_caret:callback_group_add_timer'
@@ -1295,7 +1297,7 @@ class TestLttng:
             {
                 '_name': 'ros2_caret:caret_init',
                 'clock_offset': 10,
-                'distribution': 20,
+                'distribution': 'dummy',
                 '_timestamp': 100100901,
                 '_vtid': VTID1,
                 '_vpid': VPID1
@@ -1319,16 +1321,27 @@ class TestLttng:
         # ['rmw_impl']
         assert lttng.data.rmw_impl.df.iloc[0]['rmw_impl'] == 10
 
-    def test_duplicated_events_entities_collector(self, mocker):
+    @pytest.mark.parametrize(
+        'distribution',
+        ['jazzy', 'iron'],
+    )
+    def test_duplicated_events_entities_collector(self, mocker, distribution):
         HDL_EXECUTOR = 1001101
         EXECUTOR_CALLBACK = 1001261
         HDL_EXECUTOR_ENTITY = 1000701
         VTID1 = 500001
         VPID1 = 600001
 
-        ros_version = os.environ['ROS_DISTRO']
-        if ros_version[0] >= 'jazzy'[0]:
+        if distribution[0] >= 'jazzy'[0]:
             events = [
+                {
+                    '_name': 'ros2_caret:caret_init',
+                    'clock_offset': 10,
+                    'distribution': distribution,
+                    '_timestamp': 100100901,
+                    '_vtid': VTID1,
+                    '_vpid': VPID1
+                },
                 {
                     '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
                     'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
@@ -1390,19 +1403,30 @@ class TestLttng:
                 lttng.data.callback_group_to_executor_entity_collector.\
                 df.iloc[1]['callback_group_addr'] == 1
 
-    def test_duplicated_events_executors(self, mocker):
+    @pytest.mark.parametrize(
+        'distribution',
+        ['jazzy', 'iron'],
+    )
+    def test_duplicated_events_executors(self, mocker, distribution):
         HDL_EXECUTOR = 1001101
         HDL_EXECUTOR_STATIC = 1001201
         HDL_ENTITIES = 1001211
         VTID1 = 500001
         VPID1 = 600001
 
-        ros_version = os.environ['ROS_DISTRO']
-        if ros_version[0] >= 'jazzy'[0]:
+        if distribution[0] >= 'jazzy'[0]:
             EXECUTOR_CALLBACK = 1001261
             HDL_EXECUTOR_ENTITY = 1000701
 
             events = [
+                {
+                    '_name': 'ros2_caret:caret_init',
+                    'clock_offset': 10,
+                    'distribution': distribution,
+                    '_timestamp': 100100901,
+                    '_vtid': VTID1,
+                    '_vpid': VPID1
+                },
                 {
                     '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
                     'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
@@ -1437,27 +1461,6 @@ class TestLttng:
                     '_vtid': VTID1,
                     '_vpid': VPID1
                 },
-            ]
-
-            lttng = Lttng(events, event_filters=[], validate=False)
-
-            # executors
-            # ['timestamp', 'executor_entities_collector_addr']
-            assert lttng.data.executor_entity_collector_to_executor.\
-                df.index[0] == HDL_EXECUTOR and \
-                lttng.data.executor_entity_collector_to_executor.\
-                df.iloc[0]['timestamp'] == 100101102 and \
-                lttng.data.executor_entity_collector_to_executor.\
-                df.iloc[0]['executor_entities_collector_addr'] == HDL_EXECUTOR_ENTITY
-
-            assert lttng.data.executor_entity_collector_to_executor.df.index[1] == 1 and \
-                lttng.data.executor_entity_collector_to_executor.\
-                df.iloc[1]['timestamp'] == 100101261 and \
-                lttng.data.executor_entity_collector_to_executor.\
-                df.iloc[1]['executor_entities_collector_addr'] == 1
-        else:
-            events = [
-                # Initialization trace points
                 {
                     '_name': 'ros2_caret:construct_executor',
                     'executor_addr': HDL_EXECUTOR,
@@ -1527,7 +1530,104 @@ class TestLttng:
                 lttng.data.executors_static.df.iloc[2]['timestamp'] == 100101205 and \
                 lttng.data.executors_static.df.iloc[2]['entities_collector_addr'] == 2
 
-    def test_duplicated_events_callback_groups(self, mocker):
+            # ['timestamp', 'executor_entities_collector_addr']
+            assert lttng.data.executor_entity_collector_to_executor.\
+                df.index[0] == HDL_EXECUTOR and \
+                lttng.data.executor_entity_collector_to_executor.\
+                df.iloc[0]['timestamp'] == 100101102 and \
+                lttng.data.executor_entity_collector_to_executor.\
+                df.iloc[0]['executor_entities_collector_addr'] == HDL_EXECUTOR_ENTITY
+
+            assert lttng.data.executor_entity_collector_to_executor.df.index[1] == 1 and \
+                lttng.data.executor_entity_collector_to_executor.\
+                df.iloc[1]['timestamp'] == 100101261 and \
+                lttng.data.executor_entity_collector_to_executor.\
+                df.iloc[1]['executor_entities_collector_addr'] == 1
+        else:
+            events = [
+                # Initialization trace points
+                {
+                    '_name': 'ros2_caret:caret_init',
+                    'clock_offset': 10,
+                    'distribution': distribution,
+                    '_timestamp': 100100901,
+                    '_vtid': VTID1,
+                    '_vpid': VPID1
+                },
+                {
+                    '_name': 'ros2_caret:construct_executor',
+                    'executor_addr': HDL_EXECUTOR,
+                    'executor_type_name': 'my_executor_name',
+                    '_timestamp': 100101101,
+                    '_vtid': VTID1,
+                    '_vpid': VPID1
+                },
+                {
+                    '_name': 'ros2_caret:construct_executor',
+                    'executor_addr': HDL_EXECUTOR,
+                    'executor_type_name': 'my_executor_name',
+                    '_timestamp': 100101103,
+                    '_vtid': VTID1,
+                    '_vpid': VPID1
+                },
+                {
+                    '_name': 'ros2_caret:construct_static_executor',
+                    'executor_addr': HDL_EXECUTOR_STATIC,
+                    'entities_collector_addr': HDL_ENTITIES,
+                    'executor_type_name': 'my_executor_name',
+                    '_timestamp': 100101102,
+                    '_vtid': VTID1,
+                    '_vpid': VPID1
+                },
+                {
+                    '_name': 'ros2_caret:construct_static_executor',
+                    'executor_addr': HDL_EXECUTOR_STATIC,
+                    'entities_collector_addr': HDL_ENTITIES,
+                    'executor_type_name': 'my_executor_name',
+                    '_timestamp': 100101203,
+                    '_vtid': VTID1,
+                    '_vpid': VPID1
+                },
+                {
+                    '_name': 'ros2_caret:construct_static_executor',
+                    'executor_addr': HDL_EXECUTOR_STATIC,
+                    'entities_collector_addr': HDL_ENTITIES,
+                    'executor_type_name': 'my_executor_name',
+                    '_timestamp': 100101205,
+                    '_vtid': VTID1,
+                    '_vpid': VPID1
+                },
+            ]
+
+            lttng = Lttng(events, event_filters=[], validate=False)
+
+            # executors
+            # ['timestamp', 'executor_type_name']
+            assert lttng.data.executors.df.index[0] == HDL_EXECUTOR and \
+                lttng.data.executors.df.iloc[0]['timestamp'] == 100101101
+
+            assert lttng.data.executors.df.index[1] == 1 and \
+                lttng.data.executors.df.iloc[1]['timestamp'] == 100101103
+
+            # executors_static
+            # ['timestamp', 'entities_collector_addr', 'executor_type_name']
+            assert lttng.data.executors_static.df.index[0] == HDL_EXECUTOR_STATIC and \
+                lttng.data.executors_static.df.iloc[0]['timestamp'] == 100101102 and \
+                lttng.data.executors_static.df.iloc[0]['entities_collector_addr'] == HDL_ENTITIES
+
+            assert lttng.data.executors_static.df.index[1] == 2 and \
+                lttng.data.executors_static.df.iloc[1]['timestamp'] == 100101203 and \
+                lttng.data.executors_static.df.iloc[1]['entities_collector_addr'] == 1
+
+            assert lttng.data.executors_static.df.index[2] == 3 and \
+                lttng.data.executors_static.df.iloc[2]['timestamp'] == 100101205 and \
+                lttng.data.executors_static.df.iloc[2]['entities_collector_addr'] == 2
+
+    @pytest.mark.parametrize(
+        'distribution',
+        ['jazzy', 'iron'],
+    )
+    def test_duplicated_events_callback_groups(self, mocker, distribution):
         HDL_NODE = 1000201
         HDL_RMW = 1000211
         HDL_TIMER = 1000701
@@ -1546,11 +1646,18 @@ class TestLttng:
         VTID1 = 500001
         VPID1 = 600001
 
-        ros_version = os.environ['ROS_DISTRO']
-        if ros_version[0] >= 'jazzy'[0]:
+        if distribution[0] >= 'jazzy'[0]:
             HDL_EXECUTOR_ENTITY = 1000701
             events = [
                 # Initialization trace points
+                {
+                    '_name': 'ros2_caret:caret_init',
+                    'clock_offset': 10,
+                    'distribution': distribution,
+                    '_timestamp': 100100901,
+                    '_vtid': VTID1,
+                    '_vpid': VPID1
+                },
                 {
                     '_name': 'ros2:rcl_node_init',
                     'node_handle': HDL_NODE,
@@ -1867,6 +1974,14 @@ class TestLttng:
             events = [
                 # Initialization trace points
                 {
+                    '_name': 'ros2_caret:caret_init',
+                    'clock_offset': 10,
+                    'distribution': distribution,
+                    '_timestamp': 100100901,
+                    '_vtid': VTID1,
+                    '_vpid': VPID1
+                },
+                {
                     '_name': 'ros2:rcl_node_init',
                     'node_handle': HDL_NODE,
                     'rmw_handle': HDL_RMW,
@@ -2138,7 +2253,7 @@ class TestLttng:
 
         lttng = Lttng(events, event_filters=[], validate=False)
 
-        if ros_version[0] >= 'jazzy'[0]:
+        if distribution[0] >= 'jazzy'[0]:
             assert lttng.data.callback_group_to_executor_entity_collector.\
                 df.index[0] == HDL_EXECUTOR_ENTITY and \
                 lttng.data.callback_group_to_executor_entity_collector.\
@@ -2380,7 +2495,11 @@ class TestLttng:
             lttng.data.ipb_to_subscriptions.df.iloc[1]['timestamp'] == 100101902 and \
             lttng.data.ipb_to_subscriptions.df.iloc[1]['subscription'] == 1
 
-    def test_duplicated_events_runtime(self, mocker):
+    @pytest.mark.parametrize(
+        'distribution',
+        ['jazzy', 'iron'],
+    )
+    def test_duplicated_events_runtime(self, mocker, distribution):
         HDL_NODE = 1000201
         HDL_RMW = 1000211
         HDL_PUBLISHER = 1000301
@@ -2398,6 +2517,14 @@ class TestLttng:
 
         events = [
             # Runtime trace events
+            {
+                '_name': 'ros2_caret:caret_init',
+                'clock_offset': 10,
+                'distribution': distribution,
+                '_timestamp': 100100901,
+                '_vtid': VTID1,
+                '_vpid': VPID1
+            },
             {
                 '_name': 'ros2:rcl_node_init',
                 'node_handle': HDL_NODE,
@@ -2979,23 +3106,12 @@ class TestLttng:
             lttng.data.rclcpp_publish_instances.\
             data[2].data['rclcpp_inter_publish_timestamp'] == 100102804
 
-        ros_version = os.environ['ROS_DISTRO']
-        if ros_version[0] >= 'jazzy'[0]:
-            # dds_write_instances
-            # ['tid', 'dds_write_timestamp', 'rmw_publisher_handle', 'message']
-            assert lttng.data.dds_write_instances.\
-                data[0].data['rmw_publisher_handle'] == 200 and \
-                lttng.data.dds_write_instances.\
-                data[0].data['message'] == 100 and \
-                lttng.data.dds_write_instances.\
-                data[0].data['dds_write_timestamp'] == 100102901
-        else:
-            # dds_write_instances
-            # ['tid', 'dds_write_timestamp', 'message']
-            assert lttng.data.dds_write_instances.\
-                data[0].data['message'] == 100 and \
-                lttng.data.dds_write_instances.\
-                data[0].data['dds_write_timestamp'] == 100102901
+        # dds_write_instances
+        # ['tid', 'dds_write_timestamp', 'message']
+        assert lttng.data.dds_write_instances.\
+            data[0].data['message'] == 100 and \
+            lttng.data.dds_write_instances.\
+            data[0].data['dds_write_timestamp'] == 100102901
 
         # dds_bind_addr_to_stamp
         # ['tid', 'dds_bind_addr_to_stamp_timestamp', 'addr', 'source_timestamp']

@@ -531,7 +531,7 @@ class TestPublisherRecords:
             data.add_rclcpp_publish_instance(
                 tid, 1, 0, message_addr, message_timestamp)
         data.add_rcl_publish_instance(tid, 2, pub_handle, message_addr)
-        data.add_dds_write_instance(tid, 3, 0, message_addr)
+        data.add_dds_write_instance(tid, 3, message_addr)
         data.add_dds_bind_addr_to_stamp(
             tid, 4, message_addr, source_timestamp)
         data.finalize()
@@ -686,7 +686,7 @@ class TestPublisherRecords:
             data.add_rclcpp_publish_instance(
                 tid, 2, 0, message_addr, message_timestamp)
         data.add_rcl_publish_instance(tid, 3, pub_handle, message_addr)
-        data.add_dds_write_instance(tid, 4, 0, message_addr)
+        data.add_dds_write_instance(tid, 4, message_addr)
         data.add_dds_bind_addr_to_stamp(
             tid, 5, message_addr, source_timestamp)
         data.finalize()
@@ -750,7 +750,7 @@ class TestPublisherRecords:
         message_addr = 9
         data.add_rclcpp_publish_instance(tid, 2, pub_handle, message_addr, message_timestamp)
         data.add_rcl_publish_instance(tid, 3, pub_handle, message_addr)
-        data.add_dds_write_instance(tid, 4, 0, message_addr)
+        data.add_dds_write_instance(tid, 4, message_addr)
         data.add_dds_bind_addr_to_stamp(tid, 6, message_addr, source_timestamp)
 
         # generic_publisher
@@ -1287,7 +1287,7 @@ class TestNodeRecords:
         data.add_rclcpp_publish_instance(
             tid, 4, pub_handle, message_addr, message_timestamp)
         data.add_rcl_publish_instance(tid, 5, pub_handle, message_addr)
-        data.add_dds_write_instance(tid, 6, 0, message_addr)
+        data.add_dds_write_instance(tid, 6, message_addr)
         data.add_dds_bind_addr_to_stamp(tid, 7, message_addr, source_timestamp)
         data.finalize()
 
@@ -1420,7 +1420,7 @@ class TestCommunicationRecords:
         data.add_rclcpp_publish_instance(
             tid, 1, pub_handle, send_message, message_stamp)
         data.add_rcl_publish_instance(tid, 2, pub_handle, send_message)
-        data.add_dds_write_instance(tid, 3, 0, send_message)
+        data.add_dds_write_instance(tid, 3, send_message)
         data.add_dds_bind_addr_to_stamp(
             tid, 4, send_message, source_stamp)
         if has_dispatch:

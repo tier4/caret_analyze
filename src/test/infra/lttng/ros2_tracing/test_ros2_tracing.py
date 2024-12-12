@@ -39,7 +39,7 @@ class TestLttngInfo:
         data.add_rclcpp_intra_publish_instance(0, 0, 0, 0, 0)
         data.add_rclcpp_publish_instance(0, 0, 0, 0, 0)
         data.add_rcl_publish_instance(0, 0, 0, 0)
-        data.add_dds_write_instance(0, 0, 0, 0)
+        data.add_dds_write_instance(0, 0, 0)
         data.add_dds_bind_addr_to_addr(0, 0, 0)
         data.add_message_construct_instance(0, 0, 0)
         data.add_dispatch_subscription_callback_instance(0, 0, 0, 0, 0)

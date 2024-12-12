@@ -19,8 +19,6 @@ from collections.abc import Sequence
 from functools import cached_property, lru_cache
 from logging import getLogger, WARN
 
-import os
-
 import pandas as pd
 
 from .ros2_tracing.data_model import Ros2DataModel
@@ -1265,8 +1263,11 @@ class DataFrameFormatted:
     ) -> TracePointData:
         columns = ['callback_group_id', 'callback_group_addr', 'group_type_name', 'executor_addr']
 
-        ros_version = os.environ['ROS_DISTRO']
-        if ros_version[0] >= 'jazzy'[0]:
+        if len(data.caret_init.df) != 0:
+            distribution = data.caret_init.df['distribution']
+        else:
+            distribution = 'NOTFOUND'
+        if distribution[0] >= 'jazzy'[0]:
             callback_groups = data.callback_group_to_executor_entity_collector.clone()
             callback_groups.reset_index()
 
