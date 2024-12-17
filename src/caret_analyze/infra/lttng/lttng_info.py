@@ -1274,7 +1274,7 @@ class DataFrameFormatted:
             executor_entity = data.executor_entity_collector_to_executor.clone()
             executor_entity.reset_index()
 
-            merge(callback_groups, executor_entity, 'executor_entities_collector_addr')
+            merge(callback_groups, executor_entity, 'entities_collector_addr')
         else:
             callback_groups = data.callback_groups.clone()
             callback_groups.reset_index()

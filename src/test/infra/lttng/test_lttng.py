@@ -377,18 +377,19 @@ class TestLttng:
                 '_name': 'ros2_caret:callback_group_add_timer', '_timestamp': 600, }
 
             event_collection[SORT_ORDER_EXE_AND_CB+4] = {
+                '_name': 'ros2_caret:add_callback_group_static_executor', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+5] = {
+                '_name': 'ros2_caret:add_callback_group', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+6] = {
+                '_name': 'ros2_caret:construct_static_executor', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+7] = {
+                '_name': 'ros2_caret:construct_executor', '_timestamp': 600, }
+            event_collection[SORT_ORDER_EXE_AND_CB+8] = {
                 '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
                 '_timestamp': 600, }
-            event_collection[SORT_ORDER_EXE_AND_CB+5] = {
-                '_name': 'ros2_caret:executor_entity_collector_to_executor', '_timestamp': 600, }
-            event_collection[SORT_ORDER_EXE_AND_CB+6] = {
-                '_name': 'ros2_caret:add_callback_group_static_executor', '_timestamp': 600, }
-            event_collection[SORT_ORDER_EXE_AND_CB+7] = {
-                '_name': 'ros2_caret:add_callback_group', '_timestamp': 600, }
-            event_collection[SORT_ORDER_EXE_AND_CB+8] = {
-                '_name': 'ros2_caret:construct_static_executor', '_timestamp': 600, }
             event_collection[SORT_ORDER_EXE_AND_CB+9] = {
-                '_name': 'ros2_caret:construct_executor', '_timestamp': 600, }
+                '_name': 'ros2_caret:executor_entity_collector_to_executor', '_timestamp': 600, }
+
         else:
             event_collection[SORT_ORDER_EXE_AND_CB+0] = {
                 '_name': 'ros2_caret:callback_group_add_client', '_timestamp': 600, }
@@ -560,22 +561,22 @@ class TestLttng:
         if distribution[0] >= 'jazzy'[0]:
             assert init_events[RESULT_ORDER_EXE_AND_CB+0]['_timestamp'] == 600 and \
                 init_events[RESULT_ORDER_EXE_AND_CB+0]['_name'] == \
-                'ros2_caret:construct_executor'
+                'ros2_caret:executor_entity_collector_to_executor'
             assert init_events[RESULT_ORDER_EXE_AND_CB+1]['_timestamp'] == 600 and \
                 init_events[RESULT_ORDER_EXE_AND_CB+1]['_name'] == \
-                'ros2_caret:construct_static_executor'
+                'ros2_caret:callback_group_to_executor_entity_collector'
             assert init_events[RESULT_ORDER_EXE_AND_CB+2]['_timestamp'] == 600 and \
                 init_events[RESULT_ORDER_EXE_AND_CB+2]['_name'] == \
-                'ros2_caret:add_callback_group'
+                'ros2_caret:construct_executor'
             assert init_events[RESULT_ORDER_EXE_AND_CB+3]['_timestamp'] == 600 and \
                 init_events[RESULT_ORDER_EXE_AND_CB+3]['_name'] == \
-                'ros2_caret:add_callback_group_static_executor'
+                'ros2_caret:construct_static_executor'
             assert init_events[RESULT_ORDER_EXE_AND_CB+4]['_timestamp'] == 600 and \
                 init_events[RESULT_ORDER_EXE_AND_CB+4]['_name'] == \
-                'ros2_caret:executor_entity_collector_to_executor'
+                'ros2_caret:add_callback_group'
             assert init_events[RESULT_ORDER_EXE_AND_CB+5]['_timestamp'] == 600 and \
                 init_events[RESULT_ORDER_EXE_AND_CB+5]['_name'] == \
-                'ros2_caret:callback_group_to_executor_entity_collector'
+                'ros2_caret:add_callback_group_static_executor'
             assert init_events[RESULT_ORDER_EXE_AND_CB+6]['_timestamp'] == 600 and \
                 init_events[RESULT_ORDER_EXE_AND_CB+6]['_name'] == \
                 'ros2_caret:callback_group_add_timer'
@@ -1344,7 +1345,7 @@ class TestLttng:
                 },
                 {
                     '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
+                    'entities_collector_addr': HDL_EXECUTOR_ENTITY,
                     'callback_group_addr': EXECUTOR_CALLBACK,
                     'group_type_name': 'reentrant',
                     '_timestamp': 100101101,
@@ -1353,7 +1354,7 @@ class TestLttng:
                 },
                 {
                     '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
+                    'entities_collector_addr': HDL_EXECUTOR_ENTITY,
                     'callback_group_addr': EXECUTOR_CALLBACK,
                     'group_type_name': 'mutually_exclusive',
                     '_timestamp': 100101260,
@@ -1363,7 +1364,7 @@ class TestLttng:
                 {
                     '_name': 'ros2_caret:executor_entity_collector_to_executor',
                     'executor_addr': HDL_EXECUTOR,
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
+                    'entities_collector_addr': HDL_EXECUTOR_ENTITY,
                     '_timestamp': 100101102,
                     '_vtid': VTID1,
                     '_vpid': VPID1
@@ -1371,7 +1372,7 @@ class TestLttng:
                 {
                     '_name': 'ros2_caret:executor_entity_collector_to_executor',
                     'executor_addr': HDL_EXECUTOR,
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
+                    'entities_collector_addr': HDL_EXECUTOR_ENTITY,
                     '_timestamp': 100101261,
                     '_vtid': VTID1,
                     '_vpid': VPID1
@@ -1416,7 +1417,6 @@ class TestLttng:
 
         if distribution[0] >= 'jazzy'[0]:
             EXECUTOR_CALLBACK = 1001261
-            HDL_EXECUTOR_ENTITY = 1000701
 
             events = [
                 {
@@ -1429,7 +1429,7 @@ class TestLttng:
                 },
                 {
                     '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
+                    'entities_collector_addr': HDL_ENTITIES,
                     'callback_group_addr': EXECUTOR_CALLBACK,
                     'group_type_name': 'reentrant',
                     '_timestamp': 100101101,
@@ -1438,7 +1438,7 @@ class TestLttng:
                 },
                 {
                     '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
+                    'entities_collector_addr': HDL_ENTITIES,
                     'callback_group_addr': EXECUTOR_CALLBACK,
                     '_timestamp': 100101260,
                     'group_type_name': 'mutually_exclusive',
@@ -1448,7 +1448,7 @@ class TestLttng:
                 {
                     '_name': 'ros2_caret:executor_entity_collector_to_executor',
                     'executor_addr': HDL_EXECUTOR,
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
+                    'entities_collector_addr': HDL_ENTITIES,
                     '_timestamp': 100101102,
                     '_vtid': VTID1,
                     '_vpid': VPID1
@@ -1456,7 +1456,7 @@ class TestLttng:
                 {
                     '_name': 'ros2_caret:executor_entity_collector_to_executor',
                     'executor_addr': HDL_EXECUTOR,
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
+                    'entities_collector_addr': HDL_ENTITIES,
                     '_timestamp': 100101261,
                     '_vtid': VTID1,
                     '_vpid': VPID1
@@ -1473,34 +1473,25 @@ class TestLttng:
                     '_name': 'ros2_caret:construct_executor',
                     'executor_addr': HDL_EXECUTOR,
                     'executor_type_name': 'my_executor_name',
+                    '_timestamp': 100101263,
+                    '_vtid': VTID1,
+                    '_vpid': VPID1
+                },
+                {
+                    '_name': 'ros2_caret:construct_static_executor',
+                    'executor_addr': HDL_EXECUTOR,
+                    'entities_collector_addr': HDL_ENTITIES,
+                    'executor_type_name': 'my_executor_name',
                     '_timestamp': 100101103,
                     '_vtid': VTID1,
                     '_vpid': VPID1
                 },
                 {
                     '_name': 'ros2_caret:construct_static_executor',
-                    'executor_addr': HDL_EXECUTOR_STATIC,
+                    'executor_addr': HDL_EXECUTOR,
                     'entities_collector_addr': HDL_ENTITIES,
                     'executor_type_name': 'my_executor_name',
-                    '_timestamp': 100101102,
-                    '_vtid': VTID1,
-                    '_vpid': VPID1
-                },
-                {
-                    '_name': 'ros2_caret:construct_static_executor',
-                    'executor_addr': HDL_EXECUTOR_STATIC,
-                    'entities_collector_addr': HDL_ENTITIES,
-                    'executor_type_name': 'my_executor_name',
-                    '_timestamp': 100101203,
-                    '_vtid': VTID1,
-                    '_vpid': VPID1
-                },
-                {
-                    '_name': 'ros2_caret:construct_static_executor',
-                    'executor_addr': HDL_EXECUTOR_STATIC,
-                    'entities_collector_addr': HDL_ENTITIES,
-                    'executor_type_name': 'my_executor_name',
-                    '_timestamp': 100101205,
+                    '_timestamp': 100101264,
                     '_vtid': VTID1,
                     '_vpid': VPID1
                 },
@@ -1514,35 +1505,31 @@ class TestLttng:
                 lttng.data.executors.df.iloc[0]['timestamp'] == 100101101
 
             assert lttng.data.executors.df.index[1] == 1 and \
-                lttng.data.executors.df.iloc[1]['timestamp'] == 100101103
+                lttng.data.executors.df.iloc[1]['timestamp'] == 100101263
 
             # executors_static
             # ['timestamp', 'entities_collector_addr', 'executor_type_name']
-            assert lttng.data.executors_static.df.index[0] == HDL_EXECUTOR_STATIC and \
-                lttng.data.executors_static.df.iloc[0]['timestamp'] == 100101102 and \
+            assert lttng.data.executors_static.df.index[0] == HDL_EXECUTOR and \
+                lttng.data.executors_static.df.iloc[0]['timestamp'] == 100101103 and \
                 lttng.data.executors_static.df.iloc[0]['entities_collector_addr'] == HDL_ENTITIES
 
-            assert lttng.data.executors_static.df.index[1] == 2 and \
-                lttng.data.executors_static.df.iloc[1]['timestamp'] == 100101203 and \
+            assert lttng.data.executors_static.df.index[1] == 1 and \
+                lttng.data.executors_static.df.iloc[1]['timestamp'] == 100101264 and \
                 lttng.data.executors_static.df.iloc[1]['entities_collector_addr'] == 1
 
-            assert lttng.data.executors_static.df.index[2] == 3 and \
-                lttng.data.executors_static.df.iloc[2]['timestamp'] == 100101205 and \
-                lttng.data.executors_static.df.iloc[2]['entities_collector_addr'] == 2
-
-            # ['timestamp', 'executor_entities_collector_addr']
+            # ['timestamp', 'entities_collector_addr']
             assert lttng.data.executor_entity_collector_to_executor.\
                 df.index[0] == HDL_EXECUTOR and \
                 lttng.data.executor_entity_collector_to_executor.\
                 df.iloc[0]['timestamp'] == 100101102 and \
                 lttng.data.executor_entity_collector_to_executor.\
-                df.iloc[0]['executor_entities_collector_addr'] == HDL_EXECUTOR_ENTITY
+                df.iloc[0]['entities_collector_addr'] == HDL_ENTITIES
 
             assert lttng.data.executor_entity_collector_to_executor.df.index[1] == 1 and \
                 lttng.data.executor_entity_collector_to_executor.\
                 df.iloc[1]['timestamp'] == 100101261 and \
                 lttng.data.executor_entity_collector_to_executor.\
-                df.iloc[1]['executor_entities_collector_addr'] == 1
+                df.iloc[1]['entities_collector_addr'] == 1
         else:
             events = [
                 # Initialization trace points
@@ -1647,7 +1634,6 @@ class TestLttng:
         VPID1 = 600001
 
         if distribution[0] >= 'jazzy'[0]:
-            HDL_EXECUTOR_ENTITY = 1000701
             events = [
                 # Initialization trace points
                 {
@@ -1787,7 +1773,7 @@ class TestLttng:
                 # JAZZY added>
                 {
                     '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
+                    'entities_collector_addr': HDL_ENTITIES,
                     'callback_group_addr': EXECUTOR_CALLBACK,
                     'group_type_name': 'reentrant',
                     '_timestamp': 100101101,
@@ -1796,7 +1782,7 @@ class TestLttng:
                 },
                 {
                     '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
+                    'entities_collector_addr': HDL_ENTITIES,
                     'callback_group_addr': EXECUTOR_CALLBACK,
                     'group_type_name': 'mutually_exclusive',
                     '_timestamp': 100101260,
@@ -1806,7 +1792,7 @@ class TestLttng:
                 {
                     '_name': 'ros2_caret:executor_entity_collector_to_executor',
                     'executor_addr': HDL_EXECUTOR,
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
+                    'entities_collector_addr': HDL_ENTITIES,
                     '_timestamp': 100101102,
                     '_vtid': VTID1,
                     '_vpid': VPID1
@@ -1814,7 +1800,7 @@ class TestLttng:
                 {
                     '_name': 'ros2_caret:executor_entity_collector_to_executor',
                     'executor_addr': HDL_EXECUTOR,
-                    'executor_entities_collector_addr': HDL_EXECUTOR_ENTITY,
+                    'entities_collector_addr': HDL_ENTITIES,
                     '_timestamp': 100101261,
                     '_vtid': VTID1,
                     '_vpid': VPID1
@@ -1855,15 +1841,7 @@ class TestLttng:
                     '_vtid': VTID1,
                     '_vpid': VPID1
                 },
-                {
-                    '_name': 'ros2_caret:construct_static_executor',
-                    'executor_addr': HDL_EXECUTOR,
-                    'entities_collector_addr': HDL_ENTITIES,
-                    'executor_type_name': 'my_executor_name',
-                    '_timestamp': 100101205,
-                    '_vtid': VTID1,
-                    '_vpid': VPID1
-                },
+
                 # <JAZZY changed
                 # JAZZY deleted>
                 # {
@@ -2255,7 +2233,7 @@ class TestLttng:
 
         if distribution[0] >= 'jazzy'[0]:
             assert lttng.data.callback_group_to_executor_entity_collector.\
-                df.index[0] == HDL_EXECUTOR_ENTITY and \
+                df.index[0] == HDL_ENTITIES and \
                 lttng.data.callback_group_to_executor_entity_collector.\
                 df.iloc[0]['group_type_name'] == 'reentrant' and \
                 lttng.data.callback_group_to_executor_entity_collector.\

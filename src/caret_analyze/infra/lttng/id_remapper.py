@@ -154,7 +154,6 @@ class IDRemapperCollection:
         self._rmw_client_handle_remapper = IDRemapper()
         self._callback_holder_id_remapper = IDRemapper()
         self._state_machine_remapper = IDRemapper()
-        self._executor_entities_collector_addr_remapper = IDRemapper()
         self._executor_addr_remapper = IDRemapper()
         self._entities_collector_addr_remapper = IDRemapper()
         self._callback_group_addr_remapper = IDRemapper()
@@ -217,10 +216,6 @@ class IDRemapperCollection:
     @property
     def state_machine_remapper(self):
         return self._state_machine_remapper
-
-    @property
-    def executor_entities_collector_addr_remapper(self):
-        return self._executor_entities_collector_addr_remapper
 
     @property
     def executor_addr_remapper(self):

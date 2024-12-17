@@ -59,10 +59,10 @@ class Ros2DataModel():
             ['state_machine_handle', 'node_handle'])
 
         self._callback_group_to_executor_entity_collector = TracePointIntermediateData(
-            ['timestamp', 'executor_entities_collector_addr',
+            ['timestamp', 'entities_collector_addr',
              'callback_group_addr', 'group_type_name'])
         self._executor_entity_collector_to_executor = TracePointIntermediateData(
-            ['timestamp', 'executor_addr', 'executor_entities_collector_addr'])
+            ['timestamp', 'executor_addr', 'entities_collector_addr'])
 
         self._executors = TracePointIntermediateData(
             ['timestamp', 'executor_addr', 'executor_type_name'])
@@ -718,14 +718,14 @@ class Ros2DataModel():
 
     def add_callback_group_to_executor_entity_collector(
         self,
-        executor_entities_collector_addr: int,
+        entities_collector_addr: int,
         callback_group_addr: int,
         group_type_name: str,
         timestamp: int
     ) -> None:
         record = {
             'timestamp': timestamp,
-            'executor_entities_collector_addr': executor_entities_collector_addr,
+            'entities_collector_addr': entities_collector_addr,
             'callback_group_addr': callback_group_addr,
             'group_type_name': group_type_name,
         }
@@ -734,13 +734,13 @@ class Ros2DataModel():
     def add_executor_entity_collector_to_executor(
         self,
         executor_addr: int,
-        executor_entities_collector_addr: int,
+        entities_collector_addr: int,
         timestamp: int
     ) -> None:
         record = {
             'timestamp': timestamp,
             'executor_addr': executor_addr,
-            'executor_entities_collector_addr': executor_entities_collector_addr,
+            'entities_collector_addr': entities_collector_addr,
         }
         self._executor_entity_collector_to_executor.append(record)
 
@@ -913,7 +913,7 @@ class Ros2DataModel():
 
         self.callback_group_to_executor_entity_collector = \
             self._callback_group_to_executor_entity_collector.get_finalized(
-                'executor_entities_collector_addr')
+                'entities_collector_addr')
         del self._callback_group_to_executor_entity_collector
 
         self.executor_entity_collector_to_executor = \

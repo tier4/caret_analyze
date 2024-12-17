@@ -927,18 +927,18 @@ class Ros2Handler():
         event: dict,
     ) -> None:
         timestamp = get_field(event, '_timestamp')
-        executor_entities_collector_addr = get_field(event, 'executor_entities_collector_addr')
+        collector_addr = get_field(event, 'entities_collector_addr')
         callback_group_addr = get_field(event, 'callback_group_addr')
         group_type_name = get_field(event, 'group_type_name')
 
-        executor_entities_collector_addr = \
-            self._remapper.executor_entities_collector_addr_remapper.get_nearest_object_id(
-                executor_entities_collector_addr, event)
+        collector_addr = \
+            self._remapper.entities_collector_addr_remapper.get_nearest_object_id(
+                collector_addr, event)
         callback_group_addr = \
             self._remapper.callback_group_addr_remapper.register_and_get_object_id(
                 callback_group_addr, event)
         self.data.add_callback_group_to_executor_entity_collector(
-            executor_entities_collector_addr, callback_group_addr, group_type_name, timestamp)
+            collector_addr, callback_group_addr, group_type_name, timestamp)
 
     def _handle_executor_entity_collector_to_executor(
         self,
@@ -946,15 +946,15 @@ class Ros2Handler():
     ) -> None:
         timestamp = get_field(event, '_timestamp')
         executor_addr = get_field(event, 'executor_addr')
-        executor_entities_collector_addr = get_field(event, 'executor_entities_collector_addr')
+        collector_addr = get_field(event, 'entities_collector_addr')
 
-        executor_addr = self._remapper.executor_addr_remapper.get_nearest_object_id(
+        executor_addr = self._remapper.executor_addr_remapper.register_and_get_object_id(
             executor_addr, event)
-        executor_entities_collector_addr = \
-            self._remapper.executor_entities_collector_addr_remapper.register_and_get_object_id(
-                executor_entities_collector_addr, event)
+        collector_addr = \
+            self._remapper.entities_collector_addr_remapper.register_and_get_object_id(
+                collector_addr, event)
         self.data.add_executor_entity_collector_to_executor(
-            executor_addr, executor_entities_collector_addr, timestamp)
+            executor_addr, collector_addr, timestamp)
 
     def _handle_construct_executor(
         self,
@@ -964,8 +964,13 @@ class Ros2Handler():
         executor_addr = get_field(event, 'executor_addr')
         executor_type_name = get_field(event, 'executor_type_name')
 
-        executor_addr = self._remapper.executor_addr_remapper.register_and_get_object_id(
-            executor_addr, event)
+        distribution = self.data._caret_init._data['distribution']
+        if distribution[0] >= 'jazzy'[0]:
+            executor_addr = self._remapper.executor_addr_remapper.get_nearest_object_id(
+                executor_addr, event)
+        else:
+            executor_addr = self._remapper.executor_addr_remapper.register_and_get_object_id(
+                executor_addr, event)
 
         self.data.add_executor(executor_addr, timestamp, executor_type_name)
 
@@ -978,12 +983,19 @@ class Ros2Handler():
         collector_addr = get_field(event, 'entities_collector_addr')
         executor_type_name = get_field(event, 'executor_type_name')
 
-        executor_addr = self._remapper.executor_addr_remapper.register_and_get_object_id(
-            executor_addr, event)
-
-        collector_addr = \
-            self._remapper.entities_collector_addr_remapper.register_and_get_object_id(
-                collector_addr, event)
+        distribution = self.data._caret_init._data['distribution']
+        if distribution[0] >= 'jazzy'[0]:
+            executor_addr = self._remapper.executor_addr_remapper.get_nearest_object_id(
+                executor_addr, event)
+            collector_addr = \
+                self._remapper.entities_collector_addr_remapper.get_nearest_object_id(
+                    collector_addr, event)
+        else:
+            executor_addr = self._remapper.executor_addr_remapper.register_and_get_object_id(
+                executor_addr, event)
+            collector_addr = \
+                self._remapper.entities_collector_addr_remapper.register_and_get_object_id(
+                    collector_addr, event)
         self.data.add_executor_static(
             executor_addr, collector_addr, timestamp, executor_type_name)
 
