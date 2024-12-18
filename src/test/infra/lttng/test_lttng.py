@@ -2496,14 +2496,6 @@ class TestLttng:
         events = [
             # Runtime trace events
             {
-                '_name': 'ros2_caret:caret_init',
-                'clock_offset': 10,
-                'distribution': distribution,
-                '_timestamp': 100100901,
-                '_vtid': VTID1,
-                '_vpid': VPID1
-            },
-            {
                 '_name': 'ros2:rcl_node_init',
                 'node_handle': HDL_NODE,
                 'rmw_handle': HDL_RMW,

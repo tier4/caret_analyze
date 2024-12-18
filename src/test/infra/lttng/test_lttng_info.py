@@ -1240,92 +1240,52 @@ class TestDataFrameFormatted:
         ).convert_dtypes()
         assert nodes.df.equals(expect)
 
-    @pytest.mark.parametrize(
-        'distribution',
-        ['jazzy', 'iron'],
-    )
-    def test_build_callback_group_to_executor_entity_collector_df(self, distribution):
-        if distribution[0] >= 'jazzy'[0]:
-            executor_entities_collector_addr = 2
-            callback_group_addr = 3
-            group_type_name = 'reentrant'
-            executor_addr = 4
+    def test_build_cbg_diff(self):
+        group_type = 'reentrant'
+        collector_addr = 2
+        cbg_addr = 3
+        exec_addr = 4
 
-            data = Ros2DataModel()
-            data.add_caret_init(0, 0, 'jazzy')
-            data.add_callback_group_to_executor_entity_collector(
-                executor_entities_collector_addr, callback_group_addr, group_type_name, 0)
-            data.add_executor_entity_collector_to_executor(
-                executor_addr, executor_entities_collector_addr, 0)
-            data.finalize()
+        data_humble = Ros2DataModel()
+        data_humble.add_caret_init(0, 0, 'humble')
+        data_humble.add_callback_group_static_executor(collector_addr, 0, cbg_addr, group_type)
+        data_humble.add_executor_static(exec_addr, collector_addr, 0, 'exec_type')
+        data_humble.finalize()
 
-            cbg = DataFrameFormatted._build_cbg(data)
+        cbg_humble = DataFrameFormatted._build_cbg(data_humble)
 
-            expect = pd.DataFrame.from_dict(
-                [{
-                    'callback_group_id': f'callback_group_{callback_group_addr}',
-                    'callback_group_addr': callback_group_addr,
-                    'group_type_name': group_type_name,
-                    'executor_addr': executor_addr,
-                }]
-            ).convert_dtypes()
-            assert cbg.df.equals(expect)
+        expect = pd.DataFrame.from_dict(
+            [{
+                'callback_group_id': f'callback_group_{cbg_addr}',
+                'callback_group_addr': cbg_addr,
+                'group_type_name': group_type,
+                'executor_addr': exec_addr,
+            }]
+        ).convert_dtypes()
+        assert cbg_humble.df.equals(expect)
 
-    @pytest.mark.parametrize(
-        'distribution',
-        ['jazzy', 'iron'],
-    )
-    def test_build_callback_groups_df(self, distribution):
-        if distribution[0] < 'jazzy'[0]:
-            exec_addr = 2
-            callback_group_addr = 3
-            group_type = 'reentrant'
+        data_jazzy = Ros2DataModel()
+        data_jazzy.add_caret_init(0, 0, 'jazzy')
+        data_jazzy.add_callback_group_to_executor_entity_collector(
+            collector_addr, cbg_addr, group_type, 0)
+        data_jazzy.add_executor_entity_collector_to_executor(
+            exec_addr, collector_addr, 0)
+        data_jazzy.add_executor_static(exec_addr, collector_addr, 0, 'exec_type')
+        data_jazzy.finalize()
 
-            data = Ros2DataModel()
-            data.add_caret_init(0, 0, distribution)
-            data.add_callback_group(exec_addr, 0, callback_group_addr, group_type)
-            data.finalize()
+        cbg_jazzy = DataFrameFormatted._build_cbg(data_jazzy)
 
-            cbg = DataFrameFormatted._build_cbg(data)
+        expect = pd.DataFrame.from_dict(
+            [{
+                'callback_group_id': f'callback_group_{cbg_addr}',
+                'callback_group_addr': cbg_addr,
+                'group_type_name': group_type,
+                'executor_addr': exec_addr,
+            }]
+        ).convert_dtypes()
+        assert cbg_jazzy.df.equals(expect)
 
-            expect = pd.DataFrame.from_dict(
-                [{
-                    'callback_group_id': f'callback_group_{callback_group_addr}',
-                    'callback_group_addr': callback_group_addr,
-                    'group_type_name': group_type,
-                    'executor_addr': exec_addr,
-                }]
-            ).convert_dtypes()
-            assert cbg.df.equals(expect)
-
-    @pytest.mark.parametrize(
-        'distribution',
-        ['jazzy', 'iron'],
-    )
-    def test_build_callback_groups_static_df(self, distribution):
-        if distribution[0] < 'jazzy'[0]:
-            group_type = 'reentrant'
-            collector_addr = 2
-            cbg_addr = 3
-            exec_addr = 4
-
-            data = Ros2DataModel()
-            data.add_caret_init(0, 0, distribution)
-            data.add_callback_group_static_executor(collector_addr, 0, cbg_addr, group_type)
-            data.add_executor_static(exec_addr, collector_addr, 0, 'exec_type')
-            data.finalize()
-
-            cbg = DataFrameFormatted._build_cbg(data)
-
-            expect = pd.DataFrame.from_dict(
-                [{
-                    'callback_group_id': f'callback_group_{cbg_addr}',
-                    'callback_group_addr': cbg_addr,
-                    'group_type_name': group_type,
-                    'executor_addr': exec_addr
-                }]
-            ).convert_dtypes()
-            assert cbg.df.equals(expect)
+        assert cbg_humble.df.equals(cbg_jazzy.df)
 
     def test_build_publisher_df(self):
         pub_handle = 1

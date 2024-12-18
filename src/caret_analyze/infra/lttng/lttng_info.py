@@ -1108,6 +1108,17 @@ class DataFrameFormatted:
     def timer_controls(self) -> TracePointData:
         return self._timer_control
 
+    def _get_distribution(data: Ros2DataModel) -> str:
+        caret_init_df = data.caret_init.df
+        distributions = list(caret_init_df['distribution'].unique())
+        if len(distributions) > 1:
+            logger.info('Multiple ros distributions are found.')
+
+        if len(distributions) == 0:
+            return 'NOTFOUND'
+
+        return distributions[0]
+
     @staticmethod
     def _build_publisher(
         data: Ros2DataModel,
@@ -1263,10 +1274,7 @@ class DataFrameFormatted:
     ) -> TracePointData:
         columns = ['callback_group_id', 'callback_group_addr', 'group_type_name', 'executor_addr']
 
-        if len(data.caret_init.df) != 0:
-            distribution = data.caret_init.df['distribution']
-        else:
-            distribution = 'NOTFOUND'
+        distribution = DataFrameFormatted._get_distribution(data)
         if distribution[0] >= 'jazzy'[0]:
             callback_groups = data.callback_group_to_executor_entity_collector.clone()
             callback_groups.reset_index()

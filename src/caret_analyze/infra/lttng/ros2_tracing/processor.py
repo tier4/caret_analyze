@@ -19,11 +19,15 @@ from __future__ import annotations
 
 from collections import defaultdict
 
+from logging import getLogger
+
 from typing import Any, TYPE_CHECKING
 
 import bt2
 
 from .data_model import Ros2DataModel
+
+logger = getLogger(__name__)
 
 if TYPE_CHECKING:
     from ..id_remapper import IDRemapperCollection
@@ -352,6 +356,17 @@ class Ros2Handler():
         pid = get_field(event, '_vpid')
         assert isinstance(pid, int)
         return self._caret_init_recorded[pid]
+
+    def _get_distribution(self, data: Ros2DataModel) -> str:
+        caret_init_df = data._caret_init._data
+        distributions = list(set(caret_init_df['distribution']))
+        if len(distributions) > 1:
+            logger.info('Multiple ros distributions are found.')
+
+        if len(distributions) == 0:
+            return 'NOTFOUND'
+
+        return distributions[0]
 
     def _handle_rcl_init(
         self,
@@ -964,7 +979,7 @@ class Ros2Handler():
         executor_addr = get_field(event, 'executor_addr')
         executor_type_name = get_field(event, 'executor_type_name')
 
-        distribution = self.data._caret_init._data['distribution']
+        distribution = self._get_distribution(self.data)
         if distribution[0] >= 'jazzy'[0]:
             executor_addr = self._remapper.executor_addr_remapper.get_nearest_object_id(
                 executor_addr, event)
@@ -983,7 +998,7 @@ class Ros2Handler():
         collector_addr = get_field(event, 'entities_collector_addr')
         executor_type_name = get_field(event, 'executor_type_name')
 
-        distribution = self.data._caret_init._data['distribution']
+        distribution = self._get_distribution(self.data)
         if distribution[0] >= 'jazzy'[0]:
             executor_addr = self._remapper.executor_addr_remapper.get_nearest_object_id(
                 executor_addr, event)
