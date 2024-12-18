@@ -57,6 +57,13 @@ class Ros2DataModel():
             ['callback_object', 'timestamp', 'symbol'])
         self._lifecycle_state_machines = TracePointIntermediateData(
             ['state_machine_handle', 'node_handle'])
+
+        self._callback_group_to_executor_entity_collector = TracePointIntermediateData(
+            ['timestamp', 'entities_collector_addr',
+             'callback_group_addr', 'group_type_name'])
+        self._executor_entity_collector_to_executor = TracePointIntermediateData(
+            ['timestamp', 'executor_addr', 'entities_collector_addr'])
+
         self._executors = TracePointIntermediateData(
             ['timestamp', 'executor_addr', 'executor_type_name'])
         self._executors_static = TracePointIntermediateData(
@@ -709,6 +716,34 @@ class Ros2DataModel():
         }
         self.tilde_publish.append(record)
 
+    def add_callback_group_to_executor_entity_collector(
+        self,
+        entities_collector_addr: int,
+        callback_group_addr: int,
+        group_type_name: str,
+        timestamp: int
+    ) -> None:
+        record = {
+            'timestamp': timestamp,
+            'entities_collector_addr': entities_collector_addr,
+            'callback_group_addr': callback_group_addr,
+            'group_type_name': group_type_name,
+        }
+        self._callback_group_to_executor_entity_collector.append(record)
+
+    def add_executor_entity_collector_to_executor(
+        self,
+        executor_addr: int,
+        entities_collector_addr: int,
+        timestamp: int
+    ) -> None:
+        record = {
+            'timestamp': timestamp,
+            'executor_addr': executor_addr,
+            'entities_collector_addr': entities_collector_addr,
+        }
+        self._executor_entity_collector_to_executor.append(record)
+
     def add_executor(
         self,
         executor_addr: int,
@@ -875,6 +910,15 @@ class Ros2DataModel():
 
         self.lifecycle_transitions = self._lifecycle_transitions.get_finalized()
         del self._lifecycle_transitions
+
+        self.callback_group_to_executor_entity_collector = \
+            self._callback_group_to_executor_entity_collector.get_finalized(
+                'entities_collector_addr')
+        del self._callback_group_to_executor_entity_collector
+
+        self.executor_entity_collector_to_executor = \
+            self._executor_entity_collector_to_executor.get_finalized('executor_addr')
+        del self._executor_entity_collector_to_executor
 
         self.executors = self._executors.get_finalized('executor_addr')
         del self._executors
