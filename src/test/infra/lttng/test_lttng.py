@@ -1322,10 +1322,6 @@ class TestLttng:
         # ['rmw_impl']
         assert lttng.data.rmw_impl.df.iloc[0]['rmw_impl'] == 10
 
-    @pytest.mark.parametrize(
-        'distribution',
-        ['jazzy'],
-    )
     def test_duplicated_events_entities_collector(self, distribution):
         HDL_EXECUTOR = 1001101
         EXECUTOR_CALLBACK = 1001261
@@ -1333,73 +1329,72 @@ class TestLttng:
         VTID1 = 500001
         VPID1 = 600001
 
-        if distribution[0] >= 'jazzy'[0]:
-            events = [
-                {
-                    '_name': 'ros2_caret:caret_init',
-                    'clock_offset': 10,
-                    'distribution': distribution,
-                    '_timestamp': 100100901,
-                    '_vtid': VTID1,
-                    '_vpid': VPID1
-                },
-                {
-                    '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
-                    'entities_collector_addr': HDL_EXECUTOR_ENTITY,
-                    'callback_group_addr': EXECUTOR_CALLBACK,
-                    'group_type_name': 'reentrant',
-                    '_timestamp': 100101101,
-                    '_vtid': VTID1,
-                    '_vpid': VPID1
-                },
-                {
-                    '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
-                    'entities_collector_addr': HDL_EXECUTOR_ENTITY,
-                    'callback_group_addr': EXECUTOR_CALLBACK,
-                    'group_type_name': 'mutually_exclusive',
-                    '_timestamp': 100101260,
-                    '_vtid': VTID1,
-                    '_vpid': VPID1
-                },
-                {
-                    '_name': 'ros2_caret:executor_entity_collector_to_executor',
-                    'executor_addr': HDL_EXECUTOR,
-                    'entities_collector_addr': HDL_EXECUTOR_ENTITY,
-                    '_timestamp': 100101102,
-                    '_vtid': VTID1,
-                    '_vpid': VPID1
-                },
-                {
-                    '_name': 'ros2_caret:executor_entity_collector_to_executor',
-                    'executor_addr': HDL_EXECUTOR,
-                    'entities_collector_addr': HDL_EXECUTOR_ENTITY,
-                    '_timestamp': 100101261,
-                    '_vtid': VTID1,
-                    '_vpid': VPID1
-                },
-            ]
+        events = [
+            {
+                '_name': 'ros2_caret:caret_init',
+                'clock_offset': 10,
+                'distribution': distribution,
+                '_timestamp': 100100901,
+                '_vtid': VTID1,
+                '_vpid': VPID1
+            },
+            {
+                '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
+                'entities_collector_addr': HDL_EXECUTOR_ENTITY,
+                'callback_group_addr': EXECUTOR_CALLBACK,
+                'group_type_name': 'reentrant',
+                '_timestamp': 100101101,
+                '_vtid': VTID1,
+                '_vpid': VPID1
+            },
+            {
+                '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
+                'entities_collector_addr': HDL_EXECUTOR_ENTITY,
+                'callback_group_addr': EXECUTOR_CALLBACK,
+                'group_type_name': 'mutually_exclusive',
+                '_timestamp': 100101260,
+                '_vtid': VTID1,
+                '_vpid': VPID1
+            },
+            {
+                '_name': 'ros2_caret:executor_entity_collector_to_executor',
+                'executor_addr': HDL_EXECUTOR,
+                'entities_collector_addr': HDL_EXECUTOR_ENTITY,
+                '_timestamp': 100101102,
+                '_vtid': VTID1,
+                '_vpid': VPID1
+            },
+            {
+                '_name': 'ros2_caret:executor_entity_collector_to_executor',
+                'executor_addr': HDL_EXECUTOR,
+                'entities_collector_addr': HDL_EXECUTOR_ENTITY,
+                '_timestamp': 100101261,
+                '_vtid': VTID1,
+                '_vpid': VPID1
+            },
+        ]
 
-            lttng = Lttng(events, event_filters=[], validate=False)
+        lttng = Lttng(events, event_filters=[], validate=False)
 
-            # executors
-            # ['timestamp', 'callback_group_addr', 'callback_group_collection_addr']
-            assert lttng.data.callback_group_to_executor_entity_collector.\
-                df.index[0] == HDL_EXECUTOR_ENTITY and \
-                lttng.data.callback_group_to_executor_entity_collector.\
-                df.iloc[0]['group_type_name'] == 'reentrant' and \
-                lttng.data.callback_group_to_executor_entity_collector.\
-                df.iloc[0]['timestamp'] == 100101101 and \
-                lttng.data.callback_group_to_executor_entity_collector.\
-                df.iloc[0]['callback_group_addr'] == EXECUTOR_CALLBACK
+        # executors
+        # ['timestamp', 'callback_group_addr', 'callback_group_collection_addr']
+        assert lttng.data.callback_group_to_executor_entity_collector.\
+            df.index[0] == HDL_EXECUTOR_ENTITY and \
+            lttng.data.callback_group_to_executor_entity_collector.\
+            df.iloc[0]['group_type_name'] == 'reentrant' and \
+            lttng.data.callback_group_to_executor_entity_collector.\
+            df.iloc[0]['timestamp'] == 100101101 and \
+            lttng.data.callback_group_to_executor_entity_collector.\
+            df.iloc[0]['callback_group_addr'] == EXECUTOR_CALLBACK
 
-            assert lttng.data.callback_group_to_executor_entity_collector.\
-                df.index[1] == 1 and \
-                lttng.data.callback_group_to_executor_entity_collector.\
-                df.iloc[1]['group_type_name'] == 'mutually_exclusive' and \
-                lttng.data.callback_group_to_executor_entity_collector.\
-                df.iloc[1]['timestamp'] == 100101260 and \
-                lttng.data.callback_group_to_executor_entity_collector.\
-                df.iloc[1]['callback_group_addr'] == 1
+        assert lttng.data.callback_group_to_executor_entity_collector.\
+            df.index[1] == 1 and \
+            lttng.data.callback_group_to_executor_entity_collector.\
+            df.iloc[1]['group_type_name'] == 'mutually_exclusive' and \
+            lttng.data.callback_group_to_executor_entity_collector.\
+            df.iloc[1]['timestamp'] == 100101260 and \
+            lttng.data.callback_group_to_executor_entity_collector.\
+            df.iloc[1]['callback_group_addr'] == 1
 
     @pytest.mark.parametrize(
         'distribution',
