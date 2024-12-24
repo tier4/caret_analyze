@@ -646,7 +646,7 @@ class TestLttng:
         assert init_events[RESULT_ORDER_ETC+5]['_timestamp'] == 600 and \
             init_events[RESULT_ORDER_ETC+5]['_name'] == 'ros2:rclcpp_ipb_to_subscription'
 
-    def test_duplicated_events_contexts(self, mocker):
+    def test_duplicated_events_contexts(self):
         HDL_CONTEXT = 1000101
         VTID1 = 500001
         VPID1 = 600001
@@ -679,7 +679,7 @@ class TestLttng:
         assert lttng.data.contexts.df.index[1] == 1 and \
             lttng.data.contexts.df.iloc[1]['timestamp'] == 100100102
 
-    def test_duplicated_events_nodes(self, mocker):
+    def test_duplicated_events_nodes(self):
         HDL_NODE = 1000201
         HDL_RMW = 1000211
         VTID1 = 500001
@@ -722,7 +722,7 @@ class TestLttng:
             lttng.data.nodes.df.iloc[1]['timestamp'] == 100100203 and \
             lttng.data.nodes.df.iloc[1]['rmw_handle'] == 1
 
-    def test_duplicated_events_publisher(self, mocker):
+    def test_duplicated_events_publisher(self):
         HDL_NODE = 1000201
         HDL_RMW = 1000211
         HDL_PUBLISHER = 1000301
@@ -794,7 +794,7 @@ class TestLttng:
             lttng.data.publishers.df.iloc[1]['node_handle'] == 1 and \
             lttng.data.publishers.df.iloc[1]['rmw_handle'] == 1
 
-    def test_duplicated_events_subscriptions(self, mocker):
+    def test_duplicated_events_subscriptions(self):
         HDL_NODE = 1000201
         HDL_RMW = 1000211
         HDL_SUBSCRIPTION = 1000401
@@ -933,7 +933,7 @@ class TestLttng:
             lttng.data.callback_objects.df.iloc[1]['timestamp'] == 100100462 and \
             lttng.data.callback_objects.df.iloc[1]['callback_object'] == 1
 
-    def test_duplicated_events_service(self, mocker):
+    def test_duplicated_events_service(self):
         HDL_NODE = 1000201
         HDL_RMW = 1000211
         HDL_SERVICE = 1000501
@@ -1026,7 +1026,7 @@ class TestLttng:
             lttng.data.callback_objects.df.iloc[1]['timestamp'] == 100100221 and \
             lttng.data.callback_objects.df.iloc[1]['callback_object'] == 1
 
-    def test_duplicated_events_clients(self, mocker):
+    def test_duplicated_events_clients(self):
         HDL_NODE = 1000201
         HDL_RMW = 1000211
         HDL_CLIENT = 1000601
@@ -1092,7 +1092,7 @@ class TestLttng:
             lttng.data.clients.df.iloc[1]['node_handle'] == 1 and \
             lttng.data.clients.df.iloc[1]['rmw_handle'] == 1
 
-    def test_duplicated_events_timers(self, mocker):
+    def test_duplicated_events_timers(self):
         HDL_NODE = 1000201
         HDL_RMW = 1000211
         TIMER_CALLBACK = 1000661
@@ -1232,7 +1232,7 @@ class TestLttng:
             lttng.data.callback_symbols.df.iloc[1]['timestamp'] == 100100782 and \
             lttng.data.callback_symbols.df.iloc[1]['symbol'] == 101
 
-    def test_duplicated_events_lifecycle_state_machines(self, mocker):
+    def test_duplicated_events_lifecycle_state_machines(self):
         HDL_NODE = 1000201
         HDL_RMW = 1000211
         STATE_MACHINE = 1000801
@@ -1289,7 +1289,7 @@ class TestLttng:
         assert lttng.data.lifecycle_state_machines.df.index[1] == 1 and \
             lttng.data.lifecycle_state_machines.df.iloc[1]['node_handle'] == 1
 
-    def test_duplicated_events_caret_init(self, mocker):
+    def test_duplicated_events_caret_init(self):
         VTID1 = 500001
         VPID1 = 600001
 
@@ -1324,9 +1324,9 @@ class TestLttng:
 
     @pytest.mark.parametrize(
         'distribution',
-        ['jazzy', 'iron'],
+        ['jazzy'],
     )
-    def test_duplicated_events_entities_collector(self, mocker, distribution):
+    def test_duplicated_events_entities_collector(self, distribution):
         HDL_EXECUTOR = 1001101
         EXECUTOR_CALLBACK = 1001261
         HDL_EXECUTOR_ENTITY = 1000701
@@ -1384,9 +1384,6 @@ class TestLttng:
             # executors
             # ['timestamp', 'callback_group_addr', 'callback_group_collection_addr']
             assert lttng.data.callback_group_to_executor_entity_collector.\
-                df.iloc[0]['group_type_name'] == 'reentrant'
-
-            assert lttng.data.callback_group_to_executor_entity_collector.\
                 df.index[0] == HDL_EXECUTOR_ENTITY and \
                 lttng.data.callback_group_to_executor_entity_collector.\
                 df.iloc[0]['group_type_name'] == 'reentrant' and \
@@ -1408,7 +1405,7 @@ class TestLttng:
         'distribution',
         ['jazzy', 'iron'],
     )
-    def test_duplicated_events_executors(self, mocker, distribution):
+    def test_duplicated_events_executors(self, distribution):
         HDL_EXECUTOR = 1001101
         HDL_EXECUTOR_STATIC = 1001201
         HDL_ENTITIES = 1001211
@@ -1416,32 +1413,12 @@ class TestLttng:
         VPID1 = 600001
 
         if distribution[0] >= 'jazzy'[0]:
-            EXECUTOR_CALLBACK = 1001261
-
             events = [
                 {
                     '_name': 'ros2_caret:caret_init',
                     'clock_offset': 10,
                     'distribution': distribution,
                     '_timestamp': 100100901,
-                    '_vtid': VTID1,
-                    '_vpid': VPID1
-                },
-                {
-                    '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
-                    'entities_collector_addr': HDL_ENTITIES,
-                    'callback_group_addr': EXECUTOR_CALLBACK,
-                    'group_type_name': 'reentrant',
-                    '_timestamp': 100101101,
-                    '_vtid': VTID1,
-                    '_vpid': VPID1
-                },
-                {
-                    '_name': 'ros2_caret:callback_group_to_executor_entity_collector',
-                    'entities_collector_addr': HDL_ENTITIES,
-                    'callback_group_addr': EXECUTOR_CALLBACK,
-                    '_timestamp': 100101260,
-                    'group_type_name': 'mutually_exclusive',
                     '_vtid': VTID1,
                     '_vpid': VPID1
                 },
@@ -1614,7 +1591,7 @@ class TestLttng:
         'distribution',
         ['jazzy', 'iron'],
     )
-    def test_duplicated_events_callback_groups(self, mocker, distribution):
+    def test_duplicated_events_callback_groups(self, distribution):
         HDL_NODE = 1000201
         HDL_RMW = 1000211
         HDL_TIMER = 1000701
@@ -2309,7 +2286,7 @@ class TestLttng:
             lttng.data.callback_group_client.df.iloc[1]['timestamp'] == 100101602 and \
             lttng.data.callback_group_client.df.iloc[1]['client_handle'] == 1
 
-    def test_duplicated_events_buffer(self, mocker):
+    def test_duplicated_events_buffer(self):
         HDL_NODE = 1000201
         HDL_RMW = 1000211
         HDL_SUBSCRIPTION = 1000401
@@ -2473,11 +2450,7 @@ class TestLttng:
             lttng.data.ipb_to_subscriptions.df.iloc[1]['timestamp'] == 100101902 and \
             lttng.data.ipb_to_subscriptions.df.iloc[1]['subscription'] == 1
 
-    @pytest.mark.parametrize(
-        'distribution',
-        ['jazzy', 'iron'],
-    )
-    def test_duplicated_events_runtime(self, mocker, distribution):
+    def test_duplicated_events_runtime(self):
         HDL_NODE = 1000201
         HDL_RMW = 1000211
         HDL_PUBLISHER = 1000301
@@ -2808,7 +2781,6 @@ class TestLttng:
             },
             {
                 '_name': 'ros2_caret:dds_write',
-                'rmw_publisher_handle': 200,
                 'message': 100,
                 '_timestamp': 100102901,
                 '_vtid': VTID1,

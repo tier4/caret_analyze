@@ -84,6 +84,7 @@ class Ros2Handler():
 
         self._monotonic_to_system_offset: int | None = monotonic_to_system_time_offset
         self._caret_init_recorded: defaultdict[int, bool] = defaultdict(lambda: False)
+        self._distributions_cache: str | None = None
 
         # Temporary buffers
         self._callback_instances: dict[int, tuple[dict, Any]] = {}
@@ -358,6 +359,10 @@ class Ros2Handler():
         return self._caret_init_recorded[pid]
 
     def _get_distribution(self, data: Ros2DataModel) -> str:
+
+        if self._distributions_cache is not None:
+            return self._distributions_cache
+
         caret_init_df = data._caret_init._data
         distributions = list(set(caret_init_df['distribution']))
         if len(distributions) > 1:
@@ -366,6 +371,7 @@ class Ros2Handler():
         if len(distributions) == 0:
             return 'NOTFOUND'
 
+        self._distributions_cache = distributions[0]
         return distributions[0]
 
     def _handle_rcl_init(

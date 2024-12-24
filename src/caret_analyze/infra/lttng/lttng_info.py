@@ -1108,6 +1108,8 @@ class DataFrameFormatted:
     def timer_controls(self) -> TracePointData:
         return self._timer_control
 
+    @staticmethod
+    @lru_cache
     def _get_distribution(data: Ros2DataModel) -> str:
         caret_init_df = data.caret_init.df
         distributions = list(caret_init_df['distribution'].unique())

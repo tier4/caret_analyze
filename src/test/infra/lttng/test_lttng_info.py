@@ -1240,7 +1240,7 @@ class TestDataFrameFormatted:
         ).convert_dtypes()
         assert nodes.df.equals(expect)
 
-    def test_build_cbg_diff(self):
+    def test_build_callback_groups_df(self):
         group_type = 'reentrant'
         collector_addr = 2
         cbg_addr = 3
