@@ -1322,7 +1322,7 @@ class TestLttng:
         # ['rmw_impl']
         assert lttng.data.rmw_impl.df.iloc[0]['rmw_impl'] == 10
 
-    def test_duplicated_events_entities_collector(self, distribution):
+    def test_duplicated_events_entities_collector(self):
         HDL_EXECUTOR = 1001101
         EXECUTOR_CALLBACK = 1001261
         HDL_EXECUTOR_ENTITY = 1000701
@@ -1333,7 +1333,7 @@ class TestLttng:
             {
                 '_name': 'ros2_caret:caret_init',
                 'clock_offset': 10,
-                'distribution': distribution,
+                'distribution': 'jazzy',
                 '_timestamp': 100100901,
                 '_vtid': VTID1,
                 '_vpid': VPID1
