@@ -303,21 +303,10 @@ class TracePointData:
         raise NotImplementedError('')
 
     @merge.register
-    def _merge_single_join_key(
+    def _merge(
         self,
         other: TracePointData,
-        on: str,
-        how='inner',
-        *,
-        drop_columns: list[str] | None = None
-    ) -> None:
-        self._merge_impl(other, on, how, drop_columns=drop_columns)
-
-    @merge.register
-    def _merge_multiple_join_key(
-        self,
-        other: TracePointData,
-        on: list[str],
+        on: str | list[str],
         how='inner',
         *,
         drop_columns: list[str] | None = None
@@ -332,6 +321,9 @@ class TracePointData:
         *,
         drop_columns: list[str] | None = None
     ) -> None:
+
+        print(f'on: {on}')
+        print(f'other: {other}')
         """
         Merge TracePointData.
 

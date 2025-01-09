@@ -210,12 +210,8 @@ class RecordsInterface:
         raise InvalidArgumentError(f'Unknown argument type: {arg}')
 
     @append.register
-    def __append_record(self, other: RecordInterface) -> None:
+    def __append_record(self, other: RecordInterface | RecordBase) -> None:
         self._append_record(other)
-
-    @append.register
-    def __append_record_base(self, other: RecordBase) -> None:
-        self._append_record(other)  # type: ignore
 
     @abstractmethod
     def _append_record(self, other: RecordInterface) -> None:
