@@ -1379,11 +1379,15 @@ class NodeRecordsUseLatestMessage:
             f'{self._node_path.publish_topic_name}/rclcpp_publish_timestamp',
         ]
         left_key = sub_records.columns[0]
-        for column in sub_records.columns:
-            if column.endswith(COLUMN_NAME.RMW_TAKE_TIMESTAMP):
-                columns.remove(column)
-                left_key = column
-                break
+
+        # Set left_key to rmw_take timestamp
+        # if sub_records are obtained by RecordsProviderLttng.subscription_take_records()
+        if is_take_node:
+            for column in sub_records.columns:
+                if column.endswith(COLUMN_NAME.RMW_TAKE_TIMESTAMP):
+                    columns.remove(column)
+                    left_key = column
+                    break
 
         pub_sub_records = merge_sequential(
             left_records=sub_records,
