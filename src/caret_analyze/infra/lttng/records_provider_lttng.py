@@ -921,12 +921,10 @@ class RecordsProviderLttng(RuntimeDataProvider):
             columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
         if COLUMN_NAME.DDS_WRITE_TIMESTAMP in records.columns:
             columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
-        columns.append(COLUMN_NAME.SOURCE_TIMESTAMP)
-
-        sub_records = self._source.sub_records(callback_object, None)
-        is_take_node = len(sub_records) == 0
-        if not is_take_node:
-            columns.append(COLUMN_NAME.CALLBACK_START_TIMESTAMP)
+        columns += [
+            COLUMN_NAME.SOURCE_TIMESTAMP,
+            COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+        ]
 
         self._format(records, columns)
 
