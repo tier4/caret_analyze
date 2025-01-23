@@ -165,7 +165,8 @@ class RecordsMerged:
 
             # remove columns from included in communications not via callback
             if is_match_column(right_records.columns[-1], 'callback_start_timestamp') and \
-                    all(x is None for x in right_records.get_column_series(right_records.columns[-1])):
+                    all(x is None for x
+                        in right_records.get_column_series(right_records.columns[-1])):
                 right_records.drop_columns([right_records.columns[-1]])
 
             if left_records.columns[-1] != right_records.columns[0]:
