@@ -596,6 +596,7 @@ class TestRecordsMerged:
                     ColumnValue(f'{topic0}/rcl_publish_timestamp'),
                     ColumnValue(f'{topic0}/dds_write_timestamp'),
                     ColumnValue(f'{topic0}/source_timestamp'),
+                    ColumnValue(f'{topic0}/callback_start_timestamp'),
                 ]
             )
         )
