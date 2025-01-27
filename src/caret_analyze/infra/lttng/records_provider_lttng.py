@@ -921,12 +921,10 @@ class RecordsProviderLttng(RuntimeDataProvider):
             columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
         if COLUMN_NAME.DDS_WRITE_TIMESTAMP in records.columns:
             columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
-        columns.append(COLUMN_NAME.SOURCE_TIMESTAMP)
-
-        sub_records = self._source.sub_records(callback_object, None)
-        is_take_node = len(sub_records) == 0
-        if not is_take_node:
-            columns.append(COLUMN_NAME.CALLBACK_START_TIMESTAMP)
+        columns += [
+            COLUMN_NAME.SOURCE_TIMESTAMP,
+            COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+        ]
 
         self._format(records, columns)
 
@@ -1379,9 +1377,15 @@ class NodeRecordsUseLatestMessage:
             f'{self._node_path.publish_topic_name}/rclcpp_publish_timestamp',
         ]
         left_key = sub_records.columns[0]
-        if COLUMN_NAME.RMW_TAKE_TIMESTAMP in columns:
-            columns.remove(COLUMN_NAME.RMW_TAKE_TIMESTAMP)
-            left_key = COLUMN_NAME.RMW_TAKE_TIMESTAMP
+
+        # Set left_key to rmw_take timestamp
+        # if sub_records are obtained by RecordsProviderLttng.subscription_take_records()
+        if is_take_node:
+            for column in sub_records.columns:
+                if column.endswith(COLUMN_NAME.RMW_TAKE_TIMESTAMP):
+                    columns.remove(column)
+                    left_key = column
+                    break
 
         pub_sub_records = merge_sequential(
             left_records=sub_records,
