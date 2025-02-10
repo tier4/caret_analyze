@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from collections import defaultdict, UserList
+from collections import defaultdict, deque, UserList
 from collections.abc import Callable
 from copy import deepcopy
 from itertools import product
@@ -162,6 +162,31 @@ class GraphCore:
                 if edges_cache == []:
                     return
 
+    def _search_paths_bfs(self, u: int, d: int, max_depth: int = 0) -> list[GraphPathCore]:
+        paths: list[GraphPathCore] = []
+        queue: deque[tuple[int, GraphPathCore]] = deque([(u, GraphPathCore())])
+        visited: set[int] = set()  # visited nodes
+
+        while queue:
+            curr_node, curr_path = queue.popleft()
+
+            if curr_node == d:
+                paths.append(deepcopy(curr_path))
+                continue
+
+            #if max_depth > 0 and len(curr_path) >= max_depth:
+            #    continue
+
+            if curr_node in visited:
+                continue
+            visited.add(curr_node)
+
+            for edge in self._graph[curr_node]:
+                new_path = deepcopy(curr_path)
+                new_path.append(edge)
+                queue.append((edge.i_to, new_path))
+        return paths
+
     def search_paths(
         self,
         start: int,
@@ -299,7 +324,8 @@ class Graph:
         path_cores: list[list[GraphPathCore]] = []
         for start, goal in zip(nodes[:-1], nodes[1:]):
             path_cores.append(
-                self._graph.search_paths(
+                ###self._graph.search_paths(
+                self._graph._search_paths_bfs(
                     self._node_to_idx[start],
                     self._node_to_idx[goal],
                     max_depth or 0
