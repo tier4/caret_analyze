@@ -183,27 +183,13 @@ class ValueObject():
         results.sort(key=lambda pair: pair[0])
         return results
 
+    _public_attrs_cache = None
     def __generate_public_attrs_revise(self):
-        # attrs = inspect.getmembers(self)
-        attrs = self._getmembers_revise(self)
-
-        for key, value in attrs:
-            if key[0] != '_' and key[0].islower() and not callable(value):
-                yield key
+        if self._public_attrs_cache is None:
+            attrs = self._getmembers_revise(self)
+            self._public_attrs_cache = tuple(
+                key for key, value in attrs
+                if key[0] != '_' and key[0].islower() and not callable(value)
+            )
+        yield from self._public_attrs_cache 
     
-    """
-    def __generate_public_attrs(self):
-        #attrs = inspect.getmembers(self)
-        attrs = self._getmembers_revise(self)
-
-        # ignore private variables and Constant variables
-        attrs = list(filter(
-            lambda x: x[0][0] != '_' and x[0][0].islower(), attrs
-        ))
-        for attr in attrs:
-            key, value = attr[0], attr[1]
-            # ignore callable
-            if callable(value):
-                continue
-            yield key
-    """
