@@ -59,7 +59,7 @@ class ValueObject():
             return False
 
         #for attr in self.__generate_public_attrs():
-        for attr in self.__generate_public_attrs_revise():
+        for attr in self.__generate_public_attrs_fast():
             # Uncomment this when investigating why equals is false during test execution.
             # assert getattr(self,  attr) == getattr(right, attr)
             if getattr(self,  attr) != getattr(right, attr):
@@ -86,7 +86,7 @@ class ValueObject():
         hash_value += hash_value * 31 + hash(self.__class__)
 
         #for attr in self.__generate_public_attrs():
-        for attr in self.__generate_public_attrs_revise():
+        for attr in self.__generate_public_attrs_fast():
             v = getattr(self,  attr)
             hash_value += hash_value * 31 + hash(v)
 
@@ -116,7 +116,7 @@ class ValueObject():
 
         """
         d: dict[Any, Any] = {}
-        for attr in self.__generate_public_attrs_revise():
+        for attr in self.__generate_public_attrs_fast():
             value = getattr(self, attr)
             if isinstance(value, ValueObject):
                 d[attr] = value._to_dict()
@@ -127,54 +127,50 @@ class ValueObject():
                     d[attr] = value
         return d
 
-
-    def _getmembers_revise(self, object, predicate=None):
-        """Return all members of an object as (name, value) pairs sorted by name.
-        Optionally, only return members that satisfy a given predicate."""
+    def _getmembers_fast(self, object):
+        """Return all members of an object as (name, value) pairs sorted by name.   
+        Fast simplification of getmembers() in inspect.py."""
 
         results = []
-        names = set(dir(object))  # for no duplicates
+        names = dir(object)
 
-        # inspect.py の getmembers() をリバイズ
         if isclass(object):
             mro = (object,) + getmro(object)
-            # 基底クラスの __dict__ を事前に処理
+            # Preprocessing __dict__ of base class
             base_dicts = [base.__dict__ for base in mro if hasattr(base, '__dict__')]
-
-            # DynamicClassAttribute を names に追加
+            # Add DynamicClassAttribute to names
             for base_dict in base_dicts:
                 for k, v in base_dict.items():
                     if isinstance(v, types.DynamicClassAttribute):
-                        names.add(k)
+                        names.append(k)
         else:
-            mro = ()
-            base_dicts = []  # クラスでない場合は空リスト
+            # not class
+            base_dicts = []
 
-        # objectの __dict__
+        names_set = set(names) # no duplicates
+
+        # Process __dict__ of object
         if hasattr(object, '__dict__'):
             object_dict = object.__dict__
-            for key in set(names):
-                if key in object_dict:
-                    value = object_dict[key]
-                    if not predicate or predicate(value):
-                        results.append((key, value))
-                        names.remove(key)
+            for key in names_set & object_dict.keys():
+                value = object_dict[key]
+                results.append((key, value))
 
-        # base_dicts を処理 (object の__dict_ 以外？)
+            names_set -= object_dict.keys()
+
+        # Process all but class
         for base_dict in base_dicts:
-            for key in set(names):
-                if key in base_dict:
-                    value = base_dict[key]
-                    if not predicate or predicate(value):
-                        results.append((key, value))
-                        names.remove(key)
+            for key in names_set & base_dict.keys():
+                value = base_dict[key]
+                results.append((key, value))
 
-        # スロットメンバのチェック
-        for key in names:
+            names_set -= base_dict.keys()
+
+        # Check slot members
+        for key in names_set:
             try:
                 value = getattr(object, key)
-                if not predicate or predicate(value):
-                    results.append((key, value))
+                results.append((key, value))
             except AttributeError:
                 # could be a (currently) missing slot member, or a buggy
                 # __dir__; discard and move on
@@ -183,10 +179,11 @@ class ValueObject():
         results.sort(key=lambda pair: pair[0])
         return results
 
+    # cache
     _public_attrs_cache = None
-    def __generate_public_attrs_revise(self):
+    def __generate_public_attrs_fast(self):
         if self._public_attrs_cache is None:
-            attrs = self._getmembers_revise(self)
+            attrs = self._getmembers_fast(self)
             self._public_attrs_cache = tuple(
                 key for key, value in attrs
                 if key[0] != '_' and key[0].islower() and not callable(value)
