@@ -83,19 +83,22 @@ class BokehTimeSeries:
         # Draw lines
         color_selector = ColorSelectorFactory.create_instance(coloring_rule='unique')
         legend_manager = LegendManager()
-        if converter:
-            line_source = \
-                LineSource(legend_manager, target_objects[0], frame_min_convert, self._xaxis_type)
-        else:
-            line_source = \
-                LineSource(legend_manager, target_objects[0], frame_min, self._xaxis_type)
-        fig.add_tools(line_source.create_hover())
+
         for to, timeseries in zip(target_objects, timeseries_records_list):
+            if converter:
+                line_source = \
+                    LineSource(legend_manager, to,
+                               frame_min_convert, self._xaxis_type)
+            else:
+                line_source = \
+                    LineSource(legend_manager, to, frame_min, self._xaxis_type)
+
             renderer = fig.line(
                 'x', 'y',
                 source=line_source.generate(to, timeseries),
                 color=color_selector.get_color()
             )
+            fig.add_tools(line_source.create_hover({'renderers': [renderer]}))
             legend_manager.add_legend(to, renderer)
 
         # Draw legends
