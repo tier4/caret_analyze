@@ -58,8 +58,7 @@ class ValueObject():
         if type(self) != type(right):
             return False
 
-        #for attr in self.__generate_public_attrs():
-        for attr in self.__generate_public_attrs_fast():
+        for attr in self.__generate_public_attrs():
             # Uncomment this when investigating why equals is false during test execution.
             # assert getattr(self,  attr) == getattr(right, attr)
             if getattr(self,  attr) != getattr(right, attr):
@@ -85,8 +84,7 @@ class ValueObject():
 
         hash_value += hash_value * 31 + hash(self.__class__)
 
-        #for attr in self.__generate_public_attrs():
-        for attr in self.__generate_public_attrs_fast():
+        for attr in self.__generate_public_attrs():
             v = getattr(self,  attr)
             hash_value += hash_value * 31 + hash(v)
 
@@ -116,7 +114,7 @@ class ValueObject():
 
         """
         d: dict[Any, Any] = {}
-        for attr in self.__generate_public_attrs_fast():
+        for attr in self.__generate_public_attrs():
             value = getattr(self, attr)
             if isinstance(value, ValueObject):
                 d[attr] = value._to_dict()
@@ -181,7 +179,7 @@ class ValueObject():
 
     # cache
     _public_attrs_cache = None
-    def __generate_public_attrs_fast(self):
+    def __generate_public_attrs(self):
         if self._public_attrs_cache is None:
             attrs = self._getmembers_fast(self)
             self._public_attrs_cache = tuple(

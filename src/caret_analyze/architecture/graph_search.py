@@ -19,6 +19,7 @@ from collections.abc import Callable
 from copy import deepcopy
 from itertools import product
 from logging import getLogger
+import random
 
 from .struct import (CallbackStruct, CommunicationStruct,
                      NodePathStruct, NodeStruct,
@@ -78,34 +79,7 @@ class GraphCore:
         self._v = max(self._v, u + 1, v + 1)
         self._graph[u].append(GraphEdgeCore(u, v, label))
 
-    def _search_paths_recursion(
-        self,
-        u: int,
-        d: int,
-        edge: GraphEdgeCore | None,
-        visited: dict[tuple[int, int], bool],
-        path: GraphPathCore,
-        paths: list[GraphPathCore],
-    ) -> None:
-
-        if edge is not None:
-            path.append(edge)
-
-        if u == d:
-            paths.append(deepcopy(path))
-        else:
-            for edge in self._graph[u]:
-                i = edge.i_to
-
-                if visited[u, i] is False:
-                    visited[u, i] = True
-                    self._search_paths_recursion(
-                        i, d, edge, visited, path, paths)
-                    visited[u, i] = False
-
-        if len(path) > 0:
-            path.pop()
-
+    # dfs algorithm
     def _search_paths(
         self,
         u: int,
@@ -117,6 +91,7 @@ class GraphCore:
         max_depth: int = 0
     ) -> None:
 
+        #print(f"## DFS")
         edges_cache = []
         forward = True
 
@@ -162,31 +137,6 @@ class GraphCore:
                 if edges_cache == []:
                     return
 
-    def _search_paths_bfs(self, u: int, d: int, max_depth: int = 0) -> list[GraphPathCore]:
-        paths: list[GraphPathCore] = []
-        queue: deque[tuple[int, GraphPathCore]] = deque([(u, GraphPathCore())])
-        visited: set[int] = set()  # visited nodes
-
-        while queue:
-            curr_node, curr_path = queue.popleft()
-
-            if curr_node == d:
-                paths.append(deepcopy(curr_path))
-                continue
-
-            #if max_depth > 0 and len(curr_path) >= max_depth:
-            #    continue
-
-            if curr_node in visited:
-                continue
-            visited.add(curr_node)
-
-            for edge in self._graph[curr_node]:
-                new_path = deepcopy(curr_path)
-                new_path.append(edge)
-                queue.append((edge.i_to, new_path))
-        return paths
-
     def search_paths(
         self,
         start: int,
@@ -204,6 +154,30 @@ class GraphCore:
         # self._search_paths_recursion(start, goal, None, visited, path, paths)
         self._search_paths(start, goal, None, visited, path, paths, max_depth)
 
+        return paths
+
+    # bfs algorithm
+    def _search_paths_bfs(self, u: int, d: int, max_depth: int = 0) -> list[GraphPathCore]:
+        #print(f"!! BFS")
+        paths: list[GraphPathCore] = []
+        queue: deque[tuple[int, GraphPathCore]] = deque([(u, GraphPathCore())])
+        visited: set[int] = set()  # visited nodes
+
+        while queue:
+            curr_node, curr_path = queue.popleft()
+
+            if curr_node == d:
+                paths.append(deepcopy(curr_path))
+                continue
+
+            if curr_node in visited:
+                continue
+            visited.add(curr_node)
+
+            for edge in self._graph[curr_node]:
+                new_path = deepcopy(curr_path)
+                new_path.append(edge)
+                queue.append((edge.i_to, new_path))
         return paths
 
 
@@ -321,11 +295,18 @@ class Graph:
 
         self._validate(*nodes)
 
+        if self._calculate_is_bfs_use():
+            # BFS
+            search_func = self._graph._search_paths_bfs
+        else:
+            # DFS
+            search_func = self._graph.search_paths
+        #print(f"    {nodes[0].node_name} --- {nodes[1].node_name}")
+
         path_cores: list[list[GraphPathCore]] = []
         for start, goal in zip(nodes[:-1], nodes[1:]):
             path_cores.append(
-                ###self._graph.search_paths(
-                self._graph._search_paths_bfs(
+                search_func(
                     self._node_to_idx[start],
                     self._node_to_idx[goal],
                     max_depth or 0
@@ -344,6 +325,100 @@ class Graph:
             paths.append(path)
 
         return paths
+
+    def _estimate_depth(self, num_samples=10):
+        """
+        Estimates the approximate depth of the graph.
+
+        Args:
+            num_samples: Number of node pairs to be randomly selected.
+
+        Returns:
+            Approximate depth of the graph.
+        """
+        n = len(self._nodes)
+        if n == 0:
+            return 0
+
+        max_depth = 0
+        actual_samples = min(num_samples, n * (n - 1) // 2)
+
+        for _ in range(actual_samples):
+            u = random.choice(list(self._nodes))
+            v = random.choice(list(self._nodes))
+            if u == v:
+                continue
+
+            # The shortest path length is calculated by BFS for efficient calculation.
+            queue = deque([(u, 0)])
+            visited = {node: False for node in self._nodes}
+            visited[u] = True
+
+            while queue:
+                curr, dist = queue.popleft()
+                if curr == v:
+                    max_depth = max(max_depth, dist)
+                    break
+
+                index = self._node_to_idx[curr]
+                for edge in self._graph._graph[index]:
+                    neighbor = self._idx_to_node[edge.i_to]
+                    if not visited[neighbor]:
+                        visited[neighbor] = True
+                        queue.append((neighbor, dist + 1))
+
+        return max_depth
+
+    def _estimate_width(self):
+        """
+        Estimates the approximate width of the graph.
+
+        Returns:
+            Approximate width of the graph.
+        """
+        if len(self._nodes) == 0:
+            return 0
+
+        # Randomly select a starting node
+        start_node = random.choice(list(self._nodes))
+
+        # Count the number of nodes at each depth in width-first search
+        queue = deque([(start_node, 0)])
+        visited = {node: False for node in self._nodes}
+        visited[start_node] = True
+        width_at_depth = {}
+
+        while queue:
+            curr, depth = queue.popleft()
+            width_at_depth[depth] = width_at_depth.get(depth, 0) + 1
+
+            index = self._node_to_idx[curr]
+            for edge in self._graph._graph[index]:
+                neighbor = self._idx_to_node[edge.i_to]
+                if not visited[neighbor]:
+                    visited[neighbor] = True
+                    queue.append((neighbor, depth + 1))
+
+        return max(width_at_depth.values()) if width_at_depth else 0
+
+    def _calculate_is_bfs_use(self):
+        """
+        Based on the shape of the graph, it suggests an appropriate search algorithm.
+
+        Returns:
+            Returns true if bfs, false otherwise.
+        """
+        depth = self._estimate_depth(num_samples=10)
+        width = self._estimate_width()
+
+        is_bfs = True
+        if depth == 0 and width == 0:
+            pass # If graph is empty, select BFS
+        elif depth / (width + 1e-6) > 2:
+            # If depth is more than twice as large as width, select DFS
+            is_bfs = False
+        #print(f"=== {is_bfs=}: {depth=} {width=} ===")
+        return is_bfs
 
 
 class CallbackPathSearcher:
