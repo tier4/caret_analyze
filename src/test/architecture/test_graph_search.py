@@ -508,8 +508,10 @@ class TestCallbackPathSearcher:
             else:
                 assert False
 
-        searcher = CallbackPathSearcher(node_mock,
-            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
+        searcher = CallbackPathSearcher(
+            node_mock,
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING,
+        )
         mocker.patch.object(searcher, '_to_path', side_effect=dummy_to_path)
 
         node_paths = searcher._to_paths(
