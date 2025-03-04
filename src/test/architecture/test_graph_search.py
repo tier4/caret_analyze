@@ -489,7 +489,7 @@ class TestCallbackPathSearcher:
         pub_info_mock1 = mocker.Mock(spec=PublisherStruct)
         pub_info_mock2 = mocker.Mock(spec=PublisherStruct)
 
-        node_path_mock1 = mocker.Mock(spec=NodePathStruct)/
+        node_path_mock1 = mocker.Mock(spec=NodePathStruct)
         node_path_mock2 = mocker.Mock(spec=NodePathStruct)
         node_path_mock3 = mocker.Mock(spec=NodePathStruct)
 
