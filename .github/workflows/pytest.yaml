@@ -34,6 +34,10 @@ jobs:
           if dpkg -l | grep -q python3-typeguard; then
             sudo apt remove -y python3-typeguard
           fi
+      - name: Reinstall dependencies
+        run: |
+          python3 -m pip uninstall -y pytest-pep257
+          python3 -m pip install -r src/requirements.txt
 
       - name: Get package list
         run: |
