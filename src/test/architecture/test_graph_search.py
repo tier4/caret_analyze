@@ -413,7 +413,9 @@ class TestCallbackPathSearcher:
         node_mock = mocker.Mock(spec=NodeStruct)
 
         sub_cb_mock = mocker.Mock(spec=CallbackStruct)
+        sub_cb_mock.construction_order = 5
         pub_cb_mock = mocker.Mock(spec=CallbackStruct)
+        pub_cb_mock.construction_order = 15
         var_pas_mock = mocker.Mock(spec=VariablePassingStruct)
 
         sub_topic_name = '/sub'
