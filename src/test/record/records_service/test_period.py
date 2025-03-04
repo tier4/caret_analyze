@@ -157,6 +157,22 @@ class TestPeriodRecords:
         result = to_dict(period.to_records(converter=create_converter.get_converter()))
         assert result == expect_raw
 
+    def test_specify_invalid_target_column_case(self, create_converter):
+        records_raw = [
+            {'timestamp1': 0, 'timestamp2': 2},
+            {'timestamp1': 3, 'timestamp2': 4},
+            {'timestamp1': 11, 'timestamp2': 12},
+            {'timestamp1': 13, 'timestamp2': 14}
+        ]
+        columns = [ColumnValue('timestamp1'), ColumnValue('timestamp2')]
+        records = create_records(records_raw, columns)
+
+        period = Period(records, target_column='not_exist')
+
+        expect_raw = []
+        result = to_dict(period.to_records())
+        assert result == expect_raw
+
     def test_drop_case(self, create_converter):
         records_raw = [
             {'timestamp1': 0, 'timestamp2': 2},

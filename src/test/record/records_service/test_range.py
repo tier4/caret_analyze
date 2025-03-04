@@ -46,6 +46,16 @@ class TestRange:
         record_range = Range(records_list)
         assert record_range.get_range() == (0, 12)
 
+    def test_get_range_reversed_order_records_case(self):
+        records_raw = [
+            {'start': 3, 'end': 4},
+            {'start': 11, 'end': 12},
+            {'start': 0, 'end': 2},
+        ]
+        records_list = [create_records(records_raw)]
+        record_range = Range(records_list)
+        assert record_range.get_range() == (0, 11)
+
     def test_get_range_drop_other_column(self):
         records_raw1 = [
             {'start': 0, 'end': 2},
