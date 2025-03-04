@@ -368,7 +368,7 @@ class TestCallbackPathSearcher:
         node_mock = mocker.Mock(spec=NodeStruct)
         mocker.patch.object(node_mock, 'callbacks', ())
         mocker.patch.object(node_mock, 'variable_passings', ())
-        searcher = CallbackPathSearcher(node_mock, \
+        searcher = CallbackPathSearcher(node_mock,
             DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
 
         sub_cb_mock = mocker.Mock(spec=CallbackStruct)
@@ -393,7 +393,7 @@ class TestCallbackPathSearcher:
         )
         mocker.patch.object(searcher_mock, 'search_paths',
                             return_value=[GraphPath()])
-        searcher = CallbackPathSearcher(node_mock, \
+        searcher = CallbackPathSearcher(node_mock,
             DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
 
         path_mock = mocker.Mock(spec=NodePathStruct)
@@ -419,7 +419,7 @@ class TestCallbackPathSearcher:
         mocker.patch.object(node_mock, 'callbacks', [pub_cb_mock, sub_cb_mock])
         mocker.patch.object(node_mock, 'variable_passings', [var_pas_mock])
 
-        searcher = CallbackPathSearcher(node_mock, \
+        searcher = CallbackPathSearcher(node_mock,
             DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
 
         sub_info_mock = mocker.Mock(spec=SubscriptionStruct)
@@ -508,7 +508,7 @@ class TestCallbackPathSearcher:
             else:
                 assert False
 
-        searcher = CallbackPathSearcher(node_mock, \
+        searcher = CallbackPathSearcher(node_mock,
             DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         mocker.patch.object(searcher, '_to_path', side_effect=dummy_to_path)
 
