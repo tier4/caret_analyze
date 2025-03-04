@@ -12,6 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+try:
+    import os
+    from caret_analyze import DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
+except ModuleNotFoundError as e:
+    if 'GITHUB_ACTION' in os.environ:
+        DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING = 10
+    else:
+        raise e
+
 from caret_analyze.architecture.graph_search import (CallbackPathSearcher,
                                                      Graph, GraphCore,
                                                      GraphEdge, GraphEdgeCore,
@@ -359,7 +368,8 @@ class TestCallbackPathSearcher:
         node_mock = mocker.Mock(spec=NodeStruct)
         mocker.patch.object(node_mock, 'callbacks', ())
         mocker.patch.object(node_mock, 'variable_passings', ())
-        searcher = CallbackPathSearcher(node_mock)
+        searcher = CallbackPathSearcher(node_mock, \
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
 
         sub_cb_mock = mocker.Mock(spec=CallbackStruct)
         pub_cb_mock = mocker.Mock(spec=CallbackStruct)
@@ -383,7 +393,8 @@ class TestCallbackPathSearcher:
         )
         mocker.patch.object(searcher_mock, 'search_paths',
                             return_value=[GraphPath()])
-        searcher = CallbackPathSearcher(node_mock)
+        searcher = CallbackPathSearcher(node_mock, \
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
 
         path_mock = mocker.Mock(spec=NodePathStruct)
         mocker.patch.object(searcher, '_to_paths', return_value=[path_mock])
@@ -408,7 +419,8 @@ class TestCallbackPathSearcher:
         mocker.patch.object(node_mock, 'callbacks', [pub_cb_mock, sub_cb_mock])
         mocker.patch.object(node_mock, 'variable_passings', [var_pas_mock])
 
-        searcher = CallbackPathSearcher(node_mock)
+        searcher = CallbackPathSearcher(node_mock, \
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
 
         sub_info_mock = mocker.Mock(spec=SubscriptionStruct)
         pub_info_mock = mocker.Mock(spec=PublisherStruct)
@@ -477,7 +489,7 @@ class TestCallbackPathSearcher:
         pub_info_mock1 = mocker.Mock(spec=PublisherStruct)
         pub_info_mock2 = mocker.Mock(spec=PublisherStruct)
 
-        node_path_mock1 = mocker.Mock(spec=NodePathStruct)
+        node_path_mock1 = mocker.Mock(spec=NodePathStruct)/
         node_path_mock2 = mocker.Mock(spec=NodePathStruct)
         node_path_mock3 = mocker.Mock(spec=NodePathStruct)
 
@@ -496,7 +508,8 @@ class TestCallbackPathSearcher:
             else:
                 assert False
 
-        searcher = CallbackPathSearcher(node_mock)
+        searcher = CallbackPathSearcher(node_mock, \
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         mocker.patch.object(searcher, '_to_path', side_effect=dummy_to_path)
 
         node_paths = searcher._to_paths(
