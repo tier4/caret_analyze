@@ -16,7 +16,6 @@ from __future__ import annotations
 
 from collections import defaultdict, UserList
 from collections.abc import Callable
-from copy import deepcopy
 from itertools import product
 from logging import getLogger
 
@@ -86,7 +85,7 @@ class GraphCore:
         max_depth: int = 0
     ) -> None:
         """
-        Search for paths from the given start to end node using Depth First Search (DFS)
+        Search for paths from the given start to end node using Depth First Search (DFS).
 
         Args:
             u (int): Index of the start node.
@@ -94,6 +93,7 @@ class GraphCore:
             paths (list[GraphPathCore]): List to store all found paths.(results)
             max_depth (int, optional): Maximum depth of the search. Defaults to 0 (unlimited).
         """
+
         # prepare
         # Initialize visited node management
         visited = [[False for _ in range(self._v)] for _ in range(self._v)]
@@ -319,7 +319,7 @@ class CallbackPathSearcher:
 
         for callback in callbacks:
             if callback.callback_name is None or \
-                (max_callback_construction_order != 0 and \
+                    (max_callback_construction_order != 0 and \
                     callback.construction_order > max_callback_construction_order):
                 continue
 
@@ -332,10 +332,10 @@ class CallbackPathSearcher:
 
         for var_pass in var_passes:
             if var_pass.callback_name_read is None or \
-                var_pass.callback_name_read not in callback_names:
+                    var_pass.callback_name_read not in callback_names:
                 continue
             if var_pass.callback_name_write is None or \
-                var_pass.callback_name_write not in callback_names:
+                    var_pass.callback_name_write not in callback_names:
                 continue
 
             write_name = self._to_node_point_name(var_pass.callback_name_write, 'write')

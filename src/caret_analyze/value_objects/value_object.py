@@ -132,4 +132,3 @@ class ValueObject():
                 if key[0] != '_' and key[0].islower() and not callable(value)
             )
         yield from self._public_attrs_cache
-        
