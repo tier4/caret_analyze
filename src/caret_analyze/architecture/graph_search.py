@@ -330,23 +330,18 @@ class CallbackPathSearcher:
 
         callback_names = [callback.callback_name for callback in callbacks]
 
-        skip = 0
         for var_pass in var_passes:
             if var_pass.callback_name_read is None or \
                 var_pass.callback_name_read not in callback_names:
-                skip += 1
                 continue
             if var_pass.callback_name_write is None or \
                 var_pass.callback_name_write not in callback_names:
-                skip += 1
                 continue
 
             write_name = self._to_node_point_name(var_pass.callback_name_write, 'write')
             read_name = self._to_node_point_name(var_pass.callback_name_read, 'read')
 
             self._graph.add_edge(GraphNode(write_name), GraphNode(read_name))
-        if skip != 0:
-            print(f"!! {skip=} !!")
 
     def search(
         self,
