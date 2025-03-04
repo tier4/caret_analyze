@@ -316,9 +316,10 @@ class CallbackPathSearcher:
         self._graph = Graph()
 
         for callback in callbacks:
-            if callback.callback_name is None or \
-                (max_callback_construction_order != 0 and
-                callback.construction_order > max_callback_construction_order):
+            if callback.callback_name is None or (
+                max_callback_construction_order != 0 and
+                callback.construction_order > max_callback_construction_order
+            ):
                 continue
 
             write_name = self._to_node_point_name(callback.callback_name, 'write')
