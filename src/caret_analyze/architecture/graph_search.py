@@ -93,8 +93,6 @@ class GraphCore:
             paths (list[GraphPathCore]): List to store all found paths.(results)
             max_depth (int, optional): Maximum depth of the search. Defaults to 0 (unlimited).
         """
-
-        # prepare
         # Initialize visited node management
         visited = [[False for _ in range(self._v)] for _ in range(self._v)]
         edge: GraphEdgeCore | None = None      # Last edge used in the current search path
@@ -319,8 +317,8 @@ class CallbackPathSearcher:
 
         for callback in callbacks:
             if callback.callback_name is None or \
-                    (max_callback_construction_order != 0 and \
-                    callback.construction_order > max_callback_construction_order):
+                (max_callback_construction_order != 0 and
+                callback.construction_order > max_callback_construction_order):
                 continue
 
             write_name = self._to_node_point_name(callback.callback_name, 'write')
