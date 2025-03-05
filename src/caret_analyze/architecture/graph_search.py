@@ -88,12 +88,12 @@ class GraphCore:
 
         Parameters
         ----------
-            u : int
-                Index of the start node
-            d : int
-                Index of the end node
-            max_depth : int
-                Maximum depth of the search. Defaults to 0=unlimited (optional)
+        u : int
+            Index of the start node
+        d : int
+            Index of the end node
+        max_depth : int
+            Maximum depth of the search. Defaults to 0=unlimited (optional)
 
         Returns
         -------
