@@ -87,11 +87,13 @@ class GraphCore:
         """
         Search for paths from the given start to end node using Depth First Search (DFS).
 
-        Args:
+        Parameters
+        ----------
             u (int): Index of the start node.
             d (int): Index of the end node.
             paths (list[GraphPathCore]): List to store all found paths.(results)
             max_depth (int, optional): Maximum depth of the search. Defaults to 0 (unlimited).
+
         """
         # Initialize visited node management
         visited = [[False for _ in range(self._v)] for _ in range(self._v)]
