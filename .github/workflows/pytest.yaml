@@ -2,18 +2,12 @@ name: pytest
 
 on:
   pull_request:
-  workflow_dispatch:
 
 jobs:
   pytest:
     runs-on: ubuntu-latest
     container: ghcr.io/autowarefoundation/autoware:latest-devel
     steps:
-      - name: Clear pip cache
-        run: |
-          rm -rf ~/.cache/pip
-        shell: bash
-
       - name: Check out repository
         uses: actions/checkout@v4
 
@@ -39,10 +33,6 @@ jobs:
           if dpkg -l | grep -q python3-typeguard; then
             sudo apt remove -y python3-typeguard
           fi
-      - name: Reinstall dependencies
-        run: |
-          python3 -m pip uninstall -y pytest-pep257
-          python3 -m pip install -r src/requirements.txt
 
       - name: Get package list
         run: |
@@ -86,9 +76,7 @@ jobs:
           source /opt/ros/humble/setup.bash
           source caret_analyze_cpp_impl/install/setup.bash
           cd src
-          python3 -m pip install --upgrade setuptools
-          python3 -m pip install pytest-pydocstyle
-          python3 -m pytest --verbose --exitfirst --pep257-show-source
+          python3 -m pytest
         shell: bash
 
       - name: If pytest failure
