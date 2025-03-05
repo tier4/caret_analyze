@@ -64,8 +64,11 @@ class TestFrequencyRecords:
         columns = [ColumnValue('timestamp')]
         records = create_records(records_raw, columns)
         frequency = Frequency(records)
-        frequency = Frequency(records, target_column='timestamp')  # specifying target_column
-        frequency = Frequency(records, row_filter=lambda: True)  # specifying row_filter
+        frequency_with_target_column = Frequency(records, target_column='timestamp')
+        frequency_with_row_filter = Frequency(records, row_filter=lambda: True)
+        assert to_dict(frequency.to_records()) \
+            == to_dict(frequency_with_target_column.to_records())
+        assert to_dict(frequency.to_records()) == to_dict(frequency_with_row_filter.to_records())
 
     def test_empty_case(self, create_converter):
         records_raw = [
