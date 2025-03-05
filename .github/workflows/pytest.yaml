@@ -86,7 +86,7 @@ jobs:
           source /opt/ros/humble/setup.bash
           source caret_analyze_cpp_impl/install/setup.bash
           cd src
-          python3 -m pip install -y pytest-pep257
+          python3 -m pip install pytest-pep257
           python3 -m pytest --verbose --exitfirst --pep257-show-source
         shell: bash
 
