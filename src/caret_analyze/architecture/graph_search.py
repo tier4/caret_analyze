@@ -92,15 +92,13 @@ class GraphCore:
                 Index of the start node
             d : int
                 Index of the end node
-            paths : list[GraphPathCore]
-                List to store all found paths (results)
             max_depth : int
                 Maximum depth of the search. Defaults to 0=unlimited (optional)
 
         Returns
         -------
         list[GraphPathCore]
-            Returns list of paths searched.
+            Returns list to all found paths.
 
         """
         paths: list[GraphPathCore] = []        # for result
@@ -167,7 +165,7 @@ class GraphCore:
         goal: int,
         max_depth: int = 0
     ) -> list[GraphPathCore]:
-        return self._search_paths(start, goal, paths, max_depth)
+        return self._search_paths(start, goal, max_depth)
 
 
 class GraphNode(ValueObject):
