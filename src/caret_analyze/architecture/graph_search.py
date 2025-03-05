@@ -81,20 +81,29 @@ class GraphCore:
         self,
         u: int,
         d: int,
-        paths: list[GraphPathCore],
         max_depth: int = 0
-    ) -> None:
+    ) -> list[GraphPathCore]:
         """
         Search for paths from the given start to end node using Depth First Search (DFS).
 
         Parameters
         ----------
-            u (int): Index of the start node.
-            d (int): Index of the end node.
-            paths (list[GraphPathCore]): List to store all found paths.(results)
-            max_depth (int, optional): Maximum depth of the search. Defaults to 0 (unlimited).
+            u : int
+                Index of the start node
+            d : int
+                Index of the end node
+            paths : list[GraphPathCore]
+                List to store all found paths (results)
+            max_depth : int
+                Maximum depth of the search. Defaults to 0=unlimited (optional)
+
+        Returns
+        -------
+        list[GraphPathCore]
+            Returns list of paths searched.
 
         """
+        paths: list[GraphPathCore] = []        # for result
         # Initialize visited node management
         visited = [[False for _ in range(self._v)] for _ in range(self._v)]
         edge: GraphEdgeCore | None = None      # Last edge used in the current search path
@@ -150,16 +159,15 @@ class GraphCore:
                     i = last_edge.i_to
                     visited[u][i] = False
 
+        return paths
+
     def search_paths(
         self,
         start: int,
         goal: int,
         max_depth: int = 0
     ) -> list[GraphPathCore]:
-        paths: list[GraphPathCore] = []
-        self._search_paths(start, goal, paths, max_depth)
-
-        return paths
+        return self._search_paths(start, goal, paths, max_depth)
 
 
 class GraphNode(ValueObject):
