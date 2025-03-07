@@ -995,7 +995,7 @@ class TestNodePathSearcher:
         node_path_value_mock_2 = mocker.Mock(spec=NodePathStructValue)
         comm_mock = mocker.Mock(spec=CommunicationStruct)
         comm_mock.subscription_construction_order = 1
-        comm_mock.publisher_construction_order = 2  
+        comm_mock.publisher_construction_order = 2
 
         mocker.patch.object(node_path_mock_1, 'publish_topic_name', '1->2')
         mocker.patch.object(node_path_mock_1, 'subscribe_topic_name', '0->1')
