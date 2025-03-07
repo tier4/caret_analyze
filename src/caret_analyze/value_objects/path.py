@@ -37,7 +37,7 @@ class PathValue(ValueObject):
         """
         Construct an instance.
 
-        Returns
+        Parameters
         -------
         alias : str
             Alias.
@@ -81,24 +81,71 @@ class PathStructValue(ValueObject, Summarizable):
         path_name: str | None,
         child: tuple[NodePathStructValue | CommunicationStructValue, ...],
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        -------
+        path_name : str | None
+            Path name.
+        child : tuple[NodePathStructValue | CommunicationStructValue, ...]
+            Child.
+
+        """
         self._path_name = path_name
         self._child = child
         self._validate(child)
 
     @property
     def path_name(self) -> str | None:
+        """
+        Get path name.
+
+        Returns
+        -------
+        str | None
+            Path name.
+
+        """
         return self._path_name
 
     @property
     def node_names(self) -> tuple[str, ...]:
+        """
+        Get node names.
+
+        Returns
+        -------
+        tuple[str, ...]
+            Node names.
+
+        """
         return tuple(_.node_name for _ in self.node_paths)
 
     @property
     def topic_names(self) -> tuple[str, ...]:
+        """
+        Get topic names.
+
+        Returns
+        -------
+        tuple[str, ...]
+            Topic names.
+
+        """
         return tuple(_.topic_name for _ in self.communications)
 
     @property
     def child_names(self) -> tuple[str, ...]:
+        """
+        Get child names.
+
+        Returns
+        -------
+        tuple[str, ...]
+            Child names.
+
+        """
         names = []
         for child in self.child:
             if isinstance(child, NodePathStructValue):
@@ -109,6 +156,15 @@ class PathStructValue(ValueObject, Summarizable):
 
     @property
     def node_paths(self) -> tuple[NodePathStructValue, ...]:
+        """
+        Get node paths.
+
+        Returns
+        -------
+        tuple[NodePathStructValue, ...]
+            Node paths.
+
+        """
         node_paths = Util.filter_items(
             lambda x: isinstance(x, NodePathStructValue),
             self._child)
@@ -116,6 +172,15 @@ class PathStructValue(ValueObject, Summarizable):
 
     @property
     def communications(self) -> tuple[CommunicationStructValue, ...]:
+        """
+        Get communications.
+
+        Returns
+        -------
+        tuple[CommunicationStructValue, ...]
+            communications.
+
+        """
         comm_paths = Util.filter_items(
             lambda x: isinstance(x, CommunicationStructValue),
             self._child)
@@ -123,6 +188,15 @@ class PathStructValue(ValueObject, Summarizable):
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary.
+
+        Returns
+        -------
+        Summary
+            Summary.
+
+        """
         d: Summary = Summary()
         d['path'] = []
         for child in self.child:
@@ -142,6 +216,15 @@ class PathStructValue(ValueObject, Summarizable):
 
     @property
     def child(self) -> tuple[NodePathStructValue | CommunicationStructValue, ...]:
+        """
+        Get child.
+
+        Returns
+        -------
+        tuple[NodePathStructValue | CommunicationStructValue, ...]
+            child.
+
+        """
         return self._child
 
     @staticmethod
@@ -164,6 +247,15 @@ class PathStructValue(ValueObject, Summarizable):
             raise InvalidArgumentError(msg)
 
     def verify(self) -> bool:
+        """
+        Get verify.
+
+        Returns
+        -------
+        bool
+            Verify or not.
+
+        """
         is_valid = True
 
         for child in self.node_paths[1:-1]:
