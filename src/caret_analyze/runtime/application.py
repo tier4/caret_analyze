@@ -280,7 +280,7 @@ class Application(Summarizable):
 
         Returns
         -------
-        CallbackBase
+        CallbackGroup
             callback group that matches the condition.
 
         Raises

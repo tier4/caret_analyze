@@ -74,7 +74,7 @@ class PublisherValue(ValueObject):
         Returns
         -------
         str
-            Node id.
+            Node name.
 
         """
         return self._node_name
