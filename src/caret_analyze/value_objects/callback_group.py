@@ -122,6 +122,7 @@ class CallbackGroupValue(ValueObject):
         Returns
         -------
         CallbackGroupType
+            callback group type
 
         """
         return self._callback_group_type
@@ -230,6 +231,7 @@ class CallbackGroupStructValue(ValueObject, Summarizable):
         Returns
         -------
         CallbackGroupType
+            callback group type
 
         """
         return self._callback_group_type
@@ -241,7 +243,8 @@ class CallbackGroupStructValue(ValueObject, Summarizable):
 
         Returns
         -------
-        CallbackGroupType name
+        str
+            callback group type name
 
         """
         return self._callback_group_type.type_name
@@ -300,6 +303,15 @@ class CallbackGroupStructValue(ValueObject, Summarizable):
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary.
+
+        Returns
+        -------
+        Summary
+            Summary.
+
+        """
         return Summary({
             'name': self.callback_group_name,
             'type': self.callback_group_type_name,
