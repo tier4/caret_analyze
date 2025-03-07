@@ -178,7 +178,7 @@ class ExecutorsLoaded:
         Returns
         -------
         list[Executor]:
-            Datas.
+            Data.
 
         """
         return self._data
