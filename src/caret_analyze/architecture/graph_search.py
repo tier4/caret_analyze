@@ -566,8 +566,8 @@ class NodePathSearcher:
 
             key = self._comm_key(comm)
             if max_callback_construction_order != 0 and (
-                key[3] > max_callback_construction_order or
-                key[4] > max_callback_construction_order
+                key[3] is not None and key[3] > max_callback_construction_order or
+                key[4] is not None and key[4] > max_callback_construction_order
             ):
                 continue
 
