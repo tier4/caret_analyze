@@ -12,15 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-try:
-    import os
-    from caret_analyze import DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
-except ModuleNotFoundError as e:
-    if 'GITHUB_ACTION' in os.environ:
-        DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING = 10
-    else:
-        raise e
-
+from caret_analyze.architecture.architecture import \
+    DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
 from caret_analyze.architecture.graph_search import (CallbackPathSearcher,
                                                      Graph, GraphCore,
                                                      GraphEdge, GraphEdgeCore,
@@ -555,7 +548,11 @@ class TestCallbackPathSearcher:
 class TestNodePathSearcher:
 
     def test_empty(self, mocker):
-        searcher = NodePathSearcher((), ())
+        searcher = NodePathSearcher(
+            (), 
+            (), 
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
+        )
 
         with pytest.raises(ItemNotFoundError):
             searcher.search('node_name_not_exist', 'node_name_not_exist', max_node_depth=0)
@@ -565,7 +562,11 @@ class TestNodePathSearcher:
         mocker.patch.object(node_mock, 'node_name', 'node')
         mocker.patch.object(node_mock, 'publish_topic_names', [])
         mocker.patch.object(node_mock, 'subscribe_topic_names', [])
-        searcher = NodePathSearcher((node_mock,), ())
+        searcher = NodePathSearcher(
+            (node_mock,), 
+            (), 
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
+        )
         paths = searcher.search('node', 'node')
         assert paths == []
 
@@ -574,7 +575,11 @@ class TestNodePathSearcher:
         mocker.patch(
             'caret_analyze.architecture.graph_search.Graph',
             return_value=graph_mock)
-        searcher = NodePathSearcher((), ())
+        searcher = NodePathSearcher(
+            (),
+            (),
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
+        )
 
         src_node = GraphNode('start_node_name')
         dst_node = GraphNode('end_node_name')
@@ -625,7 +630,11 @@ class TestNodePathSearcher:
         mocker.patch.object(
             NodePathSearcher, '_create_tail_dummy_node_path', return_value=node_path_mock)
 
-        searcher = NodePathSearcher((node_mock,), (comm_mock,))
+        searcher = NodePathSearcher(
+            (node_mock,), 
+            (comm_mock,), 
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
+        )
         graph_path_mock = mocker.Mock(spec=GraphPath)
         edge_mock = mocker.Mock(GraphEdge)
         mocker.patch.object(
@@ -684,7 +693,11 @@ class TestNodePathSearcher:
         mocker.patch.object(
             NodePathSearcher, '_create_tail_dummy_node_path', return_value=node_path_mock)
 
-        searcher = NodePathSearcher((node_mock,), (comm_mock,))
+        searcher = NodePathSearcher(
+            (node_mock,),
+            (comm_mock,),
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
+        )
         paths = searcher.search(node_name, node_name)
 
         expect = PathStruct(
@@ -789,7 +802,10 @@ class TestNodePathSearcher:
             NodePathSearcher, '_create_tail_dummy_node_path', return_value=node_path_mock_2)
 
         searcher = NodePathSearcher(
-            (node_mock_0, node_mock_1, node_mock_2,), (comm_mock_0, comm_mock_1))
+            (node_mock_0, node_mock_1, node_mock_2,),
+            (comm_mock_0, comm_mock_1),
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
+        )
 
         graph_path_mock = mocker.Mock(spec=GraphPath)
         edge_mock_0 = mocker.Mock(GraphEdge)
@@ -917,7 +933,9 @@ class TestNodePathSearcher:
 
         searcher = NodePathSearcher(
             (node_mock_0, node_mock_1, node_mock_2, node_mock_3, node_mock_4, node_mock_5),
-            (comm_mock_0, comm_mock_1, comm_mock_2, comm_mock_3))
+            (comm_mock_0, comm_mock_1, comm_mock_2, comm_mock_3),
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
+        )
         path = searcher._to_path(graph_path_mock)
 
         expected = PathStruct(
@@ -957,7 +975,11 @@ class TestNodePathSearcher:
         comm_mock_struct_2 = mocker.Mock(spec=CommunicationStructValue)
         mocker.patch.object(comm_mock_2, 'to_value', return_value=comm_mock_struct_2)
 
-        searcher = NodePathSearcher((node_mock,), (comm_mock_1, comm_mock_2))
+        searcher = NodePathSearcher(
+            (node_mock,), 
+            (comm_mock_1, comm_mock_2),
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
+        )
         comm = searcher._find_comm('3', '4', '0->1', 1, 1)
         assert comm == comm_mock_2
 
@@ -992,7 +1014,11 @@ class TestNodePathSearcher:
         mocker.patch.object(node_mock_2, 'node_name', '1')
         mocker.patch.object(node_mock_2, 'paths', [node_path_mock_2])
 
-        searcher = NodePathSearcher((node_mock_1, node_mock_2), (comm_mock,))
+        searcher = NodePathSearcher(
+            (node_mock_1, node_mock_2),
+            (comm_mock,),
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
+        )
         node_path = searcher._find_node_path('0->1', '1->2', '0', 0, 0)
         assert node_path == node_path_mock_1
 
