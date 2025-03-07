@@ -565,11 +565,12 @@ class NodePathSearcher:
                 continue
 
             key = self._comm_key(comm)
-            if max_callback_construction_order != 0 and \
-                    (key[3] > max_callback_construction_order or
-                    key[4] > max_callback_construction_order):
+            if max_callback_construction_order != 0 and (
+                key[3] > max_callback_construction_order or
+                key[4] > max_callback_construction_order
+            ):
                 continue
-            
+
             if key not in self._comm_dict:
                 self._comm_dict[key] = comm
             elif key not in duplicated_comms:

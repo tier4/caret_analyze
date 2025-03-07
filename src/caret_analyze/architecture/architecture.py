@@ -293,7 +293,7 @@ class Architecture(Summarizable):
         # Search
         path_searcher = NodePathSearcher(
             tuple(self._nodes),
-            tuple(self._communications), 
+            tuple(self._communications),
             self._max_callback_construction_order_on_path_searching,
             node_filter,
             communication_filter

@@ -549,8 +549,8 @@ class TestNodePathSearcher:
 
     def test_empty(self, mocker):
         searcher = NodePathSearcher(
-            (), 
-            (), 
+            (),
+            (),
             DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
         )
 
@@ -563,8 +563,8 @@ class TestNodePathSearcher:
         mocker.patch.object(node_mock, 'publish_topic_names', [])
         mocker.patch.object(node_mock, 'subscribe_topic_names', [])
         searcher = NodePathSearcher(
-            (node_mock,), 
-            (), 
+            (node_mock,),
+            (),
             DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
         )
         paths = searcher.search('node', 'node')
@@ -631,8 +631,8 @@ class TestNodePathSearcher:
             NodePathSearcher, '_create_tail_dummy_node_path', return_value=node_path_mock)
 
         searcher = NodePathSearcher(
-            (node_mock,), 
-            (comm_mock,), 
+            (node_mock,),
+            (comm_mock,),
             DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
         )
         graph_path_mock = mocker.Mock(spec=GraphPath)
@@ -976,7 +976,7 @@ class TestNodePathSearcher:
         mocker.patch.object(comm_mock_2, 'to_value', return_value=comm_mock_struct_2)
 
         searcher = NodePathSearcher(
-            (node_mock,), 
+            (node_mock,),
             (comm_mock_1, comm_mock_2),
             DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
         )
@@ -994,6 +994,8 @@ class TestNodePathSearcher:
         node_path_value_mock_1 = mocker.Mock(spec=NodePathStructValue)
         node_path_value_mock_2 = mocker.Mock(spec=NodePathStructValue)
         comm_mock = mocker.Mock(spec=CommunicationStruct)
+        comm_mock.subscription_construction_order = 1
+        comm_mock.publisher_construction_order = 2  
 
         mocker.patch.object(node_path_mock_1, 'publish_topic_name', '1->2')
         mocker.patch.object(node_path_mock_1, 'subscribe_topic_name', '0->1')
