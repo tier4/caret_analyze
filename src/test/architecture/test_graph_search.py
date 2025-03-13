@@ -555,16 +555,16 @@ class TestCallbackPathSearcher:
         sub_cb_mock.callback_name = 'sub_callback'
         pub_cb_mock.callback_name = 'pub_callback'
 
+        var_pass_mock = mocker.Mock(spec=VariablePassingStruct)
+        var_pass_mock.callback_name_read = 'sub_callback'
+        var_pass_mock.callback_name_write = 'pub_callback'
+
         mocker.patch.object(node_mock, 'callbacks', [sub_cb_mock, pub_cb_mock])
-        mocker.patch.object(node_mock, 'variable_passings', [])
+        mocker.patch.object(node_mock, 'variable_passings', [var_pass_mock])
 
         searcher_mock = mocker.Mock(spec=Graph)
-        mocker.patch(
-            'caret_analyze.architecture.graph_search.Graph',
-            return_value=searcher_mock
-        )
-        mocker.patch.object(searcher_mock, 'search_paths',
-                            return_value=[GraphPath()])
+        mocker.patch('caret_analyze.architecture.graph_search.Graph', return_value=searcher_mock)
+
         CallbackPathSearcher(
             node_mock,
             DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING,
@@ -585,9 +585,21 @@ class TestCallbackPathSearcher:
         expected_pub_write = 'pub_callback.write'
         for call in searcher_mock.add_edge.call_args_list:
             args, kwargs = call
-            assert not (args[0].node_name == expected_pub_read and args[1].node_name == expected_pub_write)
+            assert not (args[0].node_name == \
+                expected_pub_read and args[1].node_name == expected_pub_write)
 
-        assert searcher_mock.add_edge.call_count == 1
+        expected_var_read = 'sub_callback.read'
+        expected_var_write = 'pub_callback.write'
+        called_var_read = False
+        called_var_write = False
+        for call in searcher_mock.add_edge.call_args_list:
+            args, kwargs = call
+            if args[0].node_name == expected_var_write and args[1].node_name == expected_var_read:
+                called_var_read = True
+                called_var_write = True
+        assert not (called_var_read and called_var_write)
+
+        assert len(searcher_mock.add_edge.call_args_list) == 2
 
 
 class TestNodePathSearcher:
