@@ -128,6 +128,7 @@ class ValueObject():
         if self._public_attrs_cache is None:
             attrs = inspect.getmembers(self)
             self._public_attrs_cache = tuple(
+                # Exclude private variables, constants, and callable attributes
                 key for key, value in attrs
                 if key[0] != '_' and key[0].islower() and not callable(value)
             )

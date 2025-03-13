@@ -159,14 +159,6 @@ class GraphCore:
 
         return paths
 
-    def search_paths(
-        self,
-        start: int,
-        goal: int,
-        max_depth: int = 0
-    ) -> list[GraphPathCore]:
-        return self._search_paths(start, goal, max_depth)
-
 
 class GraphNode(ValueObject):
 
@@ -285,7 +277,7 @@ class Graph:
         path_cores: list[list[GraphPathCore]] = []
         for start, goal in zip(nodes[:-1], nodes[1:]):
             path_cores.append(
-                self._graph.search_paths(
+                self._graph._search_paths(
                     self._node_to_idx[start],
                     self._node_to_idx[goal],
                     max_depth or 0
@@ -372,8 +364,6 @@ class CallbackPathSearcher:
             publisher = node.get_publisher_from_callback(end_callback.callback_name)
             paths += self._to_paths(
                 graph_path,
-                start_callback,
-                end_callback,
                 subscription,
                 publisher
             )
@@ -383,8 +373,6 @@ class CallbackPathSearcher:
     def _to_paths(
         self,
         callback_graph_path: GraphPath,
-        start_callback: CallbackStruct,
-        end_callback: CallbackStruct,
         start_callback_subscription: SubscriptionStruct | None,
         end_callback_publishers: list[PublisherStruct] | None
     ) -> list[NodePathStruct]:
@@ -564,13 +552,12 @@ class NodePathSearcher:
             if node_filter is not None and not node_filter(comm.subscribe_node_name):
                 continue
 
-            key = self._comm_key(comm)
-            if max_callback_construction_order != 0 and (
-                key[3] is not None and key[3] > max_callback_construction_order or
-                key[4] is not None and key[4] > max_callback_construction_order
-            ):
+            sub_cb_construction_order = comm._subscription_value._callback_value.construction_order
+            if max_callback_construction_order != 0 and \
+                    sub_cb_construction_order > max_callback_construction_order:
                 continue
 
+            key = self._comm_key(comm)
             if key not in self._comm_dict:
                 self._comm_dict[key] = comm
             elif key not in duplicated_comms:
