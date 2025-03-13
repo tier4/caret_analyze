@@ -576,7 +576,8 @@ class TestCallbackPathSearcher:
         called_sub_write = False
         for call in searcher_mock.add_edge.call_args_list:
             args, kwargs = call
-            if args[0].node_name == expected_sub_read and args[1].node_name == expected_sub_write:
+            if args[0].node_name == \
+                    expected_sub_read and args[1].node_name == expected_sub_write:
                 called_sub_read = True
                 called_sub_write = True
         assert called_sub_read and called_sub_write
@@ -585,21 +586,17 @@ class TestCallbackPathSearcher:
         expected_pub_write = 'pub_callback.write'
         for call in searcher_mock.add_edge.call_args_list:
             args, kwargs = call
-            assert not (args[0].node_name == \
-                expected_pub_read and args[1].node_name == expected_pub_write)
+            assert not (args[0].node_name == 
+                        expected_pub_read and args[1].node_name == expected_pub_write)
 
         expected_var_read = 'sub_callback.read'
         expected_var_write = 'pub_callback.write'
-        called_var_read = False
-        called_var_write = False
         for call in searcher_mock.add_edge.call_args_list:
             args, kwargs = call
-            if args[0].node_name == expected_var_write and args[1].node_name == expected_var_read:
-                called_var_read = True
-                called_var_write = True
-        assert not (called_var_read and called_var_write)
+            assert not (args[0].node_name == 
+                        expected_var_write and args[1].node_name == expected_var_read)
 
-        assert len(searcher_mock.add_edge.call_args_list) == 2
+        assert len(searcher_mock.add_edge.call_args_list) == 1
 
 
 class TestNodePathSearcher:
