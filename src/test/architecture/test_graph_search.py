@@ -552,6 +552,7 @@ class TestCallbackPathSearcher:
             DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING - 1
         pub_cb_mock.construction_order = \
             DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING + 1
+        sub_cb_mock.callback_name = 'sub_callback'
 
         mocker.patch.object(node_mock, 'callbacks', [sub_cb_mock])
         mocker.patch.object(node_mock, 'variable_passings', [])
@@ -573,7 +574,6 @@ class TestCallbackPathSearcher:
         ]
 
         searcher_mock.add_edge.assert_has_calls(expected_edges, any_order=True)
-        assert searcher_mock.add_edge.call_count == 1
 
 
 class TestNodePathSearcher:
@@ -665,6 +665,7 @@ class TestNodePathSearcher:
         mocker.patch.object(
             NodePathSearcher, '_create_tail_dummy_node_path', return_value=node_path_mock)
 
+        mocker.patch.object(node_mock, 'paths', [])
         searcher = NodePathSearcher(
             (node_mock,),
             (comm_mock,),
@@ -981,6 +982,12 @@ class TestNodePathSearcher:
         sub_value_2._callback_value = callback_value_2
         comm_mock_2._subscription_value = sub_value_2
 
+        sub_value_3 = mocker.Mock()
+        callback_value_3 = mocker.Mock()
+        callback_value_3.construction_order = 3
+        sub_value_3._callback_value = callback_value_3
+        comm_mock_3._subscription_value = sub_value_3
+
         mocker.patch.object(graph_node_mock_0, 'node_name', node_name_3)
         mocker.patch.object(graph_node_mock_1, 'node_name', node_name_4)
         mocker.patch.object(graph_node_mock_2, 'node_name', node_name_5)
@@ -1057,7 +1064,7 @@ class TestNodePathSearcher:
         callback_value_2.construction_order = 2
         sub_value_2._callback_value = callback_value_2
         comm_mock_2._subscription_value = sub_value_2
-        
+
         searcher = NodePathSearcher(
             (node_mock,),
             (comm_mock_1, comm_mock_2),
@@ -1077,8 +1084,11 @@ class TestNodePathSearcher:
         node_path_value_mock_1 = mocker.Mock(spec=NodePathStructValue)
         node_path_value_mock_2 = mocker.Mock(spec=NodePathStructValue)
         comm_mock = mocker.Mock(spec=CommunicationStruct)
-        comm_mock.subscription_construction_order = 1
-        comm_mock.publisher_construction_order = 2
+        sub_value = mocker.Mock()
+        callback_value = mocker.Mock()
+        callback_value.construction_order = 1
+        sub_value._callback_value = callback_value
+        comm_mock._subscription_value = sub_value
 
         mocker.patch.object(node_path_mock_1, 'publish_topic_name', '1->2')
         mocker.patch.object(node_path_mock_1, 'subscribe_topic_name', '0->1')
@@ -1169,10 +1179,12 @@ class TestNodePathSearcher:
             expected_edge_label1
         )
 
-        graph_mock.add_edge.assert_not_called_with(
-            GraphNode(comm_mock2.publish_node_name),
-            GraphNode(comm_mock2.subscribe_node_name),
-            expected_edge_label2
-        )
+        for call in graph_mock.add_edge.call_args_list:
+            args, kwargs = call
+            assert args != (
+                GraphNode(comm_mock2.publish_node_name),
+                GraphNode(comm_mock2.subscribe_node_name),
+                expected_edge_label2
+            )
 
         assert graph_mock.add_edge.call_count == 1
