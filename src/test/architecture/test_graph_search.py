@@ -572,35 +572,35 @@ class TestCallbackPathSearcher:
 
         expected_sub_read = 'sub_callback.read'
         expected_sub_write = 'sub_callback.write'
-        called_sub_read = False
-        called_sub_write = False
-        for call in searcher_mock.add_edge.call_args_list:
-            args, kwargs = call
-            if args[0].node_name == expected_sub_read and args[1].node_name == expected_sub_write:
-                called_sub_read = True
-                called_sub_write = True
+        
+        sub_edge_called = any(
+            args[0].node_name == expected_sub_read and args[1].node_name == expected_sub_write
+            for args, _ in searcher_mock.add_edge.call_args_list
+        )
 
-        assert called_sub_read and called_sub_write
+        assert sub_edge_called, "sub_callback edge was not added"
 
         expected_pub_read = 'pub_callback.read'
         expected_pub_write = 'pub_callback.write'
-        
-        for call in searcher_mock.add_edge.call_args_list:
-            args, kwargs = call
-            is_pub_read = args[0].node_name == expected_pub_read
-            is_pub_write = args[1].node_name == expected_pub_write
-            assert not (is_pub_read and is_pub_write)
+
+        pub_edge_called = any(
+            args[0].node_name == expected_pub_read and args[1].node_name == expected_pub_write
+            for args, _ in searcher_mock.add_edge.call_args_list
+        )
+
+        assert not pub_edge_called, "pub_callback edge was added"
 
         expected_var_read = 'sub_callback.read'
         expected_var_write = 'pub_callback.write'
-        
-        for call in searcher_mock.add_edge.call_args_list:
-            args, kwargs = call
-            is_var_write = args[0].node_name == expected_var_write
-            is_var_read = args[1].node_name == expected_var_read
-            assert not (is_var_write and is_var_read)
 
-        assert len(searcher_mock.add_edge.call_args_list) == 1
+        var_edge_called = any(
+            args[0].node_name == expected_var_write and args[1].node_name == expected_var_read
+            for args, _ in searcher_mock.add_edge.call_args_list
+        )
+
+        assert var_edge_called, "variable passing edge was not added"
+
+        assert len(searcher_mock.add_edge.call_args_list) == 2, "add_edge was not called twice"
 
 
 class TestNodePathSearcher:
