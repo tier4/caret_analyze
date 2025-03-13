@@ -575,8 +575,9 @@ class TestCallbackPathSearcher:
         }
 
         registered_node_names = {node.node_name for node in graph._nodes}
-        
-        assert expected_nodes.issubset(registered_node_names), 'Expected nodes are not registered in the graph.'
+
+        assert expected_nodes.issubset(registered_node_names), \
+            'Expected nodes are not registered in the graph.'
 
 
 class TestNodePathSearcher:
@@ -1125,9 +1126,7 @@ class TestNodePathSearcher:
 
     def test_max_callback_construction_order(self, mocker):
         graph_mock = mocker.Mock(spec=Graph)
-        mocker.patch(
-            'caret_analyze.architecture.graph_search.Graph',
-            return_value=graph_mock)
+        mocker.patch('caret_analyze.architecture.graph_search.Graph', return_value=graph_mock)
 
         node_mock1 = mocker.Mock(spec=NodeStruct)
         node_mock1.node_name = 'node1'
@@ -1170,24 +1169,17 @@ class TestNodePathSearcher:
             f'@{comm_mock1.subscription_construction_order}'
             f'@{comm_mock1.publisher_construction_order}'
         )
-        expected_edge_label2 = (
-            f'{comm_mock2.topic_name}'
-            f'@{comm_mock2.subscription_construction_order}'
-            f'@{comm_mock2.publisher_construction_order}'
-        )
-
+        
         graph_mock.add_edge.assert_called_once_with(
             GraphNode(comm_mock1.publish_node_name),
             GraphNode(comm_mock1.subscribe_node_name),
             expected_edge_label1
         )
 
-        for call in graph_mock.add_edge.call_args_list:
-            args, kwargs = call
-            assert args != (
-                GraphNode(comm_mock2.publish_node_name),
-                GraphNode(comm_mock2.subscribe_node_name),
-                expected_edge_label2
-            )
-
         assert graph_mock.add_edge.call_count == 1
+
+        start_node = GraphNode('node1')
+        goal_node = GraphNode('node2')
+        paths = graph_mock.search_paths(start_node, goal_node)
+
+        assert paths == [], 'Expected no paths to be found due to max callback construction order.'
