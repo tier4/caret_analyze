@@ -553,8 +553,9 @@ class TestCallbackPathSearcher:
         pub_cb_mock.construction_order = \
             DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING + 1
         sub_cb_mock.callback_name = 'sub_callback'
+        pub_cb_mock.callback_name = 'pub_callback'
 
-        mocker.patch.object(node_mock, 'callbacks', [sub_cb_mock])
+        mocker.patch.object(node_mock, 'callbacks', [sub_cb_mock, pub_cb_mock])
         mocker.patch.object(node_mock, 'variable_passings', [])
 
         searcher_mock = mocker.Mock(spec=Graph)
@@ -569,11 +570,24 @@ class TestCallbackPathSearcher:
             DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING,
         )
 
-        expected_edges = [
-            mocker.call.add_edge(GraphNode('sub_callback.read'), GraphNode('sub_callback.write'))
-        ]
+        expected_sub_read = 'sub_callback.read'
+        expected_sub_write = 'sub_callback.write'
+        called_sub_read = False
+        called_sub_write = False
+        for call in searcher_mock.add_edge.call_args_list:
+            args, kwargs = call
+            if args[0].node_name == expected_sub_read and args[1].node_name == expected_sub_write:
+                called_sub_read = True
+                called_sub_write = True
+        assert called_sub_read and called_sub_write
 
-        searcher_mock.add_edge.assert_has_calls(expected_edges, any_order=True)
+        expected_pub_read = 'pub_callback.read'
+        expected_pub_write = 'pub_callback.write'
+        for call in searcher_mock.add_edge.call_args_list:
+            args, kwargs = call
+            assert not (args[0].node_name == expected_pub_read and args[1].node_name == expected_pub_write)
+
+        assert searcher_mock.add_edge.call_count == 1
 
 
 class TestNodePathSearcher:
