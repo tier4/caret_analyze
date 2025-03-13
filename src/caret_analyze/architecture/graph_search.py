@@ -77,7 +77,7 @@ class GraphCore:
         self._v = max(self._v, u + 1, v + 1)
         self._graph[u].append(GraphEdgeCore(u, v, label))
 
-    def _search_paths(
+    def search_paths(
         self,
         u: int,
         d: int,
@@ -277,7 +277,7 @@ class Graph:
         path_cores: list[list[GraphPathCore]] = []
         for start, goal in zip(nodes[:-1], nodes[1:]):
             path_cores.append(
-                self._graph._search_paths(
+                self._graph.search_paths(
                     self._node_to_idx[start],
                     self._node_to_idx[goal],
                     max_depth or 0
