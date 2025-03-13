@@ -547,7 +547,7 @@ class TestCallbackPathSearcher:
 
         sub_cb_mock = mocker.Mock(spec=CallbackStruct)
         pub_cb_mock = mocker.Mock(spec=CallbackStruct)
-        
+
         sub_cb_mock.construction_order = DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING - 1
         pub_cb_mock.construction_order = DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING + 1
 
