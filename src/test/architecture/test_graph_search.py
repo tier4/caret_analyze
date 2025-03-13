@@ -567,23 +567,35 @@ class TestCallbackPathSearcher:
             DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING,
         )
 
-        edges = searcher._graph.edges
+        graph = searcher._graph
 
-        expected_sub_read = 'sub_callback_read'
-        expected_sub_write = 'sub_callback_write'
-        expected_pub_read = 'pub_callback_read'
-        expected_pub_write = 'pub_callback_write'
-        expected_var_read = 'sub_callback_read'
-        expected_var_write = 'pub_callback_write'
+        # Graph の search_paths を呼び出して結果を検証
+        start_node = GraphNode('sub_callback_read')
+        goal_node = GraphNode('sub_callback_write')
+        paths = graph.search_paths(start_node, goal_node)
 
-        sub_edge_exists = (expected_sub_read, expected_sub_write) in edges
-        pub_edge_exists = (expected_pub_read, expected_pub_write) in edges
-        var_edge_exists = (expected_var_write, expected_var_read) in edges
+        assert len(paths) == 1, 'sub_callback path was not found'
 
-        assert sub_edge_exists, 'sub_callback edge was not added'
-        assert not pub_edge_exists, 'pub_callback edge was added'
-        assert var_edge_exists, 'variable passing edge was not added'
-        assert len(edges) == 2, 'add_edge was not called twice'
+        start_node = GraphNode('pub_callback_read')
+        goal_node = GraphNode('pub_callback_write')
+        paths = graph.search_paths(start_node, goal_node)
+
+        assert len(paths) == 0, 'pub_callback path was found'
+
+        start_node = GraphNode('pub_callback_write')
+        goal_node = GraphNode('sub_callback_read')
+        paths = graph.search_paths(start_node, goal_node)
+
+        assert len(paths) == 1, 'variable passing path was not found'
+
+        # エッジの数が期待通りであることを確認
+        all_paths = []
+        for start in graph._nodes:
+            for goal in graph._nodes:
+                all_paths.extend(graph.search_paths(start, goal))
+
+        edge_count = sum(len(path.edges) for path in all_paths)
+        assert edge_count == 2, 'add_edge was not called twice'
 
 
 class TestNodePathSearcher:
