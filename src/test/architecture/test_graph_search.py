@@ -1169,7 +1169,7 @@ class TestNodePathSearcher:
             f'@{comm_mock1.subscription_construction_order}'
             f'@{comm_mock1.publisher_construction_order}'
         )
-        
+
         graph_mock.add_edge.assert_called_once_with(
             GraphNode(comm_mock1.publish_node_name),
             GraphNode(comm_mock1.subscribe_node_name),
@@ -1177,6 +1177,8 @@ class TestNodePathSearcher:
         )
 
         assert graph_mock.add_edge.call_count == 1
+
+        graph_mock.search_paths.return_value = []
 
         start_node = GraphNode('node1')
         goal_node = GraphNode('node2')
