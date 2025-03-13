@@ -571,6 +571,9 @@ class TestCallbackPathSearcher:
 
         graph = searcher._graph
 
+        # グラフに登録されたノードを確認
+        print("Registered nodes:", graph._nodes)  # 追加: 登録されたノードを表示
+
         # 正しいノード名を使用する
         start_node = GraphNode('sub_callback.read')
         goal_node = GraphNode('pub_callback.write')
@@ -580,7 +583,7 @@ class TestCallbackPathSearcher:
 
         # 必要に応じてアサーションを追加
         assert paths is not None, "Expected paths to be returned."
-        # 具体的なパスを検証するためのさらなるアサーションを追加できます。
+
 
 
 class TestNodePathSearcher:
