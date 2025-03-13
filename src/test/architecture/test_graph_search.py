@@ -546,13 +546,13 @@ class TestCallbackPathSearcher:
         node_mock = mocker.Mock(spec=NodeStruct)
 
         sub_cb_mock = mocker.Mock(spec=CallbackStruct)
-        pub_cb_mock = mocker.Mock(spec=CallbackStruct)
-
         sub_cb_mock.construction_order = \
             DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING - 1
+        sub_cb_mock.callback_name = 'sub_callback'
+
+        pub_cb_mock = mocker.Mock(spec=CallbackStruct)
         pub_cb_mock.construction_order = \
             DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING + 1
-        sub_cb_mock.callback_name = 'sub_callback'
         pub_cb_mock.callback_name = 'pub_callback'
 
         var_pass_mock = mocker.Mock(spec=VariablePassingStruct)
@@ -576,25 +576,29 @@ class TestCallbackPathSearcher:
         called_sub_write = False
         for call in searcher_mock.add_edge.call_args_list:
             args, kwargs = call
-            if args[0].node_name == \
-                    expected_sub_read and args[1].node_name == expected_sub_write:
+            if args[0].node_name == expected_sub_read and args[1].node_name == expected_sub_write:
                 called_sub_read = True
                 called_sub_write = True
+
         assert called_sub_read and called_sub_write
 
         expected_pub_read = 'pub_callback.read'
         expected_pub_write = 'pub_callback.write'
+        
         for call in searcher_mock.add_edge.call_args_list:
             args, kwargs = call
-            assert not (args[0].node_name == 
-                        expected_pub_read and args[1].node_name == expected_pub_write)
+            is_pub_read = args[0].node_name == expected_pub_read
+            is_pub_write = args[1].node_name == expected_pub_write
+            assert not (is_pub_read and is_pub_write)
 
         expected_var_read = 'sub_callback.read'
         expected_var_write = 'pub_callback.write'
+        
         for call in searcher_mock.add_edge.call_args_list:
             args, kwargs = call
-            assert not (args[0].node_name == 
-                        expected_var_write and args[1].node_name == expected_var_read)
+            is_var_write = args[0].node_name == expected_var_write
+            is_var_read = args[1].node_name == expected_var_read
+            assert not (is_var_write and is_var_read)
 
         assert len(searcher_mock.add_edge.call_args_list) == 1
 
