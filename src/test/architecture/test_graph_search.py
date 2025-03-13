@@ -559,48 +559,31 @@ class TestCallbackPathSearcher:
         var_pass_mock.callback_name_read = 'sub_callback'
         var_pass_mock.callback_name_write = 'pub_callback'
 
-        mocker.patch.object(node_mock, 'callbacks', [sub_cb_mock, pub_cb_mock])
-        mocker.patch.object(node_mock, 'variable_passings', [var_pass_mock])
+        node_mock.callbacks = [sub_cb_mock, pub_cb_mock]
+        node_mock.variable_passings = [var_pass_mock]
 
-        searcher_mock = mocker.Mock(spec=Graph)
-        mocker.patch('caret_analyze.architecture.graph_search.Graph', return_value=searcher_mock)
-
-        CallbackPathSearcher(
+        searcher = CallbackPathSearcher(
             node_mock,
             DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING,
         )
 
-        expected_sub_read = 'sub_callback.read'
-        expected_sub_write = 'sub_callback.write'
-        
-        sub_edge_called = any(
-            args[0].node_name == expected_sub_read and args[1].node_name == expected_sub_write
-            for args, _ in searcher_mock.add_edge.call_args_list
-        )
+        edges = searcher._graph.edges
 
-        assert sub_edge_called, "sub_callback edge was not added"
+        expected_sub_read = 'sub_callback_read'
+        expected_sub_write = 'sub_callback_write'
+        expected_pub_read = 'pub_callback_read'
+        expected_pub_write = 'pub_callback_write'
+        expected_var_read = 'sub_callback_read'
+        expected_var_write = 'pub_callback_write'
 
-        expected_pub_read = 'pub_callback.read'
-        expected_pub_write = 'pub_callback.write'
+        sub_edge_exists = (expected_sub_read, expected_sub_write) in edges
+        pub_edge_exists = (expected_pub_read, expected_pub_write) in edges
+        var_edge_exists = (expected_var_write, expected_var_read) in edges
 
-        pub_edge_called = any(
-            args[0].node_name == expected_pub_read and args[1].node_name == expected_pub_write
-            for args, _ in searcher_mock.add_edge.call_args_list
-        )
-
-        assert not pub_edge_called, "pub_callback edge was added"
-
-        expected_var_read = 'sub_callback.read'
-        expected_var_write = 'pub_callback.write'
-
-        var_edge_called = any(
-            args[0].node_name == expected_var_write and args[1].node_name == expected_var_read
-            for args, _ in searcher_mock.add_edge.call_args_list
-        )
-
-        assert var_edge_called, "variable passing edge was not added"
-
-        assert len(searcher_mock.add_edge.call_args_list) == 2, "add_edge was not called twice"
+        assert sub_edge_exists, 'sub_callback edge was not added'
+        assert not pub_edge_exists, 'pub_callback edge was added'
+        assert var_edge_exists, 'variable passing edge was not added'
+        assert len(edges) == 2, 'add_edge was not called twice'
 
 
 class TestNodePathSearcher:
