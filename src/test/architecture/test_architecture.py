@@ -424,6 +424,18 @@ class TestArchitecture:
         comm_mock_struct_1 = mocker.Mock(spec=CommunicationStructValue)
         mocker.patch.object(comm_mock_1, 'to_value', return_value=comm_mock_struct_1)
 
+        sub_value_0 = mocker.Mock()
+        callback_value_0 = mocker.Mock()
+        callback_value_0.construction_order = 1
+        sub_value_0._callback_value = callback_value_0
+        comm_mock_0._subscription_value = sub_value_0
+
+        sub_value_1 = mocker.Mock()
+        callback_value_1 = mocker.Mock()
+        callback_value_1.construction_order = 2
+        sub_value_1._callback_value = callback_value_1
+        comm_mock_1._subscription_value = sub_value_1
+
         mocker.patch.object(loaded_mock, 'nodes', [node_mock_0, node_mock_1, node_mock_2])
         mocker.patch.object(loaded_mock, 'paths', [])
 
