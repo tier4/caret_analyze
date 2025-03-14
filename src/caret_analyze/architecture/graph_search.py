@@ -552,9 +552,9 @@ class NodePathSearcher:
             if node_filter is not None and not node_filter(comm.subscribe_node_name):
                 continue
 
-            sub_cb_construction_order = comm._subscription_value._callback_value.construction_order
-            if max_callback_construction_order != 0 and \
-                    sub_cb_construction_order > max_callback_construction_order:
+            sub_cb = comm._subscription_value._callback_value
+            if max_callback_construction_order != 0 and sub_cb != None and \
+                    sub_cb.construction_order > max_callback_construction_order:
                 continue
 
             key = self._comm_key(comm)
