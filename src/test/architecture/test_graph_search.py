@@ -197,6 +197,20 @@ class TestGraphCore:
 
     #     g.search_paths(0, num-1)
 
+    def test_search_returning_to_start_case(self):
+        g = Graphcore()
+
+        g.add_edge(0, 1)
+        g.add_edge(1, 2)
+        g.add_edge(2, 3)
+        g.add_edge(3, 0)
+
+        r = g.search_paths(0, 0)
+        assert len(r) == 1
+        assert [
+            Graphedgecore(0, 1), Graphedgecore(1, 2), Graphedgecore(2, 3), Graphedgecore(3, 0)
+            ] in r
+
 
 class TestGraph:
 
