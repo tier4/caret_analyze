@@ -608,18 +608,18 @@ class TestNodeRecordsUseLatestMessage:
         take_records_data = [
             RecordCppImpl({
                 f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 1,
-                COLUMN_NAME.RMW_TAKE_TIMESTAMP: 2,
+                f'{topic_name_1}/{COLUMN_NAME.RMW_TAKE_TIMESTAMP}': 2,
             }),
             RecordCppImpl({
                 f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}': 6,
-                COLUMN_NAME.RMW_TAKE_TIMESTAMP: 7,
+                f'{topic_name_1}/{COLUMN_NAME.RMW_TAKE_TIMESTAMP}': 7,
             }),
         ]
         take_records = RecordsCppImpl(
             take_records_data,
             [
                 ColumnValue(f'{topic_name_1}/{COLUMN_NAME.SOURCE_TIMESTAMP}'),
-                ColumnValue(COLUMN_NAME.RMW_TAKE_TIMESTAMP),
+                ColumnValue(f'{topic_name_1}/{COLUMN_NAME.RMW_TAKE_TIMESTAMP}'),
             ]
         )
 

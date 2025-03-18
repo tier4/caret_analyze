@@ -59,6 +59,8 @@ class EventCounter:
         trace_points_added_by_ld_preload = {
             'ros2_caret:add_callback_group',
             'ros2_caret:add_callback_group_static_executor',
+            'ros2_caret:callback_group_to_executor_entity_collector',
+            'ros2_caret:executor_entity_collector_to_executor',
             'ros2_caret:construct_executor',
             'ros2_caret:construct_static_executor',
             'ros2_caret:callback_group_add_timer',
@@ -179,6 +181,10 @@ class EventCounter:
             'ros2:rcl_lifecycle_state_machine_init': data.lifecycle_state_machines.df,
             'ros2_caret:add_callback_group': data.callback_groups.df,
             'ros2_caret:add_callback_group_static_executor': data.callback_groups_static.df,
+            'ros2_caret:callback_group_to_executor_entity_collector':
+                data.callback_group_to_executor_entity_collector.df,
+            'ros2_caret:executor_entity_collector_to_executor':
+                data.executor_entity_collector_to_executor.df,
             'ros2_caret:construct_executor': data.executors.df,
             'ros2_caret:construct_static_executor': data.executors_static.df,
             'ros2_caret:callback_group_add_timer': data.callback_group_timer.df,
@@ -254,7 +260,7 @@ class EventCounter:
                 node_handle_to_node_name.get(row['node_handle'], '-')
             sub_handle_to_topic_name[handler] = row['topic_name']
             rmw_handle_to_node_name[row['rmw_handle']] = \
-                node_handle_to_node_name[row['node_handle']]
+                node_handle_to_node_name.get(row['node_handle'], '-')
             rmw_handle_to_topic_name[row['rmw_handle']] = row['topic_name']
 
         for handler, row in data.timer_node_links.df.iterrows():

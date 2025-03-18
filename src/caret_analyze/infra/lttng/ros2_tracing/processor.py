@@ -18,11 +18,16 @@
 from __future__ import annotations
 
 from collections import defaultdict
+
+from logging import getLogger
+
 from typing import Any, TYPE_CHECKING
 
 import bt2
 
 from .data_model import Ros2DataModel
+
+logger = getLogger(__name__)
 
 if TYPE_CHECKING:
     from ..id_remapper import IDRemapperCollection
@@ -79,6 +84,7 @@ class Ros2Handler():
 
         self._monotonic_to_system_offset: int | None = monotonic_to_system_time_offset
         self._caret_init_recorded: defaultdict[int, bool] = defaultdict(lambda: False)
+        self._distributions_cache: str | None = None
 
         # Temporary buffers
         self._callback_instances: dict[int, tuple[dict, Any]] = {}
@@ -121,6 +127,8 @@ class Ros2Handler():
             'ros2_caret:rmw_implementation',
             'ros2_caret:add_callback_group',
             'ros2_caret:add_callback_group_static_executor',
+            'ros2_caret:callback_group_to_executor_entity_collector',
+            'ros2_caret:executor_entity_collector_to_executor',
             'ros2_caret:construct_executor',
             'ros2_caret:construct_static_executor',
             'ros2_caret:callback_group_add_timer',
@@ -216,6 +224,10 @@ class Ros2Handler():
             self._handle_add_callback_group
         handler_map['ros2_caret:add_callback_group_static_executor'] = \
             self._handle_add_callback_group_static_executor
+        handler_map['ros2_caret:callback_group_to_executor_entity_collector'] = \
+            self._handle_callback_group_to_executor_entity_collector
+        handler_map['ros2_caret:executor_entity_collector_to_executor'] = \
+            self._handle_executor_entity_collector_to_executor
         handler_map['ros2_caret:construct_executor'] = \
             self._handle_construct_executor
         handler_map['ros2_caret:construct_static_executor'] = \
@@ -345,6 +357,22 @@ class Ros2Handler():
         pid = get_field(event, '_vpid')
         assert isinstance(pid, int)
         return self._caret_init_recorded[pid]
+
+    def _get_distribution(self, data: Ros2DataModel) -> str:
+
+        if self._distributions_cache is not None:
+            return self._distributions_cache
+
+        caret_init_df = data._caret_init._data
+        distributions = list(set(caret_init_df['distribution']))
+        if len(distributions) > 1:
+            logger.info('Multiple ros distributions are found.')
+
+        if len(distributions) == 0:
+            return 'NOTFOUND'
+
+        self._distributions_cache = distributions[0]
+        return distributions[0]
 
     def _handle_rcl_init(
         self,
@@ -875,6 +903,9 @@ class Ros2Handler():
         timestamp = get_field(event, '_timestamp')
         message = get_field(event, 'message')
         tid = get_field(event, '_vtid')
+        # memo: "timestamp" is not read because alternative data is used
+        # memo: "timestamp" and "_timestamp" are different
+        # memo: "rmw_publisher_handle" is not used so will not be loaded
 
         self.data.add_dds_write_instance(tid, timestamp, message)
 
@@ -912,6 +943,40 @@ class Ros2Handler():
         rmw_impl = get_field(event, 'rmw_impl')
         self.data.add_rmw_implementation(rmw_impl)
 
+    def _handle_callback_group_to_executor_entity_collector(
+        self,
+        event: dict,
+    ) -> None:
+        timestamp = get_field(event, '_timestamp')
+        collector_addr = get_field(event, 'entities_collector_addr')
+        callback_group_addr = get_field(event, 'callback_group_addr')
+        group_type_name = get_field(event, 'group_type_name')
+
+        collector_addr = \
+            self._remapper.entities_collector_addr_remapper.get_nearest_object_id(
+                collector_addr, event)
+        callback_group_addr = \
+            self._remapper.callback_group_addr_remapper.register_and_get_object_id(
+                callback_group_addr, event)
+        self.data.add_callback_group_to_executor_entity_collector(
+            collector_addr, callback_group_addr, group_type_name, timestamp)
+
+    def _handle_executor_entity_collector_to_executor(
+        self,
+        event: dict,
+    ) -> None:
+        timestamp = get_field(event, '_timestamp')
+        executor_addr = get_field(event, 'executor_addr')
+        collector_addr = get_field(event, 'entities_collector_addr')
+
+        executor_addr = self._remapper.executor_addr_remapper.register_and_get_object_id(
+            executor_addr, event)
+        collector_addr = \
+            self._remapper.entities_collector_addr_remapper.register_and_get_object_id(
+                collector_addr, event)
+        self.data.add_executor_entity_collector_to_executor(
+            executor_addr, collector_addr, timestamp)
+
     def _handle_construct_executor(
         self,
         event: dict,
@@ -920,8 +985,14 @@ class Ros2Handler():
         executor_addr = get_field(event, 'executor_addr')
         executor_type_name = get_field(event, 'executor_type_name')
 
-        executor_addr = self._remapper.executor_addr_remapper.register_and_get_object_id(
-            executor_addr, event)
+        distribution = self._get_distribution(self.data)
+        if distribution[0] >= 'jazzy'[0]:
+            executor_addr = self._remapper.executor_addr_remapper.get_nearest_object_id(
+                executor_addr, event)
+        else:
+            executor_addr = self._remapper.executor_addr_remapper.register_and_get_object_id(
+                executor_addr, event)
+
         self.data.add_executor(executor_addr, timestamp, executor_type_name)
 
     def _handle_construct_static_executor(
@@ -933,11 +1004,19 @@ class Ros2Handler():
         collector_addr = get_field(event, 'entities_collector_addr')
         executor_type_name = get_field(event, 'executor_type_name')
 
-        executor_addr = self._remapper.executor_addr_remapper.register_and_get_object_id(
-            executor_addr, event)
-        collector_addr = \
-            self._remapper.entities_collector_addr_remapper.register_and_get_object_id(
-                collector_addr, event)
+        distribution = self._get_distribution(self.data)
+        if distribution[0] >= 'jazzy'[0]:
+            executor_addr = self._remapper.executor_addr_remapper.get_nearest_object_id(
+                executor_addr, event)
+            collector_addr = \
+                self._remapper.entities_collector_addr_remapper.get_nearest_object_id(
+                    collector_addr, event)
+        else:
+            executor_addr = self._remapper.executor_addr_remapper.register_and_get_object_id(
+                executor_addr, event)
+            collector_addr = \
+                self._remapper.entities_collector_addr_remapper.register_and_get_object_id(
+                    collector_addr, event)
         self.data.add_executor_static(
             executor_addr, collector_addr, timestamp, executor_type_name)
 

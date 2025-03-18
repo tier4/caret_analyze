@@ -73,6 +73,8 @@ class TestEventCounter:
         data.add_dispatch_intra_process_subscription_callback_instance(0, 0, 0, 0)
         data.add_tilde_subscribe(0, 0, 0)
         data.add_tilde_publish(0, 0, 0, 0)
+        data.add_callback_group_to_executor_entity_collector(0, 0, 0, 0)
+        data.add_executor_entity_collector_to_executor(0, 0, 0)
         data.add_executor(0, 0, '')
         data.add_executor_static(0, 0, 0, '')
         data.add_callback_group(0, 0, 0, '')

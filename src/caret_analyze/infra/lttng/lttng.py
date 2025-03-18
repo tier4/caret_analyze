@@ -228,9 +228,11 @@ class CtfEventCollection(IterableEvents):
     def _to_event(msg: Any) -> dict[str, Any]:
         event: dict[str, Any] = {}
         event[LttngEventFilter.NAME] = msg.event.name
-        event['timestamp'] = msg.default_clock_snapshot.ns_from_origin
+        event[LttngEventFilter.TIMESTAMP] = msg.default_clock_snapshot.ns_from_origin
+        event[LttngEventFilter.VTID] = msg.event.common_context_field['vtid']
+        event[LttngEventFilter.VPID] = msg.event.common_context_field['vpid']
+        event[LttngEventFilter.PROCNAME] = msg.event.common_context_field['procname']
         event.update(msg.event.payload_field)
-        event.update(msg.event.common_context_field)
         return event
 
     @cached_property
@@ -252,10 +254,6 @@ class CtfEventCollection(IterableEvents):
                 continue
 
             event = CtfEventCollection._to_event(msg)
-            event[LttngEventFilter.TIMESTAMP] = event.pop('timestamp')
-            event[LttngEventFilter.VTID] = event.pop('vtid')
-            event[LttngEventFilter.VPID] = event.pop('vpid')
-            event[LttngEventFilter.PROCNAME] = event.pop('procname')
             event_dict = {
                 k: get_field(event, k) for k in event
             }
@@ -342,6 +340,8 @@ class Lttng(InfraBase):
         'ros2:rcl_lifecycle_state_machine_init',
         'ros2_caret:caret_init',
         'ros2_caret:rmw_implementation',
+        'ros2_caret:executor_entity_collector_to_executor',
+        'ros2_caret:callback_group_to_executor_entity_collector',
         'ros2_caret:construct_executor',
         'ros2_caret:construct_static_executor',
         'ros2_caret:add_callback_group',
@@ -854,13 +854,21 @@ class Lttng(InfraBase):
         records: RecordsInterface = self._source.system_and_sim_times
         system_times = records.get_column_series('system_time')
         sim_times = records.get_column_series('sim_time')
-        system_times_filtered = []
-        sim_times_filtered = []
+        system_times_filtered: list[int] = []
+        sim_times_filtered: list[int] = []
         for system_time, sim_time in zip(system_times, sim_times):
             if system_time is not None and sim_time is not None:
                 if min_ns <= system_time <= max_ns:
                     system_times_filtered.append(system_time)
                     sim_times_filtered.append(sim_time)
+
+        if (len(system_times_filtered) < 2):
+            logger.warning(
+                'Out-of-range time is used to convert sim_time, '
+                'due to no time data within the operating time of the target object.')
+            # Use all time data
+            system_times_filtered = [t for t in system_times if t is not None]
+            sim_times_filtered = [t for t in sim_times if t is not None]
 
         try:
             return ClockConverter.create_from_series(system_times_filtered, sim_times_filtered)
