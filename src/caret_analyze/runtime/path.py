@@ -56,7 +56,7 @@ class ColumnMerger():
         Returns
         -------
         str
-            Column name.
+            Append column name.
 
         """
         key = column_name
@@ -185,7 +185,7 @@ class RecordsMerged:
         Returns
         -------
         RecordsInterface
-            Data.
+            Records data.
 
         """
         return self._data
@@ -385,7 +385,7 @@ class Path(PathBase, Summarizable):
         Returns
         -------
         bool
-            Include first callback.
+            Flags for including the processing time of the first callback in the path analysis.
 
         """
         return self._include_first_callback
@@ -402,7 +402,7 @@ class Path(PathBase, Summarizable):
         Returns
         -------
         bool
-            Include last callback.
+            Flags for including the processing time of the last callback in the path analysis.
 
         """
         return self._include_last_callback
@@ -413,12 +413,12 @@ class Path(PathBase, Summarizable):
 
     def to_records(self) -> RecordsInterface:
         """
-        Get records.
+        Calculate records.
 
         Returns
         -------
         RecordsInterface
-            Records.
+            Execution time of each operation.
 
         """
         if (self._include_first_callback, self._include_last_callback) \

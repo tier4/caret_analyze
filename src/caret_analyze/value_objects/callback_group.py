@@ -309,7 +309,7 @@ class CallbackGroupStructValue(ValueObject, Summarizable):
         Returns
         -------
         Summary
-            Summary.
+            Summary about value objects and runtime data objects.
 
         """
         return Summary({

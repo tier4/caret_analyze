@@ -40,17 +40,17 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Parameters
         ----------
         node_publish : NodeStructValue
-            Node struct value.
-        symbol : str
-            Symbol name of the service callback.
-        service_name : str
-            Service name which the service callback service.
-        publish_topics : tuple[PublishTopicInfoValue, ...] | None
-            Topic information which the service callback publishes.
-        construction_order: int
-            Order of instance creation within the identical node.
-        callback_name: str
-            Service callback name. This argument is used by ArchitectureReaderYaml.
+            Node struct value on the publish side.
+        node_subscription : NodeStructValue
+            Node struct value on the subscription side.
+        publisher_value : PublisherStructValue
+            Publisher struct value on the publish side.
+        subscription_value : SubscriptionStructValue
+            Subscription struct value on the subscription side.
+        publish_callback_values : tuple[CallbackStructValue, ...] | None
+            Publisher callback struct values on the publish side.
+        subscription_callback_value : CallbackStructValue | None
+            Subscription callback struct value on the subscription side.
 
         """
         self._publisher_value = publisher_value
@@ -69,7 +69,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         NodeStructValue
-            Node struct value.
+            Node struct value on the subscription side.
 
         """
         return self._node_sub
@@ -82,7 +82,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         NodeStructValue
-            Node struct value.
+            Node struct value on the publish side.
 
         """
         return self._node_pub
@@ -108,7 +108,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         tuple[str, ...] | None
-            Callback names.
+            Callback names on the publish side.
 
         """
         if self._publish_callbacks_value is None:
@@ -123,7 +123,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         tuple[str, ...] | None
-            Callback names.
+            Callback names on the subscription side.
 
         """
         if self._subscription_callback_value is None:
@@ -138,7 +138,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         PublisherStructValue
-            Publisher struct value.
+            Struct value on the publish side.
 
         """
         return self._publisher_value
@@ -151,7 +151,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         SubscriptionStructValue
-            Subscription struct value.
+            Struct value on the subscription side.
 
         """
         return self._subscription_value
@@ -164,7 +164,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         tuple[CallbackStructValue, ...] | None
-            Callback struct value.
+            Callback struct value on the publish side.
 
         """
         return self._publish_callbacks_value
@@ -177,7 +177,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         tuple[CallbackStructValue, ...] | None
-            Callback struct value.
+            Callback struct value on the subscription side.
 
         """
         return self._subscription_callback_value
@@ -190,7 +190,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         str
-            Subscribe node name.
+            Node name on the subscription side.
 
         """
         return self._node_sub.node_name
@@ -203,7 +203,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         str
-            Publish node name.
+            Node name on the publish side.
 
         """
         return self._node_pub.node_name
@@ -216,7 +216,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         int
-            Publisher construction order.
+            construction on the publish side.
 
         """
         return self._publisher_value.construction_order
@@ -229,7 +229,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         int
-            Subscription construction order.
+            construction on the subscription side.
 
         """
         return self._subscription_value.construction_order
@@ -242,7 +242,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         Summary
-            Summary.
+            Summary about value objects and runtime data objects.
 
         """
         return Summary({
