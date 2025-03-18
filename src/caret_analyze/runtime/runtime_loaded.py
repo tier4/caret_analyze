@@ -85,7 +85,7 @@ class RuntimeLoaded():
         Returns
         -------
         list[str]
-            Nodes.
+            Node list.
 
         """
         return self._nodes
@@ -98,7 +98,7 @@ class RuntimeLoaded():
         Returns
         -------
         list[Executor]
-            Executors.
+            Executor list.
 
         """
         return self._executors
@@ -111,7 +111,7 @@ class RuntimeLoaded():
         Returns
         -------
         list[Communication]
-            Communications.
+            Communication list.
 
         """
         return self._comms
@@ -124,7 +124,7 @@ class RuntimeLoaded():
         Returns
         -------
         list[Path]
-            Paths.
+            Path list.
 
         """
         return self._paths
@@ -178,7 +178,7 @@ class ExecutorsLoaded:
         Returns
         -------
         list[Executor]:
-            Data.
+            Executor list.
 
         """
         return self._data
@@ -265,7 +265,7 @@ class NodesLoaded:
         Returns
         -------
         list[CallbackGroup]
-            Callback groups.
+            Callback groups list.
 
         """
         callback_groups: list[CallbackGroup] = []
@@ -282,7 +282,7 @@ class NodesLoaded:
         Returns
         -------
         list[Node]
-            Nodes data.
+            Node list.
 
         """
         return self._nodes
@@ -295,7 +295,7 @@ class NodesLoaded:
         Returns
         -------
         list[CallbackBase] | None:
-            Callbacks.
+            Callbacks list.
 
         """
         cbs = []
@@ -319,7 +319,7 @@ class NodesLoaded:
         Returns
         -------
         CallbackGroup
-            Callback group.
+            Callback group in search results.
 
         """
         try:
@@ -350,7 +350,7 @@ class NodesLoaded:
         Returns
         -------
         CallbackBase
-            Callback base.
+            Callback base in search results.
 
         """
         try:
@@ -381,7 +381,7 @@ class NodesLoaded:
         Returns
         -------
         Node
-            Node.
+            Node in search results.
 
         """
         try:
@@ -420,7 +420,7 @@ class NodesLoaded:
         Returns
         -------
         NodePath
-            Node path.
+            Node path in search results.
 
         """
         try:
@@ -454,10 +454,10 @@ class NodesLoaded:
             ----------
             node_name : str | None
                 Node name.
-            subscribe_topic_name : str | None
-                Subscribe topic name.
             publish_topic_name : str | None
                 Publish topic name.
+            subscribe_topic_name : str | None
+                Subscribe topic name.
             publisher_construction_order : int | None
                 Publisher construction order.
             subscription_construction_order : int | None
@@ -535,7 +535,7 @@ class PublishersLoaded:
         Returns
         -------
         list[Publisher]
-            Publisher data.
+            Publisher list.
 
         """
         return self._pubs
@@ -561,7 +561,7 @@ class PublishersLoaded:
         Returns
         -------
         list[Publisher]
-            Publishers.
+            Publisher list in search results.
 
         """
         is_target = PublishersLoaded.IsTarget(node_name, callback_name, topic_name)
@@ -591,7 +591,7 @@ class PublishersLoaded:
         Returns
         -------
         Publisher
-            Publisher.
+            Publisher in search results.
 
         """
         try:
@@ -695,7 +695,7 @@ class SubscriptionsLoaded:
         Returns
         -------
         list[Subscription]
-            Subscription data.
+            Subscription list.
 
         """
         return self._subs
@@ -721,7 +721,7 @@ class SubscriptionsLoaded:
         Returns
         -------
         list[Subscription]
-            Subscriptions.
+            Subscription list in search results.
 
         """
         is_target = SubscriptionsLoaded.IsTarget(node_name, callback_name, topic_name)
@@ -751,7 +751,7 @@ class SubscriptionsLoaded:
         Returns
         -------
         Subscription
-            Subscription.
+            Subscription in search results.
 
         """
         try:
@@ -859,7 +859,7 @@ class TimersLoaded:
         Returns
         -------
         list[Timer]
-            Timer data.
+            Timer list.
 
         """
         return self._timers
@@ -888,7 +888,7 @@ class TimersLoaded:
         Returns
         -------
         list[Timer]
-            Timers.
+            Timer list in search results.
 
         """
         is_target = TimersLoaded.IsTarget(
@@ -919,7 +919,7 @@ class TimersLoaded:
         Returns
         -------
         Timer
-            Timer.
+            Timer in search results..
 
         """
         try:
@@ -1060,7 +1060,7 @@ class NodePathsLoaded:
         Returns
         -------
         list[NodePath]
-            NodePath data.
+            NodePath list.
 
         """
         return self._data
@@ -1108,7 +1108,7 @@ class VariablePassingsLoaded:
         Returns
         -------
         list[VariablePassing]
-            VariablePassing data.
+            VariablePassing list.
 
         """
         return self._var_passes
@@ -1196,7 +1196,7 @@ class PathsLoaded:
         Returns
         -------
         list[Path]
-            Path data.
+            Path list.
 
         """
         return self._data
@@ -1238,7 +1238,7 @@ class CommunicationsLoaded:
         Returns
         -------
         list[Communication]
-            Communication data.
+            Communication list.
 
         """
         return self._data
@@ -1304,7 +1304,7 @@ class CommunicationsLoaded:
         Returns
         -------
         Communication
-            Communication.
+            Communication in search results.
 
         """
         def is_target(comm: Communication):
@@ -1414,7 +1414,7 @@ class CallbacksLoaded:
         Returns
         -------
         list[CallbackBase]
-            CallbackBase data.
+            CallbackBase list.
 
         """
         return self._callbacks
@@ -1478,7 +1478,7 @@ class CallbackGroupsLoaded:
         Returns
         -------
         list[CallbackGroup]
-            CallbackGroup data.
+            CallbackGroup list.
 
         """
         return self._data

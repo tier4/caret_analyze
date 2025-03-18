@@ -243,7 +243,7 @@ class Communication(PathBase, Summarizable):
         Returns
         -------
         list[str]
-            Column names.
+            Column names of this communication.
 
         """
         records = self.to_records()

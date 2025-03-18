@@ -183,7 +183,7 @@ class MessageContext(ValueObject, Summarizable):
         Returns
         -------
         dict
-            Dict.
+            Dictionary of context type and subscription/publisher topic name.
 
         """
         return {
@@ -286,7 +286,7 @@ class MessageContext(ValueObject, Summarizable):
         Returns
         -------
         Summary
-            Summary.
+            Summary about value objects and runtime data objects.
 
         """
         return Summary({
@@ -530,7 +530,7 @@ class CallbackChain(MessageContext):
         Returns
         -------
         dict
-            Dict.
+            Dictionary of callback name.
 
         """
         d = super().to_dict()

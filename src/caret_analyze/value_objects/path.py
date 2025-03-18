@@ -143,7 +143,7 @@ class PathStructValue(ValueObject, Summarizable):
         Returns
         -------
         tuple[str, ...]
-            Child names.
+            Node name for NodePathStructValue, topic name for CommunicationStructValue.
 
         """
         names = []
@@ -162,7 +162,7 @@ class PathStructValue(ValueObject, Summarizable):
         Returns
         -------
         tuple[NodePathStructValue, ...]
-            Node paths.
+            Node paths of Path struct value.
 
         """
         node_paths = Util.filter_items(
@@ -178,7 +178,7 @@ class PathStructValue(ValueObject, Summarizable):
         Returns
         -------
         tuple[CommunicationStructValue, ...]
-            communications.
+            Communications of Path struct value.
 
         """
         comm_paths = Util.filter_items(
@@ -194,7 +194,7 @@ class PathStructValue(ValueObject, Summarizable):
         Returns
         -------
         Summary
-            Summary.
+            Summary about value objects and runtime data objects.
 
         """
         d: Summary = Summary()
@@ -222,7 +222,7 @@ class PathStructValue(ValueObject, Summarizable):
         Returns
         -------
         tuple[NodePathStructValue | CommunicationStructValue, ...]
-            child.
+            Child of Path struct value.
 
         """
         return self._child
