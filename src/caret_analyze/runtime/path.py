@@ -157,7 +157,7 @@ class RecordsMerged:
                     logger.info(msg)
                 else:
                     msg = 'Detected dummy_records before merging end_records. merge terminated.'
-                    logger.warn(msg)
+                    logger.warning(msg)
                 break
             rename_rule = column_merger.append_columns_and_return_rename_rule(
                 right_records)
@@ -231,7 +231,7 @@ class RecordsMerged:
                 msg = 'include_last_callback argument is ignored '
                 msg += 'because last node receive messages '
                 msg += 'by `take` method instead of subscription callback.'
-                logger.warn(msg)
+                logger.warning(msg)
 
         logger.info('Finished merging path records.')
         left_records.sort(first_column)

@@ -1199,7 +1199,7 @@ class TestCallbacksLoaded:
         with pytest.raises(InvalidReaderError) as e:
             CallbacksLoaded(reader_mock, node)
 
-        logger.warn(e)
+        logger.warning(e)
         assert 'Duplicated callback id.' in caplog.messages[0]
 
     def test_duplicated_callback_name_cl(self, mocker, caplog):
@@ -1236,7 +1236,7 @@ class TestCallbacksLoaded:
         with pytest.raises(InvalidReaderError) as e:
             CallbacksLoaded(reader_mock, node)
 
-        logger.warn(e)
+        logger.warning(e)
         assert 'Duplicated callback names.' in caplog.messages[0]
 
 
