@@ -232,7 +232,7 @@ class RecordsMerged:
                     )
                 else:
                     msg = 'Empty records are not merged.'
-                    logger.warn(msg)
+                    logger.warning(msg)
             else:
                 msg = 'Since the path cannot be extended, '
                 msg += 'the merge process for the last callback record is skipped.'
