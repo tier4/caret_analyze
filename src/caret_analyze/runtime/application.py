@@ -280,7 +280,7 @@ class Application(Summarizable):
 
         Returns
         -------
-        CallbackBase
+        CallbackGroup
             callback group that matches the condition.
 
         Raises
@@ -781,7 +781,7 @@ class Application(Summarizable):
         Returns
         -------
         Summary
-            Summary info.
+            Summary about value objects and runtime data objects.
 
         """
         return Summary({

@@ -84,12 +84,12 @@ class ServiceValue(ValueObject):
     @property
     def service_name(self) -> str:
         """
-        Get node name.
+        Get service name.
 
         Returns
         -------
         str
-            Node name.
+            Service name.
 
         """
         return self._service_name
@@ -167,12 +167,12 @@ class ServiceStructValue(ValueObject, Summarizable):
     @property
     def service_name(self) -> str:
         """
-        Get node name.
+        Get service name.
 
         Returns
         -------
         str
-            Node name.
+            Service name.
 
         """
         return self._service_name
