@@ -1587,7 +1587,7 @@ class CallbackPathSearched():
     ) -> None:
         self._data: list[NodePathStruct]
 
-        searcher = CallbackPathSearcher(node)
+        searcher = CallbackPathSearcher(node, max_callback_construction_order)
 
         callbacks = node.callbacks
         paths: list[NodePathStruct] = []

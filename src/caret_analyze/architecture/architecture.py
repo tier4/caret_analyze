@@ -292,7 +292,12 @@ class Architecture(Summarizable):
 
         # Search
         path_searcher = NodePathSearcher(
-            tuple(self._nodes), tuple(self._communications), node_filter, communication_filter)
+            tuple(self._nodes),
+            tuple(self._communications),
+            self._max_callback_construction_order_on_path_searching,
+            node_filter,
+            communication_filter
+        )
         paths = [v.to_value() for v in
                  path_searcher.search(*node_names, max_node_depth=max_node_depth)]
 
