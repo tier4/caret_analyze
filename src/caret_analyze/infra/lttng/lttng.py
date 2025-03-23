@@ -356,6 +356,9 @@ class Lttng(InfraBase):
         'ros2:rclcpp_buffer_to_ipb',
         'ros2_caret:rclcpp_ipb_to_subscription',
         'ros2:rclcpp_ipb_to_subscription',
+        # For Agnocast
+        'ros2:agnocast_subscription_init',
+        'ros2:agnocast_publisher_init',
     ]
 
     def __init__(
@@ -568,6 +571,9 @@ class Lttng(InfraBase):
             data.finalize()
             if len(event_filters) > 0:
                 print('filtered to {} events.'.format(filtered_event_count))
+
+        # For Agnocast
+        data.merge_agnocast_data()
 
         events_ = None if len(events) == 0 else events
         return data, events_, begin, end
