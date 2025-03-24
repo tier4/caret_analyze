@@ -52,7 +52,7 @@ class RuntimeLoaded():
         provider: RecordsProvider | RuntimeDataProvider
     ) -> None:
         """
-        Append column.
+        Construct an instance.
 
         Parameters
         ----------
@@ -137,7 +137,7 @@ class ExecutorsLoaded:
         nodes_loaded: NodesLoaded
     ) -> None:
         """
-        Append column.
+        Construct an instance.
 
         Parameters
         ----------
@@ -191,7 +191,7 @@ class NodesLoaded:
         provider: RecordsProvider | RuntimeDataProvider
     ) -> None:
         """
-        Append column.
+        Construct an instance.
 
         Parameters
         ----------
@@ -314,12 +314,17 @@ class NodesLoaded:
         Parameters
         ----------
         callback_group_name : str
-            Callback group name.
+            Callback group name to be searched.
 
         Returns
         -------
         CallbackGroup
             Callback group in search results.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Failed to find an item that matches the condition.
 
         """
         try:
@@ -345,12 +350,17 @@ class NodesLoaded:
         Parameters
         ----------
         callback_name : str
-            Callback name.
+            Callback name to be searched.
 
         Returns
         -------
         CallbackBase
             Callback base in search results.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Failed to find an item that matches the condition.
 
         """
         try:
@@ -376,12 +386,17 @@ class NodesLoaded:
         Parameters
         ----------
         node_name : str
-            Node name.
+            Node name to be searched.
 
         Returns
         -------
         Node
             Node in search results.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Failed to find an item that matches the condition.
 
         """
         try:
@@ -453,15 +468,15 @@ class NodesLoaded:
             Parameters
             ----------
             node_name : str | None
-                Node name.
+                Node name used to determine object match.
             publish_topic_name : str | None
-                Publish topic name.
+                Publish topic name used to determine object match.
             subscribe_topic_name : str | None
-                Subscribe topic name.
+                Subscribe topic name used to determine object match.
             publisher_construction_order : int | None
-                Publisher construction order.
+                Publisher construction order used to determine object match.
             subscription_construction_order : int | None
-                Subscription construction order.
+                Subscription construction order used to determine object match.
 
             """
             self._node_name = node_name
@@ -561,7 +576,7 @@ class PublishersLoaded:
         Returns
         -------
         list[Publisher]
-            Publisher list in search results.
+            Publisher list that matches the condition.
 
         """
         is_target = PublishersLoaded.IsTarget(node_name, callback_name, topic_name)
@@ -591,7 +606,12 @@ class PublishersLoaded:
         Returns
         -------
         Publisher
-            Publisher in search results.
+            Publisher that matches the condition.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Failed to find an item that matches the condition.
 
         """
         try:
@@ -620,13 +640,13 @@ class PublishersLoaded:
             Parameters
             ----------
             node_name : str | None
-                Node name.
+                Node name used to determine object match.
             callback_name : str | None
-                Callback name.
+                Callback name used to determine object match.
             topic_name : str | None
-                Topic name.
+                Topic name used to determine object match.
             construction_order : int | None
-                Construction order.
+                Construction order used to determine object match.
 
             """
             self._node_name = node_name
@@ -753,6 +773,11 @@ class SubscriptionsLoaded:
         Subscription
             Subscription in search results.
 
+        Raises
+        ------
+        ItemNotFoundError
+            Failed to find an item that matches the condition.
+
         """
         try:
             is_target = SubscriptionsLoaded.IsTarget(
@@ -787,13 +812,13 @@ class SubscriptionsLoaded:
             Parameters
             ----------
             node_name : str | None
-                Node name.
+                Node name used to determine object match.
             callback_name : str | None
-                Callback name.
+                Callback name used to determine object match.
             topic_name : str | None
-                Topic name.
+                Topic name used to determine object match.
             construction_order : int | None
-                Construction order.
+                Construction order used to determine object match.
 
             """
             self._node_name = node_name
@@ -921,6 +946,11 @@ class TimersLoaded:
         Timer
             Timer in search results..
 
+        Raises
+        ------
+        ItemNotFoundError
+            Failed to find an item that matches the condition.
+
         """
         try:
             is_target = TimersLoaded.IsTarget(
@@ -947,13 +977,13 @@ class TimersLoaded:
             Parameters
             ----------
             node_name : str | None
-                Node name.
+                Node name used to determine object match.
             callback_name : str | None
-                Callback name.
-            period_ns : int | None
-                Period ns.
+                Callback name used to determine object match.
+            period_ns : str | None
+                Period ns used to determine object match.
             construction_order : int | None
-                Construction order.
+                Construction order used to determine object match.
 
             """
             self._node_name = node_name
@@ -1291,20 +1321,25 @@ class CommunicationsLoaded:
         Parameters
         ----------
         topic_name : str
-            Topic name.
+            Topic name used for find.
         publish_node_name : str
-            Publish node name.
+            Publish node name used for find.
         subscribe_node_name : str
-            Subscribe node name.
+            Subscribe node name used for find.
         publisher_construction_order : int
-            Publisher construction order.
+            Publisher construction order used for find.
         subscription_construction_order : int
-            Subscription construction order.
+            Subscription construction order used for find.
 
         Returns
         -------
         Communication
             Communication in search results.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Failed to find an item that matches the condition.
 
         """
         def is_target(comm: Communication):

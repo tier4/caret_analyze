@@ -89,7 +89,7 @@ class PathStructValue(ValueObject, Summarizable):
         path_name : str | None
             Path name.
         child : tuple[NodePathStructValue | CommunicationStructValue, ...]
-            Child.
+            Node paths of Path struct value or communications of Path struct value.
 
         """
         self._path_name = path_name

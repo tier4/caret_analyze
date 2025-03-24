@@ -44,13 +44,13 @@ class CommunicationStructValue(ValueObject, Summarizable):
         node_subscription : NodeStructValue
             Node struct value on the subscription side.
         publisher_value : PublisherStructValue
-            Publisher struct value on the publish side.
+            Publisher struct value.
         subscription_value : SubscriptionStructValue
-            Subscription struct value on the subscription side.
+            Subscription struct value.
         publish_callback_values : tuple[CallbackStructValue, ...] | None
-            Publisher callback struct values on the publish side.
+            Publisher callback struct values.
         subscription_callback_value : CallbackStructValue | None
-            Subscription callback struct value on the subscription side.
+            Subscription callback struct value.
 
         """
         self._publisher_value = publisher_value
@@ -108,7 +108,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         tuple[str, ...] | None
-            Callback names on the publish side.
+            Publish callback names.
 
         """
         if self._publish_callbacks_value is None:
@@ -123,7 +123,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         tuple[str, ...] | None
-            Callback names on the subscription side.
+            Subscribe callback names.
 
         """
         if self._subscription_callback_value is None:
@@ -138,7 +138,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         PublisherStructValue
-            Struct value on the publish side.
+            Publisher struct value.
 
         """
         return self._publisher_value
@@ -151,7 +151,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         SubscriptionStructValue
-            Struct value on the subscription side.
+            Subscription struct value.
 
         """
         return self._subscription_value
@@ -164,7 +164,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         tuple[CallbackStructValue, ...] | None
-            Callback struct value on the publish side.
+            Publish callback struct value.
 
         """
         return self._publish_callbacks_value
@@ -177,7 +177,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         tuple[CallbackStructValue, ...] | None
-            Callback struct value on the subscription side.
+            Subscribe callback struct value.
 
         """
         return self._subscription_callback_value
@@ -190,7 +190,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         str
-            Node name on the subscription side.
+            Subscribe node name.
 
         """
         return self._node_sub.node_name
@@ -203,7 +203,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         str
-            Node name on the publish side.
+            Publish node name.
 
         """
         return self._node_pub.node_name
@@ -216,7 +216,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         int
-            construction on the publish side.
+            Publisher construction order.
 
         """
         return self._publisher_value.construction_order
@@ -229,7 +229,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
         Returns
         -------
         int
-            construction on the subscription side.
+            Subscription construction order.
 
         """
         return self._subscription_value.construction_order
