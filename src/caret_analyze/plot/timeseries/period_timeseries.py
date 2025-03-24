@@ -47,11 +47,6 @@ class PeriodTimeSeries(MetricsBase):
             "system_time", "index", or "sim_time" can be specified.
             The default is "system_time".
 
-        Raises
-        ------
-        UnsupportedTypeError
-            Argument xaxis_type is not "system_time", "index", or "sim_time".
-
         Returns
         -------
         pd.DataFrame

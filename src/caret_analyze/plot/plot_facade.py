@@ -62,6 +62,7 @@ class Plot:
         Returns
         -------
         StackedBarPlot
+            Created instance of StackedBarPlot.
 
         """
         visualize_lib = VisualizeLibFactory.create_instance()
@@ -90,6 +91,7 @@ class Plot:
         Returns
         -------
         PlotBase
+            Created instance of period PlotBase.
 
         """
         visualize_lib = VisualizeLibFactory.create_instance()
@@ -113,6 +115,7 @@ class Plot:
         Returns
         -------
         PlotBase
+            Created instance of frequency PlotBase.
 
         """
         visualize_lib = VisualizeLibFactory.create_instance()
@@ -136,6 +139,7 @@ class Plot:
         Returns
         -------
         PlotBase
+            Created instance of latency PlotBase.
 
         """
         visualize_lib = VisualizeLibFactory.create_instance()
@@ -163,6 +167,7 @@ class Plot:
         Returns
         -------
         PlotBase
+            Created instance of response_time PlotBase.
 
         """
         visualize_lib = VisualizeLibFactory.create_instance()
@@ -195,6 +200,7 @@ class Plot:
         Returns
         -------
         CallbackSchedulingPlot
+            Created instance of CallbackSchedulingPlot.
 
         """
         visualize_lib = VisualizeLibFactory.create_instance()
@@ -234,6 +240,7 @@ class Plot:
         Returns
         -------
         MessageFlowPlot
+            Created instance of MessageFlowPlot.
 
         """
         visualize_lib = VisualizeLibFactory.create_instance()
@@ -259,6 +266,7 @@ class Plot:
         Returns
         -------
         PlotBase
+            Created instance of frequency PlotBase.
 
         """
         visualize_lib = VisualizeLibFactory.create_instance()
@@ -282,6 +290,7 @@ class Plot:
         Returns
         -------
         PlotBase
+            Created instance of latency PlotBase.
 
         """
         visualize_lib = VisualizeLibFactory.create_instance()
@@ -305,6 +314,7 @@ class Plot:
         Returns
         -------
         PlotBase
+            Created instance of period PlotBase.
 
         """
         visualize_lib = VisualizeLibFactory.create_instance()
@@ -332,6 +342,7 @@ class Plot:
         Returns
         -------
         PlotBase
+            Created instance of response_time PlotBase.
 
         """
         visualize_lib = VisualizeLibFactory.create_instance()

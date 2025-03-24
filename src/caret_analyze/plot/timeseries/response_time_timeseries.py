@@ -95,6 +95,11 @@ class ResponseTimeTimeSeries(MetricsBase):
         list[RecordsInterface]
             Response time records list of all target objects.
 
+        Raises
+        ------
+        ValueError
+            - Case is not "all", "best", "worst", or "worst-with-external-latency".
+
         """
         timeseries_records_list: list[RecordsInterface] = [
             _.to_records() for _ in self._target_objects
