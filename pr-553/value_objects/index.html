@@ -6991,7 +6991,7 @@ the node latency may be calculated to be small.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Target publisher.</p>
+              <p>Target publisher value.</p>
             </div>
           </td>
           <td>
@@ -7782,6 +7782,30 @@ the node latency may be calculated to be small.</p>
           </td>
           <td>
               <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Raises:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>ValueError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Argument name is not "mutually_exclusive", "reentrant", or "UNDEFINED".</p>
+            </div>
           </td>
         </tr>
     </tbody>
@@ -8978,6 +9002,30 @@ a value that can be identified when retrieved from the Architecture reader.</p>
     </tbody>
   </table>
 
+
+
+  <p><strong>Raises:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>ValueError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Argument name is not "timer_callback", "subscription_callback", or "service_callback".</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
   </div>
 
 </div>
@@ -9770,7 +9818,7 @@ a value that can be identified when retrieved from the Architecture reader.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Callback names on the publish side.</p>
+              <p>Publish callback names.</p>
             </div>
           </td>
         </tr>
@@ -9815,7 +9863,7 @@ a value that can be identified when retrieved from the Architecture reader.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Callback struct value on the publish side.</p>
+              <p>Publish callback struct value.</p>
             </div>
           </td>
         </tr>
@@ -9905,7 +9953,7 @@ a value that can be identified when retrieved from the Architecture reader.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Node name on the publish side.</p>
+              <p>Publish node name.</p>
             </div>
           </td>
         </tr>
@@ -9950,7 +9998,7 @@ a value that can be identified when retrieved from the Architecture reader.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Struct value on the publish side.</p>
+              <p>Publisher struct value.</p>
             </div>
           </td>
         </tr>
@@ -9995,7 +10043,7 @@ a value that can be identified when retrieved from the Architecture reader.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>construction on the publish side.</p>
+              <p>Publisher construction order.</p>
             </div>
           </td>
         </tr>
@@ -10040,7 +10088,7 @@ a value that can be identified when retrieved from the Architecture reader.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Callback struct value on the subscription side.</p>
+              <p>Subscribe callback struct value.</p>
             </div>
           </td>
         </tr>
@@ -10085,7 +10133,7 @@ a value that can be identified when retrieved from the Architecture reader.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Callback names on the subscription side.</p>
+              <p>Subscribe callback names.</p>
             </div>
           </td>
         </tr>
@@ -10175,7 +10223,7 @@ a value that can be identified when retrieved from the Architecture reader.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Node name on the subscription side.</p>
+              <p>Subscribe node name.</p>
             </div>
           </td>
         </tr>
@@ -10220,7 +10268,7 @@ a value that can be identified when retrieved from the Architecture reader.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Struct value on the subscription side.</p>
+              <p>Subscription struct value.</p>
             </div>
           </td>
         </tr>
@@ -10265,7 +10313,7 @@ a value that can be identified when retrieved from the Architecture reader.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>construction on the subscription side.</p>
+              <p>Subscription construction order.</p>
             </div>
           </td>
         </tr>
@@ -10430,7 +10478,7 @@ a value that can be identified when retrieved from the Architecture reader.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Publisher struct value on the publish side.</p>
+              <p>Publisher struct value.</p>
             </div>
           </td>
           <td>
@@ -10444,7 +10492,7 @@ a value that can be identified when retrieved from the Architecture reader.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Subscription struct value on the subscription side.</p>
+              <p>Subscription struct value.</p>
             </div>
           </td>
           <td>
@@ -10458,7 +10506,7 @@ a value that can be identified when retrieved from the Architecture reader.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Publisher callback struct values on the publish side.</p>
+              <p>Publisher callback struct values.</p>
             </div>
           </td>
           <td>
@@ -10472,7 +10520,7 @@ a value that can be identified when retrieved from the Architecture reader.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Subscription callback struct value on the subscription side.</p>
+              <p>Subscription callback struct value.</p>
             </div>
           </td>
           <td>
@@ -12415,6 +12463,30 @@ If the input timestamp is not unique, it may calculate an incorrect value.</p>
           <td>
             <div class="doc-md-description">
               <p>Message context.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Raises:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.exceptions.UnsupportedTypeError" href="../exceptions/#caret_analyze.exceptions.UnsupportedTypeError">UnsupportedTypeError</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Argument context_type_name is not supported.</p>
             </div>
           </td>
         </tr>
@@ -14966,40 +15038,6 @@ and used as the return value of Architecture object.</p>
     </tbody>
   </table>
 
-
-
-  <p><strong>Raises:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code><a class="autorefs autorefs-internal" title="caret_analyze.exceptions.ItemNotFoundError" href="../exceptions/#caret_analyze.exceptions.ItemNotFoundError">ItemNotFoundError</a></code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>Occurs when no items were found.</p>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td>
-                <code>MultipleItemFoundError</code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>Occurs when several items were found.</p>
-            </div>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
   </div>
 
 </div>
@@ -15669,7 +15707,7 @@ a value that can be identified when retrieved from the Architecture reader.</p>
             Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.node.NodeValue" href="#caret_analyze.value_objects.NodeValue">NodeValue</a></code></p>
 
   
-      <p>Value object class for representing a node path.</p>
+      <p>Value object class for representing a node with id.</p>
 <p>This class has minimal information and no structure,
 and used as the return value of ArchitectureReader.</p>
 
@@ -16242,7 +16280,7 @@ a value that can be identified when retrieved from the Architecture reader.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Child.</p>
+              <p>Node paths of Path struct value or communications of Path struct value.</p>
             </div>
           </td>
           <td>
@@ -18155,7 +18193,7 @@ a value that can be identified when retrieved from the Architecture reader.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Service name which the service callback service.</p>
+              <p>Service name which the service callback.</p>
             </div>
           </td>
           <td>
@@ -21682,7 +21720,7 @@ a value that can be identified when retrieved from the Architecture reader.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Summary info.</p>
+              <p>Summary about value objects and runtime data objects.</p>
             </div>
           </td>
         </tr>
@@ -22210,7 +22248,8 @@ a value that can be identified when retrieved from the Architecture reader.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Use message context</p>
+      <p>Use latest message.</p>
+<p>Latency is calculated from use latest message.</p>
   </div>
 
 </div>
