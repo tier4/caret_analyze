@@ -169,6 +169,11 @@ class RecordsMerged:
         include_last_callback : bool
             Flags for including the processing time of the last callback in the path analysis.
 
+        Raises
+        ------
+        InvalidArgumentError
+            There are no records to be merged.
+
         """
         if len(merge_targets) == 0:
             raise InvalidArgumentError('There are no records to be merged.')

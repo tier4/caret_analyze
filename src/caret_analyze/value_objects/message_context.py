@@ -340,6 +340,11 @@ class MessageContext(ValueObject, Summarizable):
         MessageContext
             Message context.
 
+        Raises
+        ------
+        UnsupportedTypeError
+            Argument context_type_name is not supported.
+
         """
         if context_type_name == str(MessageContextType.CALLBACK_CHAIN):
             return CallbackChain(node_name,
@@ -372,7 +377,12 @@ class MessageContext(ValueObject, Summarizable):
 class UseLatestMessage(MessageContext):
     TYPE_NAME = 'use_latest_message'
 
-    """Use message context"""
+    """
+    Use latest message.
+
+    Latency is calculated from use latest message.
+
+    """
 
     def verify(self) -> bool:
         """
@@ -471,7 +481,7 @@ class CallbackChain(MessageContext):
         subscription : SubscriptionStructValue | None
             Target subscription value.
         publisher : PublisherStructValue | None
-            Target publisher.
+            Target publisher value.
         callbacks : tuple[CallbackStructValue, ...] | None
             Callbacks.
 

@@ -285,8 +285,6 @@ class Node(Summarizable):
             Occurs when the given argument type is invalid.
         ItemNotFoundError
             Occurs when no items were found.
-        MultipleItemFoundError
-            Occurs when several items were found.
 
         """
         if not isinstance(callback_group_name, str):
@@ -328,10 +326,6 @@ class Node(Summarizable):
         ------
         InvalidArgumentError
             Occurs when the given argument type is invalid.
-        ItemNotFoundError
-            Occurs when no items were found.
-        MultipleItemFoundError
-            Occurs when several items were found.
 
         """
         if not isinstance(subscribe_topic_name, str) and subscribe_topic_name is not None:
@@ -368,8 +362,6 @@ class Node(Summarizable):
             Occurs when the given argument type is invalid.
         ItemNotFoundError
             Occurs when no items were found.
-        MultipleItemFoundError
-            Occurs when several items were found.
 
         """
         if not isinstance(callback_name, str):
@@ -393,13 +385,6 @@ class Node(Summarizable):
         -------
         list[CallbackBase]
             callbacks that match the condition.
-
-        Raises
-        ------
-        InvalidArgumentError
-            Occurs when the given argument type is invalid.
-        ItemNotFoundError
-            Occurs when no items were found.
 
         """
         callbacks = []
@@ -432,10 +417,6 @@ class Node(Summarizable):
         ------
         InvalidArgumentError
             Occurs when the given argument type is invalid.
-        ItemNotFoundError
-            Occurs when no items were found.
-        MultipleItemFoundError
-            Occurs when several items were found.
 
         """
         if not isinstance(topic_name, str):
@@ -473,10 +454,6 @@ class Node(Summarizable):
         ------
         InvalidArgumentError
             Occurs when the given argument type is invalid.
-        ItemNotFoundError
-            Occurs when no items were found.
-        MultipleItemFoundError
-            Occurs when several items were found.
 
         """
         if not isinstance(topic_name, str):

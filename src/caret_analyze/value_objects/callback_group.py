@@ -44,6 +44,11 @@ class CallbackGroupType(ValueObject):
         name : str
             type name ['mutually_exclusive', 'reentrant', 'UNDEFINED']
 
+        Raises
+        ------
+        ValueError
+            Argument name is not "mutually_exclusive", "reentrant", or "UNDEFINED".
+
         """
         if name not in ['mutually_exclusive', 'reentrant', 'UNDEFINED']:
             raise ValueError(f'Unsupported callback group type: {name}')

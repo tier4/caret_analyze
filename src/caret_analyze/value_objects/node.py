@@ -86,7 +86,7 @@ class NodeValue(ValueObject):
 
 class NodeValueWithId(NodeValue):
     """
-    Value object class for representing a node path.
+    Value object class for representing a node with id.
 
     This class has minimal information and no structure,
     and used as the return value of ArchitectureReader.
@@ -307,13 +307,6 @@ class NodeStructValue(ValueObject, Summarizable):
         -------
         NodePathStructValue
             Node path that matches the condition.
-
-        Raises
-        ------
-        ItemNotFoundError
-            Occurs when no items were found.
-        MultipleItemFoundError
-            Occurs when several items were found.
 
         """
         def is_target(path: NodePathStructValue):
