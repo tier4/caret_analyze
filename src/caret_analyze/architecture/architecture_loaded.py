@@ -291,7 +291,7 @@ class NodeValuesLoaded():
         try:
             self._validate(nodes)
         except InvalidReaderError as e:
-            logger.warn(e)
+            logger.warning(e)
 
         nodes = self._remove_duplicated(nodes)
 
@@ -306,7 +306,7 @@ class NodeValuesLoaded():
                 self._cb_loaded.append(cb_loaded)
                 self._cbg_loaded.append(cbg_loaded)
             except Error as e:
-                logger.warn(f'Failed to load node. node_name = {node.node_name}, {e}')
+                logger.warning(f'Failed to load node. node_name = {node.node_name}, {e}')
 
         nodes_struct = sorted(nodes_struct, key=lambda x: x.node_name)
         self._data = nodes_struct
@@ -833,7 +833,7 @@ class SubscriptionsLoaded:
         try:
             self._validate(subscription_values)
         except InvalidReaderError as e:
-            logger.warn(e)
+            logger.warning(e)
 
         subscription_values = self._remove_duplicated(subscription_values)
 
@@ -905,7 +905,7 @@ class ServicesLoaded:
         try:
             self._validate(services_values)
         except InvalidReaderError as e:
-            logger.warn(e)
+            logger.warning(e)
 
         services_values = self._remove_duplicated(services_values)
 
@@ -978,7 +978,7 @@ class TimersLoaded:
         try:
             self._validate(timer_values)
         except InvalidReaderError as e:
-            logger.warn(e)
+            logger.warning(e)
 
         timer_values = self._remove_duplicated(timer_values)
 
@@ -1129,7 +1129,7 @@ class CallbackGroupsLoaded():
                 duplicated_names.add(cbg_name)
                 self._data[cbg.callback_group_id] = cbg_struct
             except InvalidReaderError as e:
-                logger.warn(e)
+                logger.warning(e)
 
     @staticmethod
     def _validate_name(name: str, names: set[str]):
@@ -1387,7 +1387,7 @@ class ExecutorValuesLoaded():
         try:
             self._validate(exec_vals)
         except InvalidReaderError as e:
-            logger.warn(e)
+            logger.warning(e)
         exec_vals = self._remove_duplicated(exec_vals)
 
         num_digit = Util.num_digit(len(exec_vals))
@@ -1497,7 +1497,7 @@ class PathValuesLoaded():
         try:
             self._validate(path_values)
         except InvalidReaderError as e:
-            logger.warn(e)
+            logger.warning(e)
 
         path_values = self._remove_duplicated(path_values)
 
@@ -1615,7 +1615,7 @@ class CallbackPathSearched():
                 paths += searched_paths
 
             if skip_count:
-                logger.warn(
+                logger.warning(
                     f'{node.node_name} '
                     f'contains callbacks whose construction_order are greater than '
                     f'{max_callback_construction_order}. '
