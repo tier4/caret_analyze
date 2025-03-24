@@ -86,7 +86,8 @@ class TimeSeriesPlot(PlotBase):
 
         Returns
         -------
-        bokeh.plotting.Figure
+        Figure
+            bokeh.plotting.Figure
 
         Raises
         ------

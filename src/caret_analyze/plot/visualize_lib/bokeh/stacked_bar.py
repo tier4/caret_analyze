@@ -39,6 +39,15 @@ class BokehStackedBar:
         self._case = case
 
     def create_figure(self) -> Figure:
+        """
+        Create Bokeh stacked bar figure.
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+            Figure of Bokeh stacked bar.
+
+        """
         # NOTE: relation between stacked bar graph and data struct
         # # data = {
         # #     a : [a1, a2, a3],
@@ -219,12 +228,30 @@ class StackedBarSource:
         return new_values
 
     def add_label_data_to_stacked_bar(self, stacked_bar: list[GraphRenderer]):
+        """
+        add 'label' data to each bar due to display hover.
+
+        Parameters
+        ----------
+        stacked_bar : list[GraphRenderer]
+            Stacked bar lists.
+
+        """
         # add 'label' data to each bar due to display hover
         x_len = min([len(v) for v in self._data.values()])
         for bar in stacked_bar:
             bar.data_source.add([bar.name] * x_len, 'label')
 
     def add_latency_data_to_stacked_bar(self, stacked_bar: list[GraphRenderer]):
+        """
+        add 'latency' data to each bar due to display hover.
+
+        Parameters
+        ----------
+        stacked_bar : list[GraphRenderer]
+            Stacked bar lists.
+
+        """
         # add 'latency' data to each bar due to display hover
         for bar in stacked_bar:
             bar.data_source.add(['latency = ' + str(latency)
@@ -233,6 +260,15 @@ class StackedBarSource:
     def to_source(
         self,
     ) -> dict[str, list[int | float]]:
+        """
+        Get stacked bar source.
+
+        Returns
+        -------
+        dict[str, list[int | float]]
+            Stacked bar source.
+
+        """
         # NOTE: Using `ColumnDataSource`, it is not possible
         # NOTE: to display a different hover for each stack (cause unknown).
         # convert timestamp to latency

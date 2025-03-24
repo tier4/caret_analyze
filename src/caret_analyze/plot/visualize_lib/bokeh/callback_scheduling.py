@@ -51,6 +51,15 @@ class BokehCallbackSched:
         self._rstrip_s = rstrip_s
 
     def create_figure(self) -> Figure:
+        """
+        Create Bokeh callback sched figure.
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+            Figure of Bokeh callback sched.
+
+        """
         # Initialize figure
         title = ('Callback Scheduling in '
                  f"[{'/'.join([cbg.callback_group_name for cbg in self._callback_groups])}].")
@@ -180,6 +189,15 @@ class CallbackSchedRectSource:
 
     @property
     def rect_y_base(self) -> float:
+        """
+        Get rect y_base.
+
+        Returns
+        -------
+        float
+            rect y_base.
+
+        """
         return self._rect_y_base
 
     def create_hover(self, options: dict[str, Any] = {}) -> HoverTool:
@@ -194,6 +212,7 @@ class CallbackSchedRectSource:
         Returns
         -------
         HoverTool
+            Created hover.
 
         """
         return self._hover_keys.create_hover(options)
@@ -210,6 +229,7 @@ class CallbackSchedRectSource:
         Returns
         -------
         ColumnDataSource
+            Generated callback scheduling rect source
 
         """
         rect_source = ColumnDataSource(data={
@@ -276,6 +296,7 @@ class CallbackSchedBarSource:
         Returns
         -------
         HoverTool
+            Created hover.
 
         """
         return self._hover_keys.create_hover(options)
@@ -294,6 +315,7 @@ class CallbackSchedBarSource:
         Returns
         -------
         ColumnDataSource
+            Generated callback scheduling bar source
 
         """
         rect = RectValues(

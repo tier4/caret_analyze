@@ -66,6 +66,12 @@ class HistogramPlot(PlotBase):
         Returns
         -------
         pd.DataFrame
+            Histogram dataFrame.
+
+        Raises
+        ------
+        NotImplementedError
+            This module is not implemented.
 
         """
         raise NotImplementedError()
@@ -93,7 +99,8 @@ class HistogramPlot(PlotBase):
 
         Returns
         -------
-        bokeh.plotting.Figure
+        Figure
+            bokeh.plotting.Figure
 
         Raises
         ------
