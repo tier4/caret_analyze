@@ -15038,6 +15038,40 @@ and used as the return value of Architecture object.</p>
     </tbody>
   </table>
 
+
+
+  <p><strong>Raises:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.exceptions.ItemNotFoundError" href="../exceptions/#caret_analyze.exceptions.ItemNotFoundError">ItemNotFoundError</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Occurs when no items were found.</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code>MultipleItemFoundError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Occurs when several items were found.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
   </div>
 
 </div>
@@ -15143,6 +15177,16 @@ and used as the return value of Architecture object.</p>
           <td>
             <div class="doc-md-description">
               <p>Occurs when no items were found.</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code>MultipleItemFoundError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Occurs when several items were found.</p>
             </div>
           </td>
         </tr>
@@ -15257,6 +15301,16 @@ and used as the return value of Architecture object.</p>
             </div>
           </td>
         </tr>
+        <tr>
+          <td>
+                <code>MultipleItemFoundError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Occurs when several items were found.</p>
+            </div>
+          </td>
+        </tr>
     </tbody>
   </table>
 
@@ -15368,6 +15422,16 @@ and used as the return value of Architecture object.</p>
             </div>
           </td>
         </tr>
+        <tr>
+          <td>
+                <code>MultipleItemFoundError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Occurs when several items were found.</p>
+            </div>
+          </td>
+        </tr>
     </tbody>
   </table>
 
@@ -15476,6 +15540,16 @@ and used as the return value of Architecture object.</p>
           <td>
             <div class="doc-md-description">
               <p>Occurs when no items were found.</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code>MultipleItemFoundError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Occurs when several items were found.</p>
             </div>
           </td>
         </tr>
@@ -16280,7 +16354,8 @@ a value that can be identified when retrieved from the Architecture reader.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Node paths of Path struct value or communications of Path struct value.</p>
+              <p>Tuple with alternating elements of NodePath and Communication,
+which are the elements that make up the Path.</p>
             </div>
           </td>
           <td>

@@ -1925,6 +1925,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.runtime.Path.get_child" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_child
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.runtime.Path.to_records" class="md-nav__link">
     <span class="md-ellipsis">
       to_records
@@ -3727,6 +3736,15 @@
   <a href="#caret_analyze.runtime.Path.clear_cache" class="md-nav__link">
     <span class="md-ellipsis">
       clear_cache
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.runtime.Path.get_child" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_child
     </span>
   </a>
   
@@ -12421,6 +12439,99 @@ return None except for all of node paths are not callback-chain.</p>
   <div class="doc doc-contents ">
   
       <p>Clear to_records/to_dataframe cache.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.runtime.Path.get_child" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">get_child</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.runtime.Path.get_child" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get child.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Topic name or node name.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Raises:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.exceptions.InvalidArgumentError" href="../exceptions/#caret_analyze.exceptions.InvalidArgumentError">InvalidArgumentError</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Occurs when the given argument type is invalid.</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code>ItemNotFoundError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Occurs when no items were found.</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code>MultipleItemFoundError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Occurs when several items were found.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
 
   </div>
 
