@@ -194,6 +194,8 @@ class Application(Summarizable):
         ------
         InvalidArgumentError
             Occurs when the given argument type is invalid.
+        ItemNotFoundError
+            Occurs when no items were found.
 
         """
         if not isinstance(path_name, str):
@@ -228,6 +230,8 @@ class Application(Summarizable):
         ------
         InvalidArgumentError
             Given argument type is invalid.
+        ItemNotFoundError
+            Occurs when no items were found.
 
         """
         if not isinstance(executor_name, str):
@@ -281,6 +285,8 @@ class Application(Summarizable):
         ------
         InvalidArgumentError
             Given argument type is invalid.
+        ItemNotFoundError
+            Occurs when no items were found.
 
         """
         if not isinstance(callback_group_name, str):
@@ -327,6 +333,8 @@ class Application(Summarizable):
         ------
         InvalidArgumentError
             Given argument type is invalid.
+        ItemNotFoundError
+            Occurs when no items were found.
 
         """
         if not isinstance(publisher_node_name, str) or \
@@ -453,6 +461,8 @@ class Application(Summarizable):
         ------
         InvalidArgumentError
             Occurs when the given argument type is invalid.
+        ItemNotFoundError
+            Occurs when no items were found.
 
         """
         if not isinstance(node_name, str) or \
@@ -501,6 +511,8 @@ class Application(Summarizable):
         ------
         InvalidArgumentError
             Occurs when the given argument type is invalid.
+        ItemNotFoundError
+            Occurs when no items were found.
 
         """
         if not isinstance(topic_name, str):
@@ -600,6 +612,8 @@ class Application(Summarizable):
         ------
         InvalidArgumentError
             Occurs when the given argument type is invalid.
+        ItemNotFoundError
+            Occurs when no items were found.
 
         """
         if not isinstance(node_name, str):
@@ -647,6 +661,8 @@ class Application(Summarizable):
         ------
         InvalidArgumentError
             Occurs when the given argument type is invalid.
+        ItemNotFoundError
+            Occurs when no items were found.
 
         """
         if not isinstance(node_name, str):
@@ -677,6 +693,8 @@ class Application(Summarizable):
         ------
         InvalidArgumentError
             Occurs when the given argument type is invalid.
+        ItemNotFoundError
+            Occurs when no items were found.
 
         """
         if not isinstance(callback_name, str):

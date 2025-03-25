@@ -324,7 +324,9 @@ class NodesLoaded:
         Raises
         ------
         ItemNotFoundError
-            Failed to find an item that matches the condition.
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
 
         """
         try:
@@ -360,7 +362,9 @@ class NodesLoaded:
         Raises
         ------
         ItemNotFoundError
-            Failed to find an item that matches the condition.
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
 
         """
         try:
@@ -396,7 +400,9 @@ class NodesLoaded:
         Raises
         ------
         ItemNotFoundError
-            Failed to find an item that matches the condition.
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
 
         """
         try:
@@ -436,6 +442,13 @@ class NodesLoaded:
         -------
         NodePath
             Node path in search results.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
 
         """
         try:
@@ -611,7 +624,9 @@ class PublishersLoaded:
         Raises
         ------
         ItemNotFoundError
-            Failed to find an item that matches the condition.
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
 
         """
         try:
@@ -776,7 +791,9 @@ class SubscriptionsLoaded:
         Raises
         ------
         ItemNotFoundError
-            Failed to find an item that matches the condition.
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
 
         """
         try:
@@ -949,7 +966,9 @@ class TimersLoaded:
         Raises
         ------
         ItemNotFoundError
-            Failed to find an item that matches the condition.
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
 
         """
         try:
@@ -1339,7 +1358,9 @@ class CommunicationsLoaded:
         Raises
         ------
         ItemNotFoundError
-            Failed to find an item that matches the condition.
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
 
         """
         def is_target(comm: Communication):

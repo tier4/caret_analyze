@@ -161,7 +161,7 @@ def apply_x_axis_offset(
 
 def get_callback_param_desc(callback: CallbackBase):
     """
-    Get callback paramater desc.
+    Get callback parameter desc.
 
     Parameters
     ----------
