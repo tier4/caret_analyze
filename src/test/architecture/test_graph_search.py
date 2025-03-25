@@ -24,8 +24,8 @@ from caret_analyze.architecture.struct import (CallbackStruct,
                                                CommunicationStruct,
                                                NodePathStruct, NodeStruct,
                                                PathStruct,
-                                               PublisherStruct, SubscriptionStruct,
-                                               VariablePassingStruct)
+                                               PublisherStruct, SubscriptionCallbackStruct,
+                                               SubscriptionStruct, VariablePassingStruct)
 from caret_analyze.exceptions import ItemNotFoundError
 from caret_analyze.value_objects import (CommunicationStructValue,
                                          NodePathStructValue)
@@ -669,11 +669,11 @@ class TestNodePathSearcher:
         comm_value_mock = mocker.Mock(spec=CommunicationStructValue)
         mocker.patch.object(comm_mock, 'to_value', return_value=comm_value_mock)
 
-        sub_value = mocker.Mock()
-        callback_value = mocker.Mock()
-        callback_value.construction_order = 1
-        sub_value._callback_value = callback_value
-        comm_mock._subscription_value = sub_value
+        callback = mocker.Mock()
+        mocker.patch.object(callback, 'construction_order', 1)
+        mocker.patch.object(comm_mock, 'subscribe_callback', callback)
+
+        mocker.patch.object(node_mock, 'paths', [node_path_mock])
 
         mocker.patch.object(
             NodePathSearcher, '_create_head_dummy_node_path', return_value=node_path_mock)
@@ -681,7 +681,6 @@ class TestNodePathSearcher:
         mocker.patch.object(
             NodePathSearcher, '_create_tail_dummy_node_path', return_value=node_path_mock)
 
-        mocker.patch.object(node_mock, 'paths', [])
         searcher = NodePathSearcher(
             (node_mock,),
             (comm_mock,),
@@ -739,11 +738,9 @@ class TestNodePathSearcher:
         comm_value_mock = mocker.Mock(spec=CommunicationStructValue)
         mocker.patch.object(comm_mock, 'to_value', return_value=comm_value_mock)
 
-        sub_value = mocker.Mock()
-        callback_value = mocker.Mock()
-        callback_value.construction_order = 1
-        sub_value._callback_value = callback_value
-        comm_mock._subscription_value = sub_value
+        callback = mocker.Mock()
+        mocker.patch.object(callback, 'construction_order', 1)
+        mocker.patch.object(comm_mock, 'subscribe_callback', callback)
 
         mocker.patch.object(
             NodePathSearcher, '_create_head_dummy_node_path', return_value=node_path_mock)
@@ -838,6 +835,9 @@ class TestNodePathSearcher:
         mocker.patch.object(comm_mock_0, 'publisher_construction_order', 0)
         comm_mock_struct_0 = mocker.Mock(spec=CommunicationStructValue)
         mocker.patch.object(comm_mock_0, 'to_value', return_value=comm_mock_struct_0)
+        callback_0 = mocker.Mock()
+        mocker.patch.object(callback_0, 'construction_order', 1)
+        mocker.patch.object(comm_mock_0, 'subscribe_callback', callback_0)
 
         mocker.patch.object(comm_mock_1, 'publish_node_name', '1')
         mocker.patch.object(comm_mock_1, 'subscribe_node_name', '2')
@@ -846,18 +846,9 @@ class TestNodePathSearcher:
         mocker.patch.object(comm_mock_1, 'publisher_construction_order', 0)
         comm_mock_struct_1 = mocker.Mock(spec=CommunicationStructValue)
         mocker.patch.object(comm_mock_1, 'to_value', return_value=comm_mock_struct_1)
-
-        sub_value_0 = mocker.Mock()
-        callback_value_0 = mocker.Mock()
-        callback_value_0.construction_order = 1
-        sub_value_0._callback_value = callback_value_0
-        comm_mock_0._subscription_value = sub_value_0
-
-        sub_value_1 = mocker.Mock()
-        callback_value_1 = mocker.Mock()
-        callback_value_1.construction_order = 2
-        sub_value_1._callback_value = callback_value_1
-        comm_mock_1._subscription_value = sub_value_1
+        callback_1 = mocker.Mock()
+        mocker.patch.object(callback_1, 'construction_order', 2)
+        mocker.patch.object(comm_mock_1, 'subscribe_callback', callback_1)
 
         mocker.patch.object(node_mock_0, 'paths', [node_path_mock_0])
         mocker.patch.object(node_mock_1, 'paths', [node_path_mock_1])
@@ -955,6 +946,9 @@ class TestNodePathSearcher:
         mocker.patch.object(comm_mock_0, 'publisher_construction_order', 0)
         comm_mock_struct_0 = mocker.Mock(spec=CommunicationStructValue)
         mocker.patch.object(comm_mock_0, 'to_value', return_value=comm_mock_struct_0)
+        callback_0 = mocker.Mock()
+        mocker.patch.object(callback_0, 'construction_order', 1)
+        mocker.patch.object(comm_mock_0, 'subscribe_callback', callback_0)
 
         mocker.patch.object(comm_mock_1, 'publish_node_name', '1')
         mocker.patch.object(comm_mock_1, 'subscribe_node_name', '2')
@@ -963,6 +957,9 @@ class TestNodePathSearcher:
         mocker.patch.object(comm_mock_1, 'publisher_construction_order', 0)
         comm_mock_struct_1 = mocker.Mock(spec=CommunicationStructValue)
         mocker.patch.object(comm_mock_1, 'to_value', return_value=comm_mock_struct_1)
+        callback_1 = mocker.Mock()
+        mocker.patch.object(callback_1, 'construction_order', 2)
+        mocker.patch.object(comm_mock_1, 'subscribe_callback', callback_1)
 
         mocker.patch.object(comm_mock_2, 'publish_node_name', '3')
         mocker.patch.object(comm_mock_2, 'subscribe_node_name', '4')
@@ -971,6 +968,9 @@ class TestNodePathSearcher:
         mocker.patch.object(comm_mock_2, 'publisher_construction_order', 1)
         comm_mock_struct_2 = mocker.Mock(spec=CommunicationStructValue)
         mocker.patch.object(comm_mock_2, 'to_value', return_value=comm_mock_struct_2)
+        callback_2 = mocker.Mock()
+        mocker.patch.object(callback_2, 'construction_order', 3)
+        mocker.patch.object(comm_mock_2, 'subscribe_callback', callback_2)
 
         mocker.patch.object(comm_mock_3, 'publish_node_name', '4')
         mocker.patch.object(comm_mock_3, 'subscribe_node_name', '5')
@@ -979,30 +979,9 @@ class TestNodePathSearcher:
         mocker.patch.object(comm_mock_3, 'publisher_construction_order', 1)
         comm_mock_struct_3 = mocker.Mock(spec=CommunicationStructValue)
         mocker.patch.object(comm_mock_3, 'to_value', return_value=comm_mock_struct_3)
-
-        sub_value_0 = mocker.Mock()
-        callback_value_0 = mocker.Mock()
-        callback_value_0.construction_order = 1
-        sub_value_0._callback_value = callback_value_0
-        comm_mock_0._subscription_value = sub_value_0
-
-        sub_value_1 = mocker.Mock()
-        callback_value_1 = mocker.Mock()
-        callback_value_1.construction_order = 2
-        sub_value_1._callback_value = callback_value_1
-        comm_mock_1._subscription_value = sub_value_1
-
-        sub_value_2 = mocker.Mock()
-        callback_value_2 = mocker.Mock()
-        callback_value_2.construction_order = 3
-        sub_value_2._callback_value = callback_value_2
-        comm_mock_2._subscription_value = sub_value_2
-
-        sub_value_3 = mocker.Mock()
-        callback_value_3 = mocker.Mock()
-        callback_value_3.construction_order = 3
-        sub_value_3._callback_value = callback_value_3
-        comm_mock_3._subscription_value = sub_value_3
+        callback_3 = mocker.Mock()
+        mocker.patch.object(callback_3, 'construction_order', 4)
+        mocker.patch.object(comm_mock_3, 'subscribe_callback', callback_3)
 
         mocker.patch.object(graph_node_mock_0, 'node_name', node_name_3)
         mocker.patch.object(graph_node_mock_1, 'node_name', node_name_4)
@@ -1061,6 +1040,9 @@ class TestNodePathSearcher:
         mocker.patch.object(comm_mock_1, 'subscription_construction_order', 1)
         mocker.patch.object(comm_mock_1, 'publisher_construction_order', 0)
         mocker.patch.object(comm_mock_1, 'to_value', return_value=comm_mock_struct)
+        callback_1 = mocker.Mock()
+        mocker.patch.object(callback_1, 'construction_order', 1)
+        mocker.patch.object(comm_mock_1, 'subscribe_callback', callback_1)
         mocker.patch.object(comm_mock_2, 'publish_node_name', '3')
         mocker.patch.object(comm_mock_2, 'subscribe_node_name', '4')
         mocker.patch.object(comm_mock_2, 'topic_name', '0->1')
@@ -1068,18 +1050,9 @@ class TestNodePathSearcher:
         mocker.patch.object(comm_mock_2, 'publisher_construction_order', 1)
         comm_mock_struct_2 = mocker.Mock(spec=CommunicationStructValue)
         mocker.patch.object(comm_mock_2, 'to_value', return_value=comm_mock_struct_2)
-
-        sub_value_1 = mocker.Mock()
-        callback_value_1 = mocker.Mock()
-        callback_value_1.construction_order = 1
-        sub_value_1._callback_value = callback_value_1
-        comm_mock_1._subscription_value = sub_value_1
-
-        sub_value_2 = mocker.Mock()
-        callback_value_2 = mocker.Mock()
-        callback_value_2.construction_order = 2
-        sub_value_2._callback_value = callback_value_2
-        comm_mock_2._subscription_value = sub_value_2
+        callback_2 = mocker.Mock()
+        mocker.patch.object(callback_2, 'construction_order', 2)
+        mocker.patch.object(comm_mock_2, 'subscribe_callback', callback_2)
 
         searcher = NodePathSearcher(
             (node_mock,),
@@ -1100,11 +1073,9 @@ class TestNodePathSearcher:
         node_path_value_mock_1 = mocker.Mock(spec=NodePathStructValue)
         node_path_value_mock_2 = mocker.Mock(spec=NodePathStructValue)
         comm_mock = mocker.Mock(spec=CommunicationStruct)
-        sub_value = mocker.Mock()
-        callback_value = mocker.Mock()
-        callback_value.construction_order = 1
-        sub_value._callback_value = callback_value
-        comm_mock._subscription_value = sub_value
+        callback = mocker.Mock()
+        mocker.patch.object(callback, 'construction_order', 1)
+        mocker.patch.object(comm_mock, 'subscribe_callback', callback)
 
         mocker.patch.object(node_path_mock_1, 'publish_topic_name', '1->2')
         mocker.patch.object(node_path_mock_1, 'subscribe_topic_name', '0->1')
@@ -1154,10 +1125,13 @@ class TestNodePathSearcher:
         comm_mock1.subscribe_node_name = 'node2'
         comm_mock1.subscription_construction_order = 1
         comm_mock1.publisher_construction_order = 1
-        comm_mock1._subscription_value = mocker.Mock()
-        comm_mock1._subscription_value._callback_value = mocker.Mock()
-        comm_mock1._subscription_value._callback_value.construction_order = \
-            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING - 1
+        callback1 = mocker.Mock()
+        mocker.patch.object(
+            callback1,
+            'construction_order',
+            (DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING - 1)
+        )
+        mocker.patch.object(comm_mock1, 'subscribe_callback', callback1)
 
         comm_mock2 = mocker.Mock(spec=CommunicationStruct)
         comm_mock2.topic_name = 'topic2'
@@ -1165,10 +1139,13 @@ class TestNodePathSearcher:
         comm_mock2.subscribe_node_name = 'node2'
         comm_mock2.subscription_construction_order = 2
         comm_mock2.publisher_construction_order = 2
-        comm_mock2._subscription_value = mocker.Mock()
-        comm_mock2._subscription_value._callback_value = mocker.Mock()
-        comm_mock2._subscription_value._callback_value.construction_order = \
-            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING + 1
+        callback2 = mocker.Mock()
+        mocker.patch.object(
+            callback2,
+            'construction_order',
+            (DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING + 1)
+        )
+        mocker.patch.object(comm_mock2, 'subscribe_callback', callback2)
 
         NodePathSearcher(
             (node_mock1, node_mock2),
