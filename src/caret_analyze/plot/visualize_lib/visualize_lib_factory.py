@@ -38,7 +38,7 @@ class VisualizeLibFactory:
         Raises
         ------
         NotImplementedError
-            This use_package is not implemented.
+            Specified use_package is not implemented.
         UnsupportedTypeError
             Argument use_package is not "bokeh" or "graphviz".
 

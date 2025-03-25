@@ -308,6 +308,13 @@ class NodeStructValue(ValueObject, Summarizable):
         NodePathStructValue
             Node path that matches the condition.
 
+        Raises
+        ------
+        ItemNotFoundError
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
+
         """
         def is_target(path: NodePathStructValue):
             return path.publish_topic_name == publish_topic_name and \
@@ -427,6 +434,8 @@ class NodeStructValue(ValueObject, Summarizable):
         ------
         ItemNotFoundError
             Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
 
         """
         try:
@@ -468,6 +477,8 @@ class NodeStructValue(ValueObject, Summarizable):
         ------
         ItemNotFoundError
             Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
 
         """
         try:
@@ -509,6 +520,8 @@ class NodeStructValue(ValueObject, Summarizable):
         ------
         ItemNotFoundError
             Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
 
         """
         try:
@@ -550,6 +563,8 @@ class NodeStructValue(ValueObject, Summarizable):
         ------
         ItemNotFoundError
             Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
 
         """
         try:
