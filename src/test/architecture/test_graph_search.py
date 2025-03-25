@@ -24,8 +24,8 @@ from caret_analyze.architecture.struct import (CallbackStruct,
                                                CommunicationStruct,
                                                NodePathStruct, NodeStruct,
                                                PathStruct,
-                                               PublisherStruct, SubscriptionCallbackStruct,
-                                               SubscriptionStruct, VariablePassingStruct)
+                                               PublisherStruct, SubscriptionStruct,
+                                               VariablePassingStruct)
 from caret_analyze.exceptions import ItemNotFoundError
 from caret_analyze.value_objects import (CommunicationStructValue,
                                          NodePathStructValue)
@@ -668,7 +668,6 @@ class TestNodePathSearcher:
         mocker.patch.object(comm_mock, 'subscription_construction_order', 0)
         comm_value_mock = mocker.Mock(spec=CommunicationStructValue)
         mocker.patch.object(comm_mock, 'to_value', return_value=comm_value_mock)
-
         callback = mocker.Mock()
         mocker.patch.object(callback, 'construction_order', 1)
         mocker.patch.object(comm_mock, 'subscribe_callback', callback)
