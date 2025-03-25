@@ -121,6 +121,10 @@ class Executor(Summarizable):
         ------
         InvalidArgumentError
             Occurs when the given argument type is invalid.
+        ItemNotFoundError
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
 
         """
         if not isinstance(callback_group_name, str):
@@ -148,6 +152,10 @@ class Executor(Summarizable):
         ------
         InvalidArgumentError
             Occurs when the given argument type is invalid.
+        ItemNotFoundError
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
 
         """
         if not isinstance(callback_name, str):
