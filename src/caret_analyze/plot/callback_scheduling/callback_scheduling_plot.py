@@ -61,7 +61,7 @@ class CallbackSchedulingPlot(PlotBase):
         Returns
         -------
         pd.DataFrame
-            Callback scheduling plot dataFrame.
+            Callback scheduling plot DataFrame.
 
         """
         logger.warning("'to_dataframe' method is not implemented in CallbackSchedulingPlot.")
@@ -165,6 +165,10 @@ class CallbackSchedulingPlot(PlotBase):
 
         Parameters
         ----------
+        export_path : str
+            The graph will be saved as a file.
+        title: str, optional
+            Title of the graph, by default ''.
         xaxis_type : str, optional
             Type of x-axis of the line graph to be plotted.
             "system_time", "index", or "sim_time" can be specified, by default "system_time".

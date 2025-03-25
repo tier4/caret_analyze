@@ -481,6 +481,24 @@ class Path(PathBase, Summarizable):
         return is_valid
 
     def get_child(self, name: str):
+        """
+        Get child.
+
+        Parameters
+        ----------
+        name : str
+            Topic name or node name.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Occurs when the given argument type is invalid.
+        ItemNotFoundError
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
+
+        """
         # TODO(hsgwa): This function is not needed. Remove.
 
         if not isinstance(name, str):
