@@ -237,7 +237,7 @@ class RecordsMerged:
                     logger.info(msg)
                 else:
                     msg = 'Detected dummy_records before merging end_records. merge terminated.'
-                    logger.warn(msg)
+                    logger.warning(msg)
                 break
             rename_rule = column_merger.append_columns_and_return_rename_rule(
                 right_records)
@@ -312,11 +312,11 @@ class RecordsMerged:
                     )
                 else:
                     msg = 'Empty records are not merged.'
-                    logger.warn(msg)
+                    logger.warning(msg)
             else:
                 msg = 'Since the path cannot be extended, '
                 msg += 'the merge process for the last callback record is skipped.'
-                logger.warn(msg)
+                logger.warning(msg)
 
         logger.info('Finished merging path records.')
         left_records.sort(first_column)

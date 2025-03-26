@@ -58,6 +58,18 @@ def create_converter():
 
 class TestFrequencyRecords:
 
+    def test_create_frequency(self):
+        records_raw = [
+        ]
+        columns = [ColumnValue('timestamp')]
+        records = create_records(records_raw, columns)
+        frequency = Frequency(records)
+        frequency_with_target_column = Frequency(records, target_column='timestamp')
+        frequency_with_row_filter = Frequency(records, row_filter=lambda: True)
+        assert to_dict(frequency.to_records()) \
+            == to_dict(frequency_with_target_column.to_records())
+        assert to_dict(frequency.to_records()) == to_dict(frequency_with_row_filter.to_records())
+
     def test_empty_case(self, create_converter):
         records_raw = [
         ]
@@ -241,6 +253,23 @@ class TestFrequencyRecords:
         ]
         result = to_dict(frequency.to_records(
             interval_ns=10, converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_specify_invalid_target_column_case(self):
+        records_raw = [
+            {'timestamp': 0},
+            {'timestamp': 1},
+            {'timestamp': 11},
+            {'timestamp': 12},
+            {'timestamp': 14},
+        ]
+        columns = [ColumnValue('timestamp')]
+        records = create_records(records_raw, columns)
+
+        frequency = Frequency(records, 'not_exist')
+
+        expect_raw = []
+        result = to_dict(frequency.to_records(interval_ns=10))
         assert result == expect_raw
 
     def test_drop_case(self, create_converter):
