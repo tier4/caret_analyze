@@ -66,7 +66,7 @@ class VisualizeLibInterface(metaclass=ABCMeta):
         Returns
         -------
         Figure
-            Figure of timeseries.
+            Figure of message flow.
 
         Raises
         ------
@@ -115,7 +115,7 @@ class VisualizeLibInterface(metaclass=ABCMeta):
         Returns
         -------
         Figure
-            Figure of timeseries.
+            Figure of callback scheduling.
 
         Raises
         ------
@@ -199,7 +199,7 @@ class VisualizeLibInterface(metaclass=ABCMeta):
         Returns
         -------
         Figure
-            Figure of timeseries.
+            Figure of stacked bar.
 
         Raises
         ------
@@ -238,7 +238,7 @@ class VisualizeLibInterface(metaclass=ABCMeta):
         Returns
         -------
         Figure
-            Figure of timeseries.
+            Figure of histogram.
 
         Raises
         ------
