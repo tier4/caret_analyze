@@ -1409,7 +1409,6 @@ class CallbacksLoaded:
             Timers loaded.
 
         """
-
         # Processes related to services are implemented later.
         def _is_ignore_callback(callback: CallbackStructValue):
             ignore_callback_types = (ServiceCallbackStructValue, )
@@ -1502,7 +1501,6 @@ class CallbackGroupsLoaded:
             Timers loaded.
 
         """
-
         self._data = []
         for cbg_info in callback_group_value:
             try:

@@ -172,6 +172,7 @@ def get_callback_param_desc(callback: CallbackBase):
     ------
     UnsupportedTypeError
         Unsupported type CallbackBase.
+
     """
     if isinstance(callback, TimerCallback):
         return f'period_ns = {callback.period_ns}'

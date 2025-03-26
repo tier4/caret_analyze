@@ -229,7 +229,7 @@ class StackedBarSource:
 
     def add_label_data_to_stacked_bar(self, stacked_bar: list[GraphRenderer]):
         """
-        add 'label' data to each bar due to display hover.
+        Add 'label' data to each bar due to display hover.
 
         Parameters
         ----------
@@ -244,7 +244,7 @@ class StackedBarSource:
 
     def add_latency_data_to_stacked_bar(self, stacked_bar: list[GraphRenderer]):
         """
-        add 'latency' data to each bar due to display hover.
+        Add 'latency' data to each bar due to display hover.
 
         Parameters
         ----------

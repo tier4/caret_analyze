@@ -38,7 +38,7 @@ class PathValue(ValueObject):
         Construct an instance.
 
         Parameters
-        -------
+        ----------
         alias : str
             Alias.
         node_path_values : tuple[NodePathValue, ...]
@@ -85,7 +85,7 @@ class PathStructValue(ValueObject, Summarizable):
         Construct an instance.
 
         Parameters
-        -------
+        ----------
         path_name : str | None
             Path name.
         child : tuple[NodePathStructValue | CommunicationStructValue, ...]

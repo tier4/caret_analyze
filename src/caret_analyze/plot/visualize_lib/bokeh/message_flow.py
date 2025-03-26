@@ -361,18 +361,12 @@ class YAxisProperty:
 
     @property
     def values(self):
-        """
-        Get values.
-
-        """
+        """Get values."""
         return list(self._tick_labels.keys())
 
     @property
     def labels(self):
-        """
-        Get labels.
-
-        """
+        """Get labels."""
         return list(self._tick_labels.values())
 
     @property
@@ -476,7 +470,6 @@ class FormatterFactory():
             Argument metrics_name is not "raw" or "node".
 
         """
-
         if granularity == 'raw':
             return RawLevelFormatter(path)
         elif granularity == 'node':
