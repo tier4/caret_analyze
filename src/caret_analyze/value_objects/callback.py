@@ -37,6 +37,11 @@ class CallbackType(ValueObject):
         name : str
             Callback type name ['timer_callback', 'subscription_callback', 'service_callback'].
 
+        Raises
+        ------
+        ValueError
+            Argument name is not "timer_callback", "subscription_callback", or "service_callback".
+
         """
         if name not in ['timer_callback', 'subscription_callback', 'service_callback']:
             raise ValueError(f'Unsupported callback type: {name}')
@@ -477,7 +482,7 @@ class ServiceCallbackValue(CallbackValue):
         symbol : str
             Symbol name of the service callback.
         service_name : str
-            Service name which the service callback service.
+            Service name which the service callback.
         publish_topics : tuple[PublishTopicInfoValue, ...] | None
             Topic information which the service callback publishes.
         construction_order : int

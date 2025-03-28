@@ -55,11 +55,12 @@ class HistogramPlotFactory:
         Returns
         -------
         HistogramPlot
+            Created instance of HistogramPlot
 
         Raises
         ------
         UnsupportedTypeError
-            Argument metrics is not "frequency", "latency", or "period".
+            Argument metrics is not "frequency", "latency", "period", or "response_time".
 
         """
         metrics_list: list[MetricsType] = []

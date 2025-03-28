@@ -32,6 +32,35 @@ class MessageFlowPlotFactory:
         lstrip_s: float = 0,
         rstrip_s: float = 0
     ) -> MessageFlowPlot:
+        """
+        Create instance.
+
+        Parameters
+        ----------
+        target_path : Path
+            Target path.
+        visualize_lib : VisualizeLibInterface
+            Instance of VisualizeLibInterface used for visualization.
+        granularity : str | None
+            Granularity.
+        treat_drop_as_delay : bool
+            Treat drop as delay.
+        lstrip_s : float, optional
+            Start time of cropping range, by default 0.
+        rstrip_s: float, optional
+            End point of cropping range, by default 0.
+
+        Returns
+        -------
+        MessageFlowPlot
+            Created instance of MessageFlowPlot.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Argument granularity is not "raw" or "node".
+
+        """
         granularity = granularity or 'raw'
         if granularity not in ['raw', 'node']:
             raise InvalidArgumentError('granularity must be [ raw / node ]')

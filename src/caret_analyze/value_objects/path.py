@@ -37,8 +37,8 @@ class PathValue(ValueObject):
         """
         Construct an instance.
 
-        Returns
-        -------
+        Parameters
+        ----------
         alias : str
             Alias.
         node_path_values : tuple[NodePathValue, ...]
@@ -81,24 +81,72 @@ class PathStructValue(ValueObject, Summarizable):
         path_name: str | None,
         child: tuple[NodePathStructValue | CommunicationStructValue, ...],
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        path_name : str | None
+            Path name.
+        child : tuple[NodePathStructValue | CommunicationStructValue, ...]
+            Tuple with alternating elements of NodePath and Communication,
+            which are the elements that make up the Path.
+
+        """
         self._path_name = path_name
         self._child = child
         self._validate(child)
 
     @property
     def path_name(self) -> str | None:
+        """
+        Get path name.
+
+        Returns
+        -------
+        str | None
+            Path name.
+
+        """
         return self._path_name
 
     @property
     def node_names(self) -> tuple[str, ...]:
+        """
+        Get node names.
+
+        Returns
+        -------
+        tuple[str, ...]
+            Node names.
+
+        """
         return tuple(_.node_name for _ in self.node_paths)
 
     @property
     def topic_names(self) -> tuple[str, ...]:
+        """
+        Get topic names.
+
+        Returns
+        -------
+        tuple[str, ...]
+            Topic names.
+
+        """
         return tuple(_.topic_name for _ in self.communications)
 
     @property
     def child_names(self) -> tuple[str, ...]:
+        """
+        Get child names.
+
+        Returns
+        -------
+        tuple[str, ...]
+            Node name for NodePathStructValue, topic name for CommunicationStructValue.
+
+        """
         names = []
         for child in self.child:
             if isinstance(child, NodePathStructValue):
@@ -109,6 +157,15 @@ class PathStructValue(ValueObject, Summarizable):
 
     @property
     def node_paths(self) -> tuple[NodePathStructValue, ...]:
+        """
+        Get node paths.
+
+        Returns
+        -------
+        tuple[NodePathStructValue, ...]
+            Node paths of Path struct value.
+
+        """
         node_paths = Util.filter_items(
             lambda x: isinstance(x, NodePathStructValue),
             self._child)
@@ -116,6 +173,15 @@ class PathStructValue(ValueObject, Summarizable):
 
     @property
     def communications(self) -> tuple[CommunicationStructValue, ...]:
+        """
+        Get communications.
+
+        Returns
+        -------
+        tuple[CommunicationStructValue, ...]
+            Communications of Path struct value.
+
+        """
         comm_paths = Util.filter_items(
             lambda x: isinstance(x, CommunicationStructValue),
             self._child)
@@ -123,6 +189,15 @@ class PathStructValue(ValueObject, Summarizable):
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary.
+
+        Returns
+        -------
+        Summary
+            Summary about value objects and runtime data objects.
+
+        """
         d: Summary = Summary()
         d['path'] = []
         for child in self.child:
@@ -142,6 +217,15 @@ class PathStructValue(ValueObject, Summarizable):
 
     @property
     def child(self) -> tuple[NodePathStructValue | CommunicationStructValue, ...]:
+        """
+        Get child.
+
+        Returns
+        -------
+        tuple[NodePathStructValue | CommunicationStructValue, ...]
+            Child of Path struct value.
+
+        """
         return self._child
 
     @staticmethod
@@ -164,6 +248,15 @@ class PathStructValue(ValueObject, Summarizable):
             raise InvalidArgumentError(msg)
 
     def verify(self) -> bool:
+        """
+        Get verify.
+
+        Returns
+        -------
+        bool
+            Verify or not.
+
+        """
         is_valid = True
 
         for child in self.node_paths[1:-1]:

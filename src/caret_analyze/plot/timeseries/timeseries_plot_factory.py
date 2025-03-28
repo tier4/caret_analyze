@@ -58,6 +58,7 @@ class TimeSeriesPlotFactory:
         Returns
         -------
         TimeSeriesPlot
+            Created instance of TimeSeriesPlot.
 
         Raises
         ------

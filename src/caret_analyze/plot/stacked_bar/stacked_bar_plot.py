@@ -42,7 +42,27 @@ class StackedBarPlot(PlotBase):
         ywheel_zoom: bool | None = True,
         full_legends: bool | None = False,
     ) -> Figure:
+        """
+        Get figure for each object using the bokeh library.
 
+        Parameters
+        ----------
+        xaxis_type : str
+            Type of x-axis of the line graph to be plotted.
+            "system_time", "index", or "sim_time" can be specified, by default "system_time".
+        ywheel_zoom : bool
+            If True, the drawn graph can be expanded in the y-axis direction
+            by the mouse wheel, by default True.
+        full_legends : bool
+            If True, all legends are drawn
+            even if the number of legends exceeds the threshold, by default False.
+
+        Returns
+        -------
+        Figure
+            bokeh.plotting.Figure
+
+        """
         # Set default value
         xaxis_type = xaxis_type or 'system_time'
         ywheel_zoom = ywheel_zoom if ywheel_zoom is not None else True
@@ -57,5 +77,19 @@ class StackedBarPlot(PlotBase):
         )
 
     def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
+        """
+        Get stacked bar data in pandas DataFrame format.
+
+        Parameters
+        ----------
+        xaxis_type : str, optional
+            X axis value's type , by default 'system_time'.
+
+        Returns
+        -------
+        pd.DataFrame
+            Stacked bar dataframe.
+
+        """
         # return super().to_dataframe(xaxis_type)
         return self._metrics.to_dataframe(xaxis_type)

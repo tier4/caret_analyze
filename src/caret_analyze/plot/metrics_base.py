@@ -36,10 +36,33 @@ class MetricsBase(metaclass=ABCMeta):
 
     @property
     def target_objects(self) -> list[TimeSeriesTypes]:
+        """
+        Get target objects.
+
+        Returns
+        -------
+        list[TimeSeriesTypes]
+            target object list.
+
+        """
         return self._target_objects
 
     @abstractmethod
     def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
+        """
+        Get data in pandas DataFrame format.
+
+        Parameters
+        ----------
+        xaxis_type : str, optional
+            X axis value's type , by default 'system_time'.
+
+        Raises
+        ------
+        NotImplementedError
+            This module is not implemented.
+
+        """
         raise NotImplementedError()
 
     @abstractmethod
@@ -47,6 +70,20 @@ class MetricsBase(metaclass=ABCMeta):
         self,
         xaxis_type: str = 'system_time'
     ) -> list[RecordsInterface]:
+        """
+        Get timeseries records list.
+
+        Parameters
+        ----------
+        xaxis_type : str, optional
+            X axis value's type , by default 'system_time'.
+
+        Raises
+        ------
+        NotImplementedError
+            This module is not implemented.
+
+        """
         raise NotImplementedError()
 
     # TODO: Multi-column DataFrame are difficult for users to handle,

@@ -60,6 +60,31 @@ def init_figure(
     y_axis_label: str | None = None,
     x_axis_label: str | None = None,
 ) -> Figure:
+    """
+    Initialize figure.
+
+    Parameters
+    ----------
+    title : str
+        The target title.
+    ywheel_zoom : bool, optional
+        If True, the drawn graph can be expanded in the y-axis direction
+        by the mouse wheel.
+    xaxis_type : str, optional
+        Type of x-axis of the line graph to be plotted.
+        "system_time", "index", or "sim_time" can be specified.
+        The default is "system_time".
+    y_axis_label : str | None
+        Label of y-axis of the line graph to be plotted.
+    x_axis_label : str | None
+        Label of x-axis of the line graph to be plotted.
+
+    Returns
+    -------
+    bokeh.plotting.Figure
+        Figure of rect values.
+
+    """
     if x_axis_label is None:
         if xaxis_type == 'system_time':
             x_axis_label = 'system time [s]'
@@ -135,6 +160,20 @@ def apply_x_axis_offset(
 
 
 def get_callback_param_desc(callback: CallbackBase):
+    """
+    Get callback parameter desc.
+
+    Parameters
+    ----------
+    callback : CallbackBase
+        Callback base.
+
+    Raises
+    ------
+    UnsupportedTypeError
+        Unsupported type CallbackBase.
+
+    """
     if isinstance(callback, TimerCallback):
         return f'period_ns = {callback.period_ns}'
 

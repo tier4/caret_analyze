@@ -183,6 +183,11 @@ class PathBase(metaclass=ABCMeta):
             time[ns], latency[ns]
             len(time) == len(latency)
 
+        Raises
+        ------
+        InvalidRecordsError
+            Failed to find any records.
+
         """
         df = self.to_dataframe(
             remove_dropped, treat_drop_as_delay, lstrip_s, rstrip_s, shaper=shaper)

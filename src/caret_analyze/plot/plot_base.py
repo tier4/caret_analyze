@@ -44,6 +44,12 @@ class PlotBase(metaclass=ABCMeta):
         Returns
         -------
         pd.DataFrame
+            Plot base dataFrame
+
+        Raises
+        ------
+        NotImplementedError
+            This module is not implemented.
 
         """
         raise NotImplementedError()
@@ -71,6 +77,11 @@ class PlotBase(metaclass=ABCMeta):
         -------
         bokeh.plotting.Figure
 
+        Raises
+        ------
+        NotImplementedError
+            This module is not implemented.
+
         """
         raise NotImplementedError()
 
@@ -95,11 +106,6 @@ class PlotBase(metaclass=ABCMeta):
         full_legends : bool
             If True, all legends are drawn
             even if the number of legends exceeds the threshold.
-
-        Raises
-        ------
-        UnsupportedTypeError
-            Argument xaxis_type is not "system_time", "index", or "sim_time".
 
         """
         p = self.figure(xaxis_type, ywheel_zoom, full_legends)
@@ -131,11 +137,6 @@ class PlotBase(metaclass=ABCMeta):
         full_legends : bool
             If True, all legends are drawn
             even if the number of legends exceeds the threshold.
-
-        Raises
-        ------
-        UnsupportedTypeError
-            Argument xaxis_type is not "system_time", "index", or "sim_time".
 
         """
         p = self.figure(xaxis_type, ywheel_zoom, full_legends)

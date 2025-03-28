@@ -58,6 +58,35 @@ class Bokeh(VisualizeLibInterface):
         lstrip_s: float,
         rstrip_s: float
     ) -> Figure:
+        """
+        Get message flow figure.
+
+        Parameters
+        ----------
+        target_path : Path
+            The target path.
+        xaxis_type : str, optional
+            Type of x-axis of the line graph to be plotted.
+            "system_time", "index", or "sim_time" can be specified.
+            The default is "system_time".
+        ywheel_zoom : bool, optional
+            If True, the drawn graph can be expanded in the y-axis direction
+            by the mouse wheel.
+        granularity : str
+            Granularity.
+        treat_drop_as_delay : bool
+            Treat drop as delay.
+        lstrip_s : float, optional
+            Start time of cropping range, by default 0.
+        rstrip_s: float, optional
+            End point of cropping range, by default 0.
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+            Figure of message flow.
+
+        """
         message_flow = BokehMessageFlow(
             target_path, xaxis_type, ywheel_zoom, granularity,
             treat_drop_as_delay, lstrip_s, rstrip_s,
@@ -72,6 +101,33 @@ class Bokeh(VisualizeLibInterface):
         full_legends: bool,
         case: str,  # all, best, worst or worst-with-external-latency
     ) -> Figure:
+        """
+        Get a stacked bar figure.
+
+        Parameters
+        ----------
+        metrics : MetricsBase
+            Metrics to be y-axis in visualization.
+        xaxis_type : str
+            Type of x-axis of the line graph to be plotted.
+            "system_time", "index", or "sim_time" can be specified.
+            The default is "system_time".
+        ywheel_zoom : bool
+            If True, the drawn graph can be expanded in the y-axis direction
+            by the mouse wheel.
+        full_legends : bool
+            If True, all legends are drawn
+            even if the number of legends exceeds the threshold.
+        case : str
+            Parameter specifying all, best, worst, or worst-with-external-latency.
+            Use to create Response time timeseries graph.
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+            Figure of stacked bar.
+
+        """
         stacked_bar = BokehStackedBar(metrics, xaxis_type, ywheel_zoom, full_legends, case)
         return stacked_bar.create_figure()
 
@@ -113,6 +169,7 @@ class Bokeh(VisualizeLibInterface):
         Returns
         -------
         bokeh.plotting.Figure
+            Figure of callback scheduling.
 
         """
         callback_scheduling = BokehCallbackSched(
@@ -150,7 +207,6 @@ class Bokeh(VisualizeLibInterface):
             Parameter specifying all, best, worst, or worst-with-external-latency.
             Use to create Response time timeseries graph.
 
-
         Returns
         -------
         bokeh.plotting.Figure
@@ -185,14 +241,16 @@ class Bokeh(VisualizeLibInterface):
         case : str
             Parameter specifying all, best, worst, or worst-with-external-latency.
             Use to create Response time histogram graph.
-        converter: ClockConverter
-            Time conversion function at sim_time.
-
 
         Returns
         -------
         bokeh.plotting.Figure
             Figure of histogram.
+
+        Raises
+        ------
+        NotImplementedError
+            Argument metrics_name is not "frequency", "period", "latency", or "response_time".
 
         """
         legend_manager = LegendManager()

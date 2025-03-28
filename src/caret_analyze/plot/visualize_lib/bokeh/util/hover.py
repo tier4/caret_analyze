@@ -131,6 +131,11 @@ class HoverKeysBase(metaclass=ABCMeta):
         list[str]
             all hover keys
 
+        Raises
+        ------
+        NotImplementedError
+            This module is not implemented.
+
         """
         raise NotImplementedError()
 
@@ -146,6 +151,7 @@ class HoverKeysBase(metaclass=ABCMeta):
         Returns
         -------
         HoverTool
+            Created HoverTool
 
         """
         tips_str = '<div style="width:400px; word-wrap: break-word;">'
@@ -178,6 +184,15 @@ class CallbackSchedBarKeys(HoverKeysBase):
             )
 
     def to_list(self) -> list[str]:
+        """
+        Get CallbackSchedBarKeys.
+
+        Returns
+        -------
+        list[str]
+            Key lists
+
+        """
         return ['legend_label', 'node_name', 'callback_name',
                 'callback_type', 'callback_param', 'symbol']
 
@@ -194,6 +209,15 @@ class CallbackSchedRectKeys(HoverKeysBase):
             )
 
     def to_list(self) -> list[str]:
+        """
+        Get CallbackSchedRectKeys.
+
+        Returns
+        -------
+        list[str]
+            Key lists
+
+        """
         return ['legend_label', 'callback_start', 'callback_end', 'latency']
 
 
@@ -214,6 +238,15 @@ class TimeSeriesKeys(HoverKeysBase):
             )
 
     def to_list(self) -> list[str]:
+        """
+        Get TimeSeriesKeys.
+
+        Returns
+        -------
+        list[str]
+            Key lists
+
+        """
         hover_keys: list[str]
         if isinstance(self._target_object, CallbackBase):
             hover_keys = ['legend_label', 'node_name', 'callback_name', 'callback_type',
@@ -239,6 +272,15 @@ class MessageFlowLineKeys(HoverKeysBase):
             raise InvalidArgumentError("'target_object' must be Path in message flow.")
 
     def to_list(self) -> list[str]:
+        """
+        Get MessageFlowLineKeys.
+
+        Returns
+        -------
+        list[str]
+            Key lists
+
+        """
         return ['t_start', 't_end', 'latency', 't_offset', 'index']
 
 
@@ -252,6 +294,15 @@ class MessageFlowRectKeys(HoverKeysBase):
             raise InvalidArgumentError("'target_object' must be Path in message flow.")
 
     def to_list(self) -> list[str]:
+        """
+        Get MessageFlowRectKeys.
+
+        Returns
+        -------
+        list[str]
+            Key lists
+
+        """
         return ['t_start', 't_end', 'latency', 't_offset',
                 'callback_type', 'callback_param', 'symbol']
 
@@ -266,6 +317,15 @@ class StackedBarKeys(HoverKeysBase):
             raise InvalidArgumentError("'target_object' must be Path in stacked bar graph.")
 
     def to_list(self) -> list[str]:
+        """
+        Get StackedBarKeys.
+
+        Returns
+        -------
+        list[str]
+            Key lists
+
+        """
         return ['label', 'latency']
 
 

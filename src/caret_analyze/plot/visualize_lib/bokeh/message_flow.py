@@ -54,6 +54,15 @@ class BokehMessageFlow:
         self._rstrip_s = rstrip_s
 
     def create_figure(self) -> Figure:
+        """
+        Create message flow figure.
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+            Figure of message flow.
+
+        """
         # Initialize figure
         fig = init_figure(
             f'Message flow of {self._target_path.path_name}', self._ywheel_zoom, self._xaxis_type)
@@ -135,6 +144,20 @@ class MessageFlowRectSource:
         self._hover_source = HoverSource(self._hover_keys)
 
     def create_hover(self, options: dict[str, Any] = {}) -> HoverTool:
+        """
+        Create HoverTool based on the legend keys.
+
+        Parameters
+        ----------
+        options : dict, optional
+            Additional options, by default {}
+
+        Returns
+        -------
+        HoverTool
+            Created hover.
+
+        """
         return self._hover_keys.create_hover(options)
 
     def generate(
@@ -164,6 +187,7 @@ class MessageFlowRectSource:
         Returns
         -------
         ColumnDataSource
+            Generated message flow rect source
 
         """
         rect_source = ColumnDataSource(data={
@@ -221,6 +245,20 @@ class MessageFlowLineSource:
         self._hover_keys = HoverKeysFactory.create_instance('message_flow_line', target_path)
 
     def create_hover(self, options: dict[str, Any] = {}) -> HoverTool:
+        """
+        Create HoverTool based on the legend keys.
+
+        Parameters
+        ----------
+        options : dict, optional
+            Additional options, by default {}
+
+        Returns
+        -------
+        HoverTool
+            Created hover.
+
+        """
         return self._hover_keys.create_hover(options)
 
     def generate(
@@ -244,6 +282,7 @@ class MessageFlowLineSource:
         Returns
         -------
         ColumnDataSource
+            Generated message flow line source
 
         """
         tick_labels = YAxisProperty(df)
@@ -322,14 +361,25 @@ class YAxisProperty:
 
     @property
     def values(self):
+        """Get values."""
         return list(self._tick_labels.keys())
 
     @property
     def labels(self):
+        """Get labels."""
         return list(self._tick_labels.values())
 
     @property
     def labels_dict(self) -> dict[int, str]:
+        """
+        Get labels dict.
+
+        Returns
+        -------
+        dict[int, str]
+            Tick labels.
+
+        """
         return self._tick_labels
 
 
@@ -348,10 +398,38 @@ class YAxisValues:
         return indexes
 
     def get_start_indexes(self, search_name) -> list[int]:
+        """
+        Get start indexes.
+
+        Parameters
+        ----------
+        search_name
+            The target name.
+
+        Returns
+        -------
+        list[int]
+            Start index of search results.
+
+        """
         indexes = self._search_values(search_name)
         return list((indexes) * -1)
 
     def get_end_values(self, search_name) -> list[int]:
+        """
+        Get end indexes.
+
+        Parameters
+        ----------
+        search_name
+            The target name.
+
+        Returns
+        -------
+        list[int]
+            End index of search results.
+
+        """
         indexes = self._search_values(search_name)
         return list((indexes + 1) * -0.5)
 
@@ -371,6 +449,27 @@ class FormatterFactory():
 
     @classmethod
     def create(self, path: Path, granularity: str) -> DataFrameFormatter:
+        """
+        Create formatter.
+
+        Parameters
+        ----------
+        path : Path
+            The target path.
+        granularity : str
+            Granularity of chain with two value; [raw/node].
+
+        Returns
+        -------
+        DataFrameFormatter
+            Raw level formatter.
+
+        Raises
+        ------
+        NotImplementedError
+            Argument metrics_name is not "raw" or "node".
+
+        """
         if granularity == 'raw':
             return RawLevelFormatter(path)
         elif granularity == 'node':
@@ -389,6 +488,17 @@ class RawLevelFormatter(DataFrameFormatter):
         return None
 
     def rename_columns(self, df: pd.DataFrame, path: Path) -> None:
+        """
+        Rename columns.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The target pd data frame.
+        path : Path
+            The target path.
+
+        """
         renames = {}
         for column_name in df.columns:
             if '_timestamp' in column_name:
@@ -404,6 +514,15 @@ class NodeLevelFormatter(DataFrameFormatter):
         self._path = path
 
     def remove_columns(self, df: pd.DataFrame) -> None:
+        """
+        Remove columns.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The target pd data frame.
+
+        """
         raw_level_formatter = RawLevelFormatter(self._path)
         raw_level_formatter.remove_columns(df)
 
@@ -430,6 +549,17 @@ class NodeLevelFormatter(DataFrameFormatter):
         df.drop(drop_columns, axis=1, inplace=True)
 
     def rename_columns(self, df: pd.DataFrame, path: Path) -> None:
+        """
+        Rename columns.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The target pd data frame.
+        path : Path
+            The target path.
+
+        """
         renames = {}
         for column_name in df.columns:
             if '_timestamp' in column_name:
@@ -456,6 +586,15 @@ class Offset:
 
     @property
     def value(self) -> int:
+        """
+        Get offset value.
+
+        Returns
+        -------
+        int
+            Offset value.
+
+        """
         return self._offset
 
 

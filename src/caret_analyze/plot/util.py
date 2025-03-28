@@ -26,6 +26,20 @@ TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Pa
 def get_clock_converter(
     target_objects: Sequence[TimeSeriesTypes],
 ) -> ClockConverter:
+    """
+    Construct an instance to convert between simulation time and system time from time series data.
+
+    Parameters
+    ----------
+    target_objects : Sequence[TimeSeriesTypes]
+        TimeSeriesTypes target objects.
+
+    Returns
+    -------
+    ClockConverter
+        converter instance.
+
+    """
     records_range = Range([to.to_records() for to in target_objects])
     frame_min, frame_max = records_range.get_range()
     if isinstance(target_objects[0], Communication):

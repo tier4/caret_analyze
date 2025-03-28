@@ -237,6 +237,15 @@ class Communication(PathBase, Summarizable):
 
     @property
     def column_names(self) -> list[str]:
+        """
+        Get column names.
+
+        Returns
+        -------
+        list[str]
+            Column names of this communication.
+
+        """
         records = self.to_records()
         return records.columns
 
