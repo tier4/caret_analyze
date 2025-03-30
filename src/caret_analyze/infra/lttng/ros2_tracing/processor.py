@@ -147,6 +147,7 @@ class Ros2Handler():
             # For Agnocast
             'ros2:agnocast_subscription_init',
             'ros2:agnocast_publisher_init',
+            'ros2:agnocast_construct_executor',
             'ros2:agnocast_publish',
             'ros2:agnocast_create_callable',
             'ros2:agnocast_callable_start',
@@ -303,6 +304,7 @@ class Ros2Handler():
         # For Agnocast (initialization)
         handler_map['ros2:agnocast_subscription_init'] = self._handle_agnocast_subscription_init
         handler_map['ros2:agnocast_publisher_init'] = self._handle_agnocast_publisher_init
+        handler_map['ros2:agnocast_construct_executor'] = self._handle_agnocast_construct_executor
 
         self.handler_map = handler_map
 
@@ -1278,6 +1280,25 @@ class Ros2Handler():
             event)
         self.data.add_publisher(publisher_handle, timestamp, node_handle,
                                 rmw_handle, topic_name, depth)
+
+    def _handle_agnocast_construct_executor(
+        self,
+        event: dict,
+    ) -> None:
+        timestamp = get_field(event, '_timestamp')
+        executor_addr = get_field(event, 'executor_addr')
+        executor_type_name = get_field(event, 'executor_type_name')
+
+        distribution = self._get_distribution(self.data)
+        if distribution[0] >= 'jazzy'[0]:
+            executor_addr = self._remapper.executor_addr_remapper.get_nearest_object_id(
+                executor_addr, event)
+        else:
+            executor_addr = self._remapper.executor_addr_remapper.register_and_get_object_id(
+                executor_addr, event)
+
+        # HACK: add to existing data
+        self.data.add_executor(executor_addr, timestamp, executor_type_name)
 
     def _handle_agnocast_publish(
         self,

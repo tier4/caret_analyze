@@ -139,6 +139,7 @@ class InitEventPassFilter(LttngEventFilter):
             # For Agnocast
             'ros2:agnocast_subscription_init',
             'ros2:agnocast_publisher_init',
+            'ros2:agnocast_construct_executor',
         }
 
         return event[self.NAME] in init_events
