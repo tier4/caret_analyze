@@ -50,6 +50,20 @@ class BokehTimeSeries:
         self._case = case
 
     def create_figure(self) -> Figure:
+        """
+        Create figure.
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+            Figure of bokeh time series.
+
+        Raises
+        ------
+        NotImplementedError
+            Argument y_axis_label is not "frequency", "period", "latency", or "response_time".
+
+        """
         target_objects = self._metrics.target_objects
         timeseries_records_list = self._metrics.to_timeseries_records_list(self._xaxis_type)
 
@@ -143,6 +157,7 @@ class LineSource:
         Returns
         -------
         HoverTool
+            Created hover.
 
         """
         return self._hover_keys.create_hover(options)

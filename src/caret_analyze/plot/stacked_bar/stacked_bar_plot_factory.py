@@ -47,7 +47,14 @@ class StackedBarPlotFactory:
         Returns
         -------
         StackedBarPlot
-            StackedBarPlot
+            Created instance of StackedBarPlot.
+
+        Raises
+        ------
+        NotImplementedError
+            This metrics is not implemented.
+        UnsupportedTypeError
+            Argument granularity is not "metrics" or "percentage".
 
         """
         if metrics == 'latency':

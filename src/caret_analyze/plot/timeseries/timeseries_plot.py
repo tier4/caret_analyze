@@ -50,6 +50,11 @@ class TimeSeriesPlot(PlotBase):
             Type of time for timestamp.
             "system_time", "index", or "sim_time" can be specified, by default "system_time".
 
+        Returns
+        -------
+        pd.DataFrame
+            Time series plot DataFrame.
+
         Raises
         ------
         UnsupportedTypeError
@@ -86,7 +91,8 @@ class TimeSeriesPlot(PlotBase):
 
         Returns
         -------
-        bokeh.plotting.Figure
+        Figure
+            bokeh.plotting.Figure
 
         Raises
         ------

@@ -43,6 +43,22 @@ class ColumnMerger():
         records: RecordsInterface,
         column_name: str
     ) -> str:
+        """
+        Append column.
+
+        Parameters
+        ----------
+        records : RecordsInterface
+            Records interface.
+        column_name : str
+            Column name.
+
+        Returns
+        -------
+        str
+            Append column name.
+
+        """
         key = column_name
 
         if key == records.columns[0] and len(self._count) > 0 and key in self._count.keys():
@@ -61,6 +77,20 @@ class ColumnMerger():
         self,
         records: RecordsInterface,
     ) -> list[str]:
+        """
+        Append columns.
+
+        Parameters
+        ----------
+        records : RecordsInterface
+            Records interface.
+
+        Returns
+        -------
+        list[str]
+            Renamed columns.
+
+        """
         renamed_columns: list[str] = []
         for column in records.columns:
             renamed_columns.append(
@@ -72,6 +102,20 @@ class ColumnMerger():
         self,
         records: RecordsInterface,
     ) -> dict[str, str]:
+        """
+        Append columns and return rename rule.
+
+        Parameters
+        ----------
+        records : RecordsInterface
+            Records interface.
+
+        Returns
+        -------
+        dict[str, str]
+            Renamed rule.
+
+        """
         renamed_columns: list[str] = self.append_columns(records)
         return self._to_rename_rule(records.columns, renamed_columns)
 
@@ -79,6 +123,15 @@ class ColumnMerger():
     def column_names(
         self
     ) -> list[str]:
+        """
+        Get column names.
+
+        Returns
+        -------
+        list[str]
+            Column names.
+
+        """
         return self._column_names
 
     @staticmethod
@@ -104,6 +157,24 @@ class RecordsMerged:
         include_first_callback: bool = False,
         include_last_callback: bool = False
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        merge_targets : list[NodePath | Communication]
+            Merge targets.
+        include_first_callback : bool
+            Flags for including the processing time of the first callback in the path analysis.
+        include_last_callback : bool
+            Flags for including the processing time of the last callback in the path analysis.
+
+        Raises
+        ------
+        InvalidArgumentError
+            There are no records to be merged.
+
+        """
         if len(merge_targets) == 0:
             raise InvalidArgumentError('There are no records to be merged.')
         self._data = self._merge_records(
@@ -113,6 +184,15 @@ class RecordsMerged:
 
     @property
     def data(self) -> RecordsInterface:
+        """
+        Get data.
+
+        Returns
+        -------
+        RecordsInterface
+            Records data.
+
+        """
         return self._data
 
     @staticmethod
@@ -304,6 +384,15 @@ class Path(PathBase, Summarizable):
 
     @property
     def include_first_callback(self) -> bool:
+        """
+        Get include first callback.
+
+        Returns
+        -------
+        bool
+            Flags for including the processing time of the first callback in the path analysis.
+
+        """
         return self._include_first_callback
 
     @include_first_callback.setter
@@ -312,6 +401,15 @@ class Path(PathBase, Summarizable):
 
     @property
     def include_last_callback(self) -> bool:
+        """
+        Get include last callback.
+
+        Returns
+        -------
+        bool
+            Flags for including the processing time of the last callback in the path analysis.
+
+        """
         return self._include_last_callback
 
     @include_last_callback.setter
@@ -319,6 +417,15 @@ class Path(PathBase, Summarizable):
         self._include_last_callback = include_last_callback
 
     def to_records(self) -> RecordsInterface:
+        """
+        Calculate records.
+
+        Returns
+        -------
+        RecordsInterface
+            Execution time of each operation.
+
+        """
         if (self._include_first_callback, self._include_last_callback) \
                 not in self.__records_cache.keys():
             try:
@@ -374,6 +481,24 @@ class Path(PathBase, Summarizable):
         return is_valid
 
     def get_child(self, name: str):
+        """
+        Get child.
+
+        Parameters
+        ----------
+        name : str
+            Topic name or node name.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Occurs when the given argument type is invalid.
+        ItemNotFoundError
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
+
+        """
         # TODO(hsgwa): This function is not needed. Remove.
 
         if not isinstance(name, str):

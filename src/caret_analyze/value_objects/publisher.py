@@ -74,7 +74,7 @@ class PublisherValue(ValueObject):
         Returns
         -------
         str
-            Node id.
+            Node name.
 
         """
         return self._node_name
@@ -245,7 +245,7 @@ class PublisherStructValue(ValueObject, Summarizable):
         Returns
         -------
         Summary
-            Summary.
+            Summary about value objects and runtime data objects.
 
         """
         return Summary({

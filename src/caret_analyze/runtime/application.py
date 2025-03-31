@@ -196,8 +196,6 @@ class Application(Summarizable):
             Occurs when the given argument type is invalid.
         ItemNotFoundError
             Occurs when no items were found.
-        MultipleItemFoundError
-            Occurs when several items were found.
 
         """
         if not isinstance(path_name, str):
@@ -233,7 +231,7 @@ class Application(Summarizable):
         InvalidArgumentError
             Given argument type is invalid.
         ItemNotFoundError
-            Failed to find an item that matches the condition.
+            Occurs when no items were found.
 
         """
         if not isinstance(executor_name, str):
@@ -280,7 +278,7 @@ class Application(Summarizable):
 
         Returns
         -------
-        CallbackBase
+        CallbackGroup
             callback group that matches the condition.
 
         Raises
@@ -288,9 +286,7 @@ class Application(Summarizable):
         InvalidArgumentError
             Given argument type is invalid.
         ItemNotFoundError
-            Failed to find an item that matches the condition.
-        MultipleItemFoundError
-            Failed to identify an item that matches the condition.
+            Occurs when no items were found.
 
         """
         if not isinstance(callback_group_name, str):
@@ -338,9 +334,7 @@ class Application(Summarizable):
         InvalidArgumentError
             Given argument type is invalid.
         ItemNotFoundError
-            Failed to find an item that matches the condition.
-        MultipleItemFoundError
-            Failed to identify an item that matches the condition.
+            Occurs when no items were found.
 
         """
         if not isinstance(publisher_node_name, str) or \
@@ -518,7 +512,7 @@ class Application(Summarizable):
         InvalidArgumentError
             Occurs when the given argument type is invalid.
         ItemNotFoundError
-            Failed to find an item that matches the condition.
+            Occurs when no items were found.
 
         """
         if not isinstance(topic_name, str):
@@ -556,8 +550,6 @@ class Application(Summarizable):
         ------
         InvalidArgumentError
             Occurs when the given argument type is invalid.
-        ItemNotFoundError
-            Failed to find an item that matches the condition.
 
         """
         if not isinstance(topic_name, str):
@@ -582,15 +574,13 @@ class Application(Summarizable):
 
         Returns
         -------
-        list[Publisher]
+        list[Subscription]
             subscriptions that match the condition.
 
         Raises
         ------
         InvalidArgumentError
             Occurs when the given argument type is invalid.
-        ItemNotFoundError
-            Failed to find an item that matches the condition.
 
         """
         if not isinstance(topic_name, str):
@@ -622,6 +612,8 @@ class Application(Summarizable):
         ------
         InvalidArgumentError
             Occurs when the given argument type is invalid.
+        ItemNotFoundError
+            Occurs when no items were found.
 
         """
         if not isinstance(node_name, str):
@@ -641,7 +633,7 @@ class Application(Summarizable):
     @property
     def node_paths(self) -> list[NodePathStructValue]:
         """
-        Get paths.
+        Get node paths.
 
         Returns
         -------
@@ -671,8 +663,6 @@ class Application(Summarizable):
             Occurs when the given argument type is invalid.
         ItemNotFoundError
             Occurs when no items were found.
-        MultipleItemFoundError
-            Occurs when several items were found.
 
         """
         if not isinstance(node_name, str):
@@ -705,8 +695,6 @@ class Application(Summarizable):
             Occurs when the given argument type is invalid.
         ItemNotFoundError
             Occurs when no items were found.
-        MultipleItemFoundError
-            Occurs when several items were found.
 
         """
         if not isinstance(callback_name, str):
@@ -732,15 +720,6 @@ class Application(Summarizable):
         -------
         list[CallbackBase]
             callbacks that match the condition.
-
-        Raises
-        ------
-        InvalidArgumentError
-            Occurs when the given argument type is invalid.
-        ItemNotFoundError
-            Occurs when no items were found.
-        MultipleItemFoundError
-            Occurs when several items were found.
 
         """
         def is_match_regex(callback: CallbackBase):
@@ -781,7 +760,7 @@ class Application(Summarizable):
         Returns
         -------
         Summary
-            Summary info.
+            Summary about value objects and runtime data objects.
 
         """
         return Summary({
