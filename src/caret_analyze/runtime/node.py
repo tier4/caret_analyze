@@ -394,13 +394,6 @@ class Node(Summarizable):
         list[CallbackBase]
             callbacks that match the condition.
 
-        Raises
-        ------
-        InvalidArgumentError
-            Occurs when the given argument type is invalid.
-        ItemNotFoundError
-            Occurs when no items were found.
-
         """
         callbacks = []
         for callback_name in callback_names:
