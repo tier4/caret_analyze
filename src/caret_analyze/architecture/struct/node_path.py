@@ -138,6 +138,15 @@ class NodePathStruct():
         return self._subscription.topic_name
 
     def to_value(self) -> NodePathStructValue:
+        """
+        Get node path struct value.
+
+        Returns
+        -------
+        NodePathStructValue
+            Node path struct value instance.
+
+        """
         return NodePathStructValue(
             self.node_name,
             None if self.subscription is None else self.subscription.to_value(),
@@ -146,6 +155,17 @@ class NodePathStruct():
             None if self.message_context is None else self.message_context.to_value())
 
     def rename_node(self, src: str, dst: str) -> None:
+        """
+        Rename node.
+
+        Parameters
+        ----------
+        src : str
+            Source node name.
+        dst : str
+            Destination node name.
+
+        """
         if self.node_name == src:
             self._node_name = dst
 
@@ -167,6 +187,17 @@ class NodePathStruct():
                 v.rename_node(src, dst)
 
     def rename_topic(self, src: str, dst: str) -> None:
+        """
+        Rename topic.
+
+        Parameters
+        ----------
+        src : str
+            Source topic name.
+        dst : str
+            Destination topic name.
+
+        """
         if self._publisher is not None:
             self._publisher.rename_topic(src, dst)
 

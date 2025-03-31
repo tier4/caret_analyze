@@ -145,6 +145,20 @@ class CallbackStruct(metaclass=ABCMeta):
         pass
 
     def insert_publisher(self, publish_topic_info: PublishTopicInfoValue) -> None:
+        """
+        Insert publisher.
+
+        Parameters
+        ----------
+        publish_topic_info : PublishTopicInfoValue
+            Publish topic info to insert.
+
+        Raises
+        ------
+        MultipleItemFoundError
+            Occurs when several items were found.
+
+        """
         if self.publish_topics is not None:
             for count in range(len(self.publish_topics)):
                 if self.publish_topics[count] == publish_topic_info:

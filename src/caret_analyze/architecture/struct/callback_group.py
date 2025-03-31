@@ -104,11 +104,31 @@ class CallbackGroupStruct():
         return [i.callback_name for i in self._callbacks]
 
     def to_value(self) -> CallbackGroupStructValue:
+        """
+        Get callback group struct value.
+
+        Returns
+        -------
+        CallbackGroupStructValue
+            Callback group struct value instance.
+
+        """
         return CallbackGroupStructValue(self.callback_group_type, self.node_name,
                                         tuple(v.to_value() for v in self.callbacks),
                                         self.callback_group_name)
 
     def rename_node(self, src: str, dst: str) -> None:
+        """
+        Rename node.
+
+        Parameters
+        ----------
+        src : str
+            Source node name.
+        dst : str
+            Destination node name.
+
+        """
         if self.node_name == src:
             self._node_name = dst
 
@@ -116,5 +136,16 @@ class CallbackGroupStruct():
             c.rename_node(src, dst)
 
     def rename_topic(self, src: str, dst: str) -> None:
+        """
+        Rename topic.
+
+        Parameters
+        ----------
+        src : str
+            Source topic name.
+        dst : str
+            Destination topic name.
+
+        """
         for c in self._callbacks:
             c.rename_topic(src, dst)

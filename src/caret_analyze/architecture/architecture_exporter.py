@@ -44,6 +44,15 @@ class ArchitectureExporter():
         self._force = force
 
     def execute(self, file_path: str) -> None:
+        """
+        Execute.
+
+        Parameters
+        ----------
+        file_path : str
+            File path.
+
+        """
         mode = 'w' if self._force else 'x'
         with open(file_path, mode=mode) as f:
             f.write(str(self))
@@ -53,6 +62,7 @@ class ArchitectureExporter():
         return yaml.dump(obj, indent=2, default_flow_style=False, sort_keys=False)
 
     def to_dict(self):
+        """Get to dict."""
         named_path_dicts = NamedPathsDicts(list(self._named_path_values))
         executor_dicts = ExecutorsDicts(list(self._executor_values))
         nodes_dicts = NodesDicts(list(self._node_values))
@@ -72,6 +82,15 @@ class NamedPathsDicts:
 
     @property
     def data(self) -> list[dict]:
+        """
+        Get data.
+
+        Returns
+        -------
+        list[dict]
+            Dict data.
+
+        """
         return self._data
 
     def _to_dict(self, path_value: PathStructValue):
@@ -154,6 +173,15 @@ class CallbackDicts:
 
     @property
     def data(self) -> list[dict]:
+        """
+        Get data.
+
+        Returns
+        -------
+        list[dict]
+            Dict data.
+
+        """
         return self._data
 
 
@@ -191,6 +219,15 @@ class VarPassDicts:
 
     @property
     def data(self) -> list[dict]:
+        """
+        Get data.
+
+        Returns
+        -------
+        list[dict]
+            Dict data.
+
+        """
         return self._data
 
 
@@ -219,6 +256,15 @@ class PubDicts:
 
     @property
     def data(self) -> list[dict]:
+        """
+        Get data.
+
+        Returns
+        -------
+        list[dict]
+            Dict data.
+
+        """
         return self._data
 
 
@@ -240,6 +286,15 @@ class SubDicts:
 
     @property
     def data(self) -> list[dict]:
+        """
+        Get data.
+
+        Returns
+        -------
+        list[dict]
+            Dict data.
+
+        """
         return self._data
 
 
@@ -254,6 +309,15 @@ class NodesDicts:
 
     @property
     def data(self) -> list[dict]:
+        """
+        Get data.
+
+        Returns
+        -------
+        list[dict]
+            Dict data.
+
+        """
         return self._data
 
     def _to_dict(
@@ -324,6 +388,15 @@ class MessageContextDicts:
 
     @property
     def data(self) -> list[dict]:
+        """
+        Get data.
+
+        Returns
+        -------
+        list[dict]
+            Dict data.
+
+        """
         return self._data
 
 
@@ -337,6 +410,15 @@ class ExecutorsDicts:
 
     @property
     def data(self) -> list[dict]:
+        """
+        Get data.
+
+        Returns
+        -------
+        list[dict]
+            Dict data.
+
+        """
         return self._data
 
     @staticmethod
