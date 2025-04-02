@@ -141,22 +141,18 @@ class Frequency:
             base_timestamp = round(converter.convert(base_timestamp))
             until_timestamp = round(converter.convert(until_timestamp))
             timestamp_array = np.round(np.vectorize(converter.convert)(timestamp_array)).astype(np.int64)
-        timestamp_list: list[int] = [base_timestamp]
-        frequency_list: list[int] = [0]
-        interval_start_time = base_timestamp
 
-        for timestamp in timestamp_array:
-            if timestamp < base_timestamp:
-                continue
-            while not (interval_start_time <= timestamp < interval_start_time + interval_ns):
-                next_interval_start_time = interval_start_time + interval_ns
-                timestamp_list.append(next_interval_start_time)
-                frequency_list.append(0)
-                interval_start_time = next_interval_start_time
-            frequency_list[-1] += 1
+        timestamp_array = timestamp_array[timestamp_array >= base_timestamp]        
+        if len(timestamp_array) == 0:
+            return [base_timestamp], [0]
 
-        while timestamp_list[-1] + interval_ns <= until_timestamp:
-            timestamp_list.append(timestamp_list[-1] + interval_ns)
-            frequency_list.append(0)
+        # frequency is the number of timestamps that appear in each interval
+        interval_index_array = (timestamp_array - base_timestamp) // interval_ns
+        frequency_list = np.bincount(interval_index_array).tolist()
+        expected_freq_list_length = int(np.ceil((until_timestamp - base_timestamp) / interval_ns))
+        frequency_list += [0] * (expected_freq_list_length - len(frequency_list))
 
+        interval_start_time_array = np.arange(len(frequency_list)) * interval_ns + base_timestamp
+        timestamp_list = interval_start_time_array.tolist()
+  
         return timestamp_list, frequency_list
