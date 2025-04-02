@@ -579,7 +579,7 @@ class Architecture(Summarizable):
         communication_filter: Callable[[str], bool] | None = None,
     ) -> list[PathStructValue]:
         """
-        Searches for paths between specified nodes.
+        Search for paths between specified nodes.
 
         Parameters
         ----------
