@@ -98,9 +98,8 @@ class Frequency:
             - {frequency_column}
 
         """
-        records = self._create_empty_records()
         if not self._target_timestamps:
-            return records
+            return self._create_empty_records()
         
         if base_timestamp is None:
             base_timestamp = self._target_timestamps[0]
@@ -113,21 +112,17 @@ class Frequency:
             until_timestamp,
             converter=converter
         )
+
+        records = self._create_empty_records()
         for ts, freq in zip(timestamp_list, frequency_list):
-            record = {
-                self._target_column: ts,
-                'frequency': freq
-            }
+            record = {self._target_column: ts, 'frequency': freq}
             records.append(record)
 
         return records
 
-    def _create_empty_records(
-        self
-    ) -> RecordsInterface:
-        return RecordsFactory.create_instance(None, columns=[
-            ColumnValue(self._target_column), ColumnValue('frequency')
-        ])
+    def _create_empty_records(self) -> RecordsInterface:
+        columns = [ColumnValue(self._target_column), ColumnValue('frequency')]
+        return RecordsFactory.create_instance(None, columns=columns)
 
     def _get_frequency_with_timestamp(
         self,
