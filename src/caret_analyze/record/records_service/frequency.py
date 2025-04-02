@@ -139,7 +139,7 @@ class Frequency:
             convert_vector = np.vectorize(converter.convert)
             timestamp_array = np.round(convert_vector(timestamp_array)).astype(np.int64)
 
-        timestamp_array = timestamp_array[timestamp_array >= base_timestamp]        
+        timestamp_array = timestamp_array[timestamp_array >= base_timestamp]
         if len(timestamp_array) == 0:
             return [base_timestamp], [0]
 
