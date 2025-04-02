@@ -1053,15 +1053,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#caret_analyze.architecture.check_procedure" class="md-nav__link">
-    <span class="md-ellipsis">
-      check_procedure
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1779,15 +1770,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#caret_analyze.architecture.check_procedure" class="md-nav__link">
-    <span class="md-ellipsis">
-      check_procedure
-    </span>
-  </a>
   
 </li>
       
@@ -3141,7 +3123,8 @@
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Forced specification, by default False.</p>
+              <p>Forced specification, by default False.
+If True, a file with the same name will be overwritten if it exists corrected.</p>
             </div>
           </td>
           <td>
@@ -4688,7 +4671,7 @@
 
   <div class="doc doc-contents ">
   
-      <p>Search for paths.</p>
+      <p>Searches for paths between specified nodes.</p>
 
 
 
@@ -4710,7 +4693,7 @@
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Node names.</p>
+              <p>Specifies the name of the node included in the path to search.</p>
             </div>
           </td>
           <td>
@@ -5075,7 +5058,7 @@
         <tr>
           <td><code>node</code></td>
           <td>
-                <code>NodeInfo</code>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.NodeValue" href="../value_objects/#caret_analyze.value_objects.NodeValue">NodeValue</a></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -5649,7 +5632,7 @@ tuple structure: (node_name, callback_symbol)</p>
         <tr>
           <td><code>node</code></td>
           <td>
-                <code>NodeInfo</code>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.NodeValue" href="../value_objects/#caret_analyze.value_objects.NodeValue">NodeValue</a></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -5957,7 +5940,7 @@ tuple structure: (node_name, callback_symbol)</p>
         <tr>
           <td><code>node</code></td>
           <td>
-                <code>NodeInfo</code>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.NodeValue" href="../value_objects/#caret_analyze.value_objects.NodeValue">NodeValue</a></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -6008,155 +5991,6 @@ tuple structure: (node_name, callback_symbol)</p>
 
 </div>
 
-
-
-<div class="doc doc-object doc-function">
-
-
-
-<h2 id="caret_analyze.architecture.check_procedure" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">check_procedure</span><span class="p">(</span><span class="n">file_type</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">app_arch</span><span class="p">,</span> <span class="n">node_name</span><span class="p">)</span></code>
-
-<a href="#caret_analyze.architecture.check_procedure" class="headerlink" title="Permanent link">#</a></h2>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>To check node definition and procedure.</p>
-
-
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>file_type</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>file type</p>
-            </div>
-          </td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>file_path</code></td>
-          <td>
-                <code>str | list[str]</code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>file path</p>
-            </div>
-          </td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>app_arch</code></td>
-          <td>
-                <code><a class="autorefs autorefs-internal" title="caret_analyze.architecture.architecture.Architecture" href="#caret_analyze.architecture.Architecture">Architecture</a></code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>app architecture</p>
-            </div>
-          </td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>node_name</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>node name</p>
-            </div>
-          </td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code>tuple[<a class="autorefs autorefs-internal" title="caret_analyze.value_objects.NodePathStructValue" href="../value_objects/#caret_analyze.value_objects.NodePathStructValue">NodePathStructValue</a>, ...]</code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>node path values</p>
-            </div>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-
-
-  <p><strong>Raises:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code>ItemNotFoundError</code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>Occurs when no items were found.</p>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td>
-                <code>MultipleItemFoundError</code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>Occurs when several items were found.</p>
-            </div>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
 
 
 
