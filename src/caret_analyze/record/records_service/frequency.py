@@ -21,6 +21,7 @@ from ..interface import RecordsInterface
 from ..record_factory import RecordsFactory
 from ...common import ClockConverter
 
+import numpy as np
 
 class Frequency:
 
@@ -100,11 +101,16 @@ class Frequency:
         records = self._create_empty_records()
         if not self._target_timestamps:
             return records
+        
+        if base_timestamp is None:
+            base_timestamp = self._target_timestamps[0]
+        if until_timestamp is None:
+            until_timestamp = self._target_timestamps[-1]
 
         timestamp_list, frequency_list = self._get_frequency_with_timestamp(
             interval_ns,
-            base_timestamp or self._target_timestamps[0],
-            until_timestamp or self._target_timestamps[-1],
+            base_timestamp,
+            until_timestamp,
             converter=converter
         )
         for ts, freq in zip(timestamp_list, frequency_list):
@@ -130,16 +136,16 @@ class Frequency:
         until_timestamp: int,
         converter: ClockConverter | None = None
     ) -> tuple[list[int], list[int]]:
+        timestamp_array = np.array(self._target_timestamps).astype(np.int64)
         if converter:
             base_timestamp = round(converter.convert(base_timestamp))
             until_timestamp = round(converter.convert(until_timestamp))
+            timestamp_array = np.round(np.vectorize(converter.convert)(timestamp_array)).astype(np.int64)
         timestamp_list: list[int] = [base_timestamp]
         frequency_list: list[int] = [0]
         interval_start_time = base_timestamp
 
-        for timestamp in self._target_timestamps:
-            if converter:
-                timestamp = round(converter.convert(timestamp))
+        for timestamp in timestamp_array:
             if timestamp < base_timestamp:
                 continue
             while not (interval_start_time <= timestamp < interval_start_time + interval_ns):
