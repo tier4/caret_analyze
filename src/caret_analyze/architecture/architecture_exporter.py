@@ -45,7 +45,7 @@ class ArchitectureExporter():
 
     def execute(self, file_path: str) -> None:
         """
-        Execute.
+        Writes exporter data to specified file path.
 
         Parameters
         ----------

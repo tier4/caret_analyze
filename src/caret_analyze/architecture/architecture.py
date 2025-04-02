@@ -564,6 +564,7 @@ class Architecture(Summarizable):
             File path.
         force : bool
             Forced specification, by default False.
+            If True, a file with the same name will be overwritten if it exists corrected.
 
         """
         exporter = ArchitectureExporter(
@@ -578,12 +579,12 @@ class Architecture(Summarizable):
         communication_filter: Callable[[str], bool] | None = None,
     ) -> list[PathStructValue]:
         """
-        Search for paths.
+        Searches for paths between specified nodes.
 
         Parameters
         ----------
         node_names : str
-            Node names.
+            Specifies the name of the node included in the path to search.
         max_node_depth : int | None
             Max node depth.
         node_filter : Callable[[str], bool] | None

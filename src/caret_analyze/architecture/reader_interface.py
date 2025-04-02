@@ -93,7 +93,7 @@ class ArchitectureReader(metaclass=ABCMeta):
 
         Parameters
         ----------
-        node : NodeInfo
+        node : NodeValue
             target node
 
         Returns
@@ -253,7 +253,7 @@ class ArchitectureReader(metaclass=ABCMeta):
 
         Parameters
         ----------
-        node : NodeInfo
+        node : NodeValue
             target node
 
         Returns
@@ -287,7 +287,7 @@ class ArchitectureReader(metaclass=ABCMeta):
 
         Parameters
         ----------
-        node : NodeInfo
+        node : NodeValue
             target node
 
         Returns

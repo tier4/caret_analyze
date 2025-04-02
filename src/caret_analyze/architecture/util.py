@@ -29,33 +29,6 @@ def check_procedure(
     app_arch: Architecture,
     node_name: str,
 ) -> tuple[NodePathStructValue, ...]:
-    """
-    To check node definition and procedure.
-
-    Parameters
-    ----------
-    file_type : str
-        file type
-    file_path : str | list[str]
-        file path
-    app_arch : Architecture
-        app architecture
-    node_name : str
-        node name
-
-    Returns
-    -------
-    tuple[NodePathStructValue, ...]
-        node path values
-
-    Raises
-    ------
-    ItemNotFoundError
-        Occurs when no items were found.
-    MultipleItemFoundError
-        Occurs when several items were found.
-
-    """
     handler = StreamHandler()
     handler.setLevel(INFO)
 

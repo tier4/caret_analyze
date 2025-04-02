@@ -39,14 +39,10 @@ class CallbackGroupStruct():
             callback group type
         node_name: str
             node name
-        callbacks: tuple[CallbackStruct, ...]
+        callbacks: list[CallbackStruct, ...]
             callbacks
         callback_group_name: str
             callback group name
-
-        Returns
-        -------
-        None
 
         """
         self._callback_group_type = callback_group_type
@@ -57,11 +53,12 @@ class CallbackGroupStruct():
     @property
     def callback_group_type(self) -> CallbackGroupType:
         """
-        Get callback_group_type.
+        Get callback group type.
 
         Returns
         -------
         CallbackGroupType
+            Callback group type.
 
         """
         return self._callback_group_type
@@ -69,17 +66,27 @@ class CallbackGroupStruct():
     @property
     def callback_group_type_name(self) -> str:
         """
-        Get callback_group_type name.
+        Get callback group type name.
 
         Returns
         -------
-        CallbackGroupType name
+        str
+            Callback group type name.
 
         """
         return self._callback_group_type.type_name
 
     @property
     def callback_group_name(self) -> str:
+        """
+        Get callback group name.
+
+        Returns
+        -------
+        str
+            Callback group name.
+
+        """
         return self._callback_group_name
 
     @property
@@ -90,7 +97,7 @@ class CallbackGroupStruct():
         Returns
         -------
         str
-            node name
+            Node name.
 
         """
         return self._node_name
@@ -124,9 +131,9 @@ class CallbackGroupStruct():
         Parameters
         ----------
         src : str
-            Source node name.
+            Current node name.
         dst : str
-            Destination node name.
+            Updated node name.
 
         """
         if self.node_name == src:
@@ -142,9 +149,9 @@ class CallbackGroupStruct():
         Parameters
         ----------
         src : str
-            Source topic name.
+            Current topic name.
         dst : str
-            Destination topic name.
+            Updated topic name.
 
         """
         for c in self._callbacks:

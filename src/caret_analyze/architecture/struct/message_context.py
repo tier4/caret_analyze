@@ -104,11 +104,11 @@ class MessageContextStruct():
 
         Parameters
         ----------
-        subscription : SubscriptionStructValue | None
+        subscription : SubscriptionStruct | None
             Target subscription value.
-        publisher : PublisherStructValue | None
+        publisher : PublisherStruct | None
             Target publisher value.
-        callbacks : tuple[CallbackStructValue, ...] | None
+        callbacks : list[CallbackStruct] | None
             Target callbacks.
 
         Returns
@@ -166,11 +166,11 @@ class MessageContextStruct():
             Context dict.
         node_name : str
             Node name.
-        subscription : SubscriptionStructValue | None
+        subscription : SubscriptionStruct | None
             Target subscription value.
-        publisher: PublisherStructValue | None
+        publisher: PublisherStruct | None
             Target publisher.
-        child : tuple[CallbackStructValue, ...] | None
+        child : list[CallbackStruct] | None
             Child elements.
 
         Returns
@@ -222,9 +222,9 @@ class MessageContextStruct():
         Parameters
         ----------
         src : str
-            Source node name.
+            Current node name.
         dst : str
-            Destination node name.
+            Updated node name.
 
         """
         if self.node_name == src:
@@ -247,9 +247,9 @@ class MessageContextStruct():
         Parameters
         ----------
         src : str
-            Source topic name.
+            Current topic name.
         dst : str
-            Destination topic name.
+            Updated topic name.
 
         """
         if self._pub is not None:
@@ -364,11 +364,11 @@ class CallbackChainStruct(MessageContextStruct):
 
         Parameters
         ----------
-        subscription : SubscriptionStructValue | None
+        subscription : SubscriptionStruct | None
             Target subscription value.
-        publisher : PublisherStructValue | None
+        publisher : PublisherStruct | None
             Target publisher value.
-        callbacks : tuple[CallbackStructValue, ...] | None
+        callbacks : list[CallbackStruct] | None
             Target callbacks.
 
         Returns
@@ -403,12 +403,12 @@ class CallbackChainStruct(MessageContextStruct):
 
     def to_value(self) -> CallbackChain:
         """
-        Get callback chain value.
+        Get callback chain.
 
         Returns
         -------
         CallbackChain
-            Callback chain value instance.
+            Callback chain instance.
 
         """
         return CallbackChain(
@@ -457,11 +457,11 @@ class TildeStruct(MessageContextStruct):
 
         Parameters
         ----------
-        subscription : SubscriptionStructValue | None
+        subscription : SubscriptionStruct | None
             Target subscription value.
-        publisher : PublisherStructValue | None
+        publisher : PublisherStruct | None
             Target publisher value.
-        callbacks : tuple[CallbackStructValue, ...] | None
+        callbacks : list[CallbackStruct] | None
             Target callbacks.
 
         Returns

@@ -39,7 +39,7 @@ class VariablePassingStruct():
         Returns
         -------
         str
-            node name
+            Node name.
 
         """
         return self._node_name
@@ -51,8 +51,8 @@ class VariablePassingStruct():
 
         Returns
         -------
-        [str]
-            write-side callback name.
+        str
+            Write-side callback name.
 
         """
         return self._cb_write.callback_name
@@ -64,8 +64,8 @@ class VariablePassingStruct():
 
         Returns
         -------
-        [str]
-            read-side callback name.
+        str
+            Read-side callback name.
 
         """
         return self._cb_read.callback_name
@@ -99,9 +99,9 @@ class VariablePassingStruct():
         Parameters
         ----------
         src : str
-            Source node name.
+            Current node name.
         dst : str
-            Destination node name.
+            Updated node name.
 
         """
         if self.node_name == src:
@@ -117,9 +117,9 @@ class VariablePassingStruct():
         Parameters
         ----------
         src : str
-            Source topic name.
+            Current topic name.
         dst : str
-            Destination topic name.
+            Updated topic name.
 
         """
         self._cb_read.rename_topic(src, dst)

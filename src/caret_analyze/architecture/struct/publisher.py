@@ -114,9 +114,9 @@ class PublisherStruct():
         Parameters
         ----------
         src : str
-            Source node name.
+            Current node name.
         dst : str
-            Destination node name.
+            Updated node name.
 
         """
         if self.node_name == src:
@@ -133,9 +133,9 @@ class PublisherStruct():
         Parameters
         ----------
         src : str
-            Source topic name.
+            Current topic name.
         dst : str
-            Destination topic name.
+            Updated topic name.
 
         """
         if self.topic_name == src:

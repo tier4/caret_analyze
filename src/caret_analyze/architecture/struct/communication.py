@@ -127,9 +127,9 @@ class CommunicationStruct():
         Parameters
         ----------
         src : str
-            Source node name.
+            Current node name.
         dst : str
-            Destination node name.
+            Updated node name.
 
         """
         self._node_pub.rename_node(src, dst)
@@ -149,9 +149,9 @@ class CommunicationStruct():
         Parameters
         ----------
         src : str
-            Source topic name.
+            Current topic name.
         dst : str
-            Destination topic name.
+            Updated topic name.
 
         """
         if self.topic_name == src:

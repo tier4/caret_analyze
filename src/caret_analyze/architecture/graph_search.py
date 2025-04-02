@@ -60,7 +60,7 @@ class GraphPathCore(UserList):
 
     def to_graph_node_indices(self) -> list[int]:
         """
-        To graph node indices.
+        Get a list of node indices representing path.
 
         Returns
         -------
@@ -238,12 +238,12 @@ class GraphEdge(ValueObject):
     @property
     def node_from(self) -> GraphNode:
         """
-        Get from node.
+        Get starting point of GraphNode.
 
         Returns
         -------
         GraphNode
-            From GraphNode.
+            Starting point of GraphNode instance.
 
         """
         return self._node_from
@@ -251,12 +251,12 @@ class GraphEdge(ValueObject):
     @property
     def node_name_from(self) -> str:
         """
-        Get from node name.
+        Get starting point of node name.
 
         Returns
         -------
         str
-            From node name.
+           Starting point of node name.
 
         """
         return self.node_from.node_name
@@ -264,12 +264,12 @@ class GraphEdge(ValueObject):
     @property
     def node_to(self) -> GraphNode:
         """
-        Get to node.
+        Get ending point of GraphNode.
 
         Returns
         -------
         GraphNode
-            To GraphNode.
+            Ending point of GraphNode instance.
 
         """
         return self._node_to
@@ -277,12 +277,12 @@ class GraphEdge(ValueObject):
     @property
     def node_name_to(self) -> str:
         """
-        Get to node name.
+        Get ending point of node name.
 
         Returns
         -------
         str
-            To node name.
+            Ending point of node name.
 
         """
         return self.node_to.node_name
@@ -445,6 +445,7 @@ class Graph:
 
 
 class CallbackPathSearcher:
+    """Searcher of callback path."""
 
     def __init__(
         self,
@@ -665,6 +666,7 @@ CommKey = tuple[
 
 
 class NodePathSearcher:
+    """Searcher of node path."""
 
     def __init__(
         self,

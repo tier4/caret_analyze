@@ -79,9 +79,9 @@ class TimerStruct():
         Parameters
         ----------
         src : str
-            Source node name.
+            Current node name.
         dst : str
-            Destination node name.
+            Updated node name.
 
         """
         if self.node_name == src:
@@ -97,9 +97,9 @@ class TimerStruct():
         Parameters
         ----------
         src : str
-            Source topic name.
+            Current topic name.
         dst : str
-            Destination topic name.
+            Updated topic name.
 
         """
         if self._callback_value is not None:

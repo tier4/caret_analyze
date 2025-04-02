@@ -27,6 +27,7 @@ class ArchitectureReaderFactory:
         ----------
         file_type : str
             File type.
+            File type allows 'yaml','yml','lttng','ctf'.
         file_path : str | list[str]
             File path.
 

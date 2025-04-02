@@ -119,9 +119,9 @@ class PathStruct():
         Parameters
         ----------
         src : str
-            Source node name.
+            Current node name.
         dst : str
-            Destination node name.
+            Updated node name.
 
         """
         for n in self.node_paths:
@@ -137,9 +137,9 @@ class PathStruct():
         Parameters
         ----------
         src : str
-            Source topic name.
+            Current topic name.
         dst : str
-            Destination topic name.
+            Updated topic name.
 
         """
         for n in self.node_paths:

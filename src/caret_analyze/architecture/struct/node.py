@@ -122,6 +122,7 @@ class NodeStruct():
             Topic name to get.
         construction_order : int | None
             Construction order to get.
+            If construction_order is None, searches for information only by topic_name.
 
         Returns
         -------
@@ -165,6 +166,7 @@ class NodeStruct():
             Service name to get.
         construction_order : int | None
             Construction order to get.
+            If construction_order is None, searches for information only by service_name.
 
         Returns
         -------
@@ -208,6 +210,7 @@ class NodeStruct():
             Publish topic name to get.
         construction_order : int | None
             Construction order to get.
+            If construction_order is None, searches for information only by topic_name.
 
         Returns
         -------
@@ -289,7 +292,7 @@ class NodeStruct():
             Publish topic name to insert.
         callback_name : str
             Publish callback name to insert.
-        publisher_construction_order : int | None
+        publisher_construction_order : int
             Publisher construction order to insert.
 
         Raises
@@ -366,7 +369,7 @@ class NodeStruct():
             Publish topic name to remove.
         callback_name : str
             Publish callback name to remove.
-        publisher_construction_order : int | None
+        publisher_construction_order : int
             Publisher construction order to remove.
 
         Raises
@@ -423,9 +426,9 @@ class NodeStruct():
         Parameters
         ----------
         src : str
-            Source node name.
+            Current node name.
         dst : str
-            Destination node name.
+            Updated node name.
 
         """
         if self.node_name == src:
@@ -458,9 +461,9 @@ class NodeStruct():
         Parameters
         ----------
         src : str
-            Source topic name.
+            Current topic name.
         dst : str
-            Destination topic name.
+            Updated topic name.
 
         """
         for p in self._publishers:
