@@ -16,12 +16,13 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
+import numpy as np
+
 from ..column import ColumnValue
 from ..interface import RecordsInterface
 from ..record_factory import RecordsFactory
 from ...common import ClockConverter
 
-import numpy as np
 
 class Frequency:
 
@@ -100,7 +101,7 @@ class Frequency:
         """
         if not self._target_timestamps:
             return self._create_empty_records()
-        
+
         if base_timestamp is None:
             base_timestamp = self._target_timestamps[0]
         if until_timestamp is None:
@@ -135,7 +136,8 @@ class Frequency:
         if converter:
             base_timestamp = round(converter.convert(base_timestamp))
             until_timestamp = round(converter.convert(until_timestamp))
-            timestamp_array = np.round(np.vectorize(converter.convert)(timestamp_array)).astype(np.int64)
+            convert_vector = np.vectorize(converter.convert)
+            timestamp_array = np.round(convert_vector(timestamp_array)).astype(np.int64)
 
         timestamp_array = timestamp_array[timestamp_array >= base_timestamp]        
         if len(timestamp_array) == 0:
@@ -149,5 +151,5 @@ class Frequency:
 
         interval_start_time_array = np.arange(len(frequency_list)) * interval_ns + base_timestamp
         timestamp_list = interval_start_time_array.tolist()
-  
+
         return timestamp_list, frequency_list
