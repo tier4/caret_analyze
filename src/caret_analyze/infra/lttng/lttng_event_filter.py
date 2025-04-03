@@ -72,7 +72,7 @@ class SameAddressFilter(LttngEventFilter):
         event : Event
             Target event.
         common : LttngEventFilter.Common
-            Lttng event flter common.
+            Lttng event filter common.
 
         Returns
         -------
@@ -114,7 +114,7 @@ class InitEventPassFilter(LttngEventFilter):
         event : Event
             Target event.
         common : LttngEventFilter.Common
-            Lttng event flter common.
+            Lttng event filter common.
 
         Returns
         -------
@@ -192,7 +192,7 @@ class EventStripFilter(LttngEventFilter):
         event : Event
             Target event.
         common : LttngEventFilter.Common
-            Lttng event flter common.
+            Lttng event filter common.
 
         Returns
         -------
@@ -233,7 +233,7 @@ class EventDurationFilter(LttngEventFilter):
         event : Event
             Target event.
         common : LttngEventFilter.Common
-            Lttng event flter common.
+            Lttng event filter common.
 
         Returns
         -------
