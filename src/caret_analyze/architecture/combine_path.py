@@ -119,6 +119,17 @@ class CombinePath():
         left_last_child,    # 'singledispatchmethod' doesn't
         right_first_child,  # allow to attach annotation to parameters.
     ) -> None:
+        """
+        Validate to be able to combine.
+
+        Parameters
+        ----------
+        left_last_child : NodePathStructValue
+            left last child
+        right_first_child : NodePathStructValue
+            right first child
+
+        """
         msg = 'Unsupported type.'
         raise UnsupportedTypeError(msg)
 
@@ -295,6 +306,29 @@ class CombinePath():
         right_first_child: NodePathStructValue | CommunicationStructValue,
         node_paths: NodePathStructValue
     ) -> NodePathStructValue:
+        """
+        Find node path.
+
+        Parameters
+        ----------
+        left_last_child : NodePathStructValue
+            left last child
+        right_first_child : NodePathStructValue
+            right last child
+        node_paths : tuple[NodePathStructValue, ...]
+            candidate node paths
+
+        Returns
+        -------
+        NodePathStructValue
+            node path
+
+        Raises
+        ------
+        NotImplementedError
+            This module is not implemented.
+
+        """
         raise NotImplementedError('')
 
     @_find_node_path_core.register
@@ -426,6 +460,24 @@ class CombinePath():
         right_first_child: NodePathStructValue | CommunicationStructValue,
         node_paths: tuple[NodePathStructValue, ...],
     ) -> NodePathStructValue:
+        """
+        Find node path.
+
+        Parameters
+        ----------
+        left_last_child : NodePathStructValue | CommunicationStructValue
+            left last child
+        right_first_child : NodePathStructValue | CommunicationStructValue
+            right last child
+        node_paths : tuple[NodePathStructValue, ...]
+            candidate node paths
+
+        Returns
+        -------
+        NodePathStructValue
+            node path
+
+        """
         return self._find_node_path_core(left_last_child, right_first_child, node_paths)
 
     @staticmethod
@@ -670,6 +722,11 @@ class CombinePath():
         -------
         PathStructValue
             combined path
+
+        Raises
+        ------
+        NotImplementedError
+            This module is not implemented.
 
         """
         msg = 'This is a not implemented COMBINE case. Please contact maintainer if necessary.'

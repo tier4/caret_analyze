@@ -56,7 +56,7 @@ class ArchitectureReader(metaclass=ABCMeta):
 
         Returns
         -------
-        Sequence[NodeValue]
+        Sequence[NodeValueWithId]
             node values.
 
         """
@@ -77,7 +77,7 @@ class ArchitectureReader(metaclass=ABCMeta):
 
         Returns
         -------
-        Sequence[TimerCallbackStructInfo]
+        Sequence[TimerCallbackValue]
             timer callback values
 
         """
@@ -93,12 +93,12 @@ class ArchitectureReader(metaclass=ABCMeta):
 
         Parameters
         ----------
-        node : NodeInfo
+        node : NodeValue
             target node
 
         Returns
         -------
-        Sequence[SubscriptionCallbackInfo]
+        Sequence[SubscriptionCallbackValue]
             subscription callback values
 
         """
@@ -119,7 +119,7 @@ class ArchitectureReader(metaclass=ABCMeta):
 
         Returns
         -------
-        Sequence[ServiceCallbackInfo]
+        Sequence[ServiceCallbackValue]
             service callback values
 
         """
@@ -216,7 +216,7 @@ class ArchitectureReader(metaclass=ABCMeta):
 
         Returns
         -------
-        Sequence[PathInfo]
+        Sequence[PathValue]
             path values
 
         """
@@ -238,6 +238,7 @@ class ArchitectureReader(metaclass=ABCMeta):
         Returns
         -------
         Sequence[dict]
+            message contexts
 
         """
         pass
@@ -252,7 +253,7 @@ class ArchitectureReader(metaclass=ABCMeta):
 
         Parameters
         ----------
-        node : NodeInfo
+        node : NodeValue
             target node
 
         Returns
@@ -286,7 +287,7 @@ class ArchitectureReader(metaclass=ABCMeta):
 
         Parameters
         ----------
-        node : NodeInfo
+        node : NodeValue
             target node
 
         Returns

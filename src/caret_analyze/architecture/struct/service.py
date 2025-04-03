@@ -57,6 +57,15 @@ class ServiceStruct():
         return self._construction_order
 
     def to_value(self) -> ServiceStructValue:
+        """
+        Get service struct value.
+
+        Returns
+        -------
+        ServiceStructValue
+            Service struct value instance.
+
+        """
         return ServiceStructValue(
             node_name=self.node_name,
             service_name=self.service_name,

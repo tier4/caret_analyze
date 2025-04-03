@@ -39,7 +39,7 @@ class VariablePassingStruct():
         Returns
         -------
         str
-            node name
+            Node name.
 
         """
         return self._node_name
@@ -51,8 +51,8 @@ class VariablePassingStruct():
 
         Returns
         -------
-        [str]
-            write-side callback name.
+        str
+            Write-side callback name.
 
         """
         return self._cb_write.callback_name
@@ -64,8 +64,8 @@ class VariablePassingStruct():
 
         Returns
         -------
-        [str]
-            read-side callback name.
+        str
+            Read-side callback name.
 
         """
         return self._cb_read.callback_name
@@ -79,11 +79,31 @@ class VariablePassingStruct():
         return self._cb_read
 
     def to_value(self) -> VariablePassingStructValue:
+        """
+        Get variable passing struct value.
+
+        Returns
+        -------
+        VariablePassingStructValue
+            VariablePassing struct value instance.
+
+        """
         return VariablePassingStructValue(self.node_name,
                                           self.callback_write.to_value(),
                                           self.callback_read.to_value())
 
     def rename_node(self, src: str, dst: str) -> None:
+        """
+        Rename node.
+
+        Parameters
+        ----------
+        src : str
+            Current node name.
+        dst : str
+            Updated node name.
+
+        """
         if self.node_name == src:
             self._node_name = dst
 
@@ -91,5 +111,16 @@ class VariablePassingStruct():
         self._cb_write.rename_node(src, dst)
 
     def rename_topic(self, src: str, dst: str) -> None:
+        """
+        Rename topic.
+
+        Parameters
+        ----------
+        src : str
+            Current topic name.
+        dst : str
+            Updated topic name.
+
+        """
         self._cb_read.rename_topic(src, dst)
         self._cb_write.rename_topic(src, dst)

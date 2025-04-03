@@ -20,6 +20,23 @@ class ArchitectureReaderFactory:
 
     @staticmethod
     def create_instance(file_type: str, file_path: str | list[str]):
+        """
+        Create an instance of ArchitectureReaderFactory.
+
+        Parameters
+        ----------
+        file_type : str
+            File type.
+            File type allows 'yaml','yml','lttng','ctf'.
+        file_path : str | list[str]
+            File path.
+
+        Raises
+        ------
+        ValueError
+            Unsupported file_type or multiple yaml files are provided.
+
+        """
         if file_type in ['yaml', 'yml']:
             if not isinstance(file_path, str):
                 raise ValueError(

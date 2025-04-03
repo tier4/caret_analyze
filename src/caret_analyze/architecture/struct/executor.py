@@ -69,14 +69,45 @@ class ExecutorStruct():
         return cbg_names
 
     def to_value(self) -> ExecutorStructValue:
+        """
+        Get executor struct value.
+
+        Returns
+        -------
+        ExecutorStructValue
+            Executor struct value instance.
+
+        """
         return ExecutorStructValue(self.executor_type,
                                    tuple(v.to_value() for v in self.callback_groups),
                                    self.executor_name)
 
     def rename_node(self, src: str, dst: str) -> None:
+        """
+        Rename node.
+
+        Parameters
+        ----------
+        src : str
+            Current node name.
+        dst : str
+            Updated node name.
+
+        """
         for c in self._cbg_values:
             c.rename_node(src, dst)
 
     def rename_topic(self, src: str, dst: str) -> None:
+        """
+        Rename topic.
+
+        Parameters
+        ----------
+        src : str
+            Current topic name.
+        dst : str
+            Updated topic name.
+
+        """
         for c in self._cbg_values:
             c.rename_topic(src, dst)

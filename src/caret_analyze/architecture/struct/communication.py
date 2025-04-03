@@ -101,6 +101,15 @@ class CommunicationStruct():
         return self._node_pub.node_name
 
     def to_value(self) -> CommunicationStructValue:
+        """
+        Get Communication struct value.
+
+        Returns
+        -------
+        CommunicationStructValue
+            Communication struct value instance.
+
+        """
         return CommunicationStructValue(
             self.publish_node.to_value(),
             self.subscribe_node.to_value(),
@@ -112,6 +121,17 @@ class CommunicationStruct():
             else self.subscribe_callback.to_value())
 
     def rename_node(self, src: str, dst: str) -> None:
+        """
+        Rename node.
+
+        Parameters
+        ----------
+        src : str
+            Current node name.
+        dst : str
+            Updated node name.
+
+        """
         self._node_pub.rename_node(src, dst)
         self._node_sub.rename_node(src, dst)
         self._publisher_value.rename_node(src, dst)
@@ -123,6 +143,17 @@ class CommunicationStruct():
             self._subscription_callback_value.rename_node(src, dst)
 
     def rename_topic(self, src: str, dst: str) -> None:
+        """
+        Rename topic.
+
+        Parameters
+        ----------
+        src : str
+            Current topic name.
+        dst : str
+            Updated topic name.
+
+        """
         if self.topic_name == src:
             self._topic_name = dst
 

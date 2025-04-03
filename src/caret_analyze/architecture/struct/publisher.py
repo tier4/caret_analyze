@@ -62,6 +62,15 @@ class PublisherStruct():
         return self._construction_order
 
     def to_value(self) -> PublisherStructValue:
+        """
+        Get publisher struct value.
+
+        Returns
+        -------
+        PublisherStructValue
+            Publisher struct value instance.
+
+        """
         return PublisherStructValue(
             node_name=self.node_name,
             topic_name=self.topic_name,
@@ -71,16 +80,45 @@ class PublisherStruct():
             construction_order=self.construction_order)
 
     def insert_callback(self, callback: CallbackStruct) -> None:
+        """
+        Insert callback.
+
+        Parameters
+        ----------
+        callback : CallbackStruct
+            callback struct to insert.
+
+        """
         if self._callbacks is None:
             self._callbacks = [callback]
         elif callback.callback_name not in (self.callback_names or []):
             self._callbacks.append(callback)
 
     def remove_callback(self, callback: CallbackStruct) -> None:
+        """
+        Remove callback.
+
+        Parameters
+        ----------
+        callback : CallbackStruct
+            callback struct to remove.
+
+        """
         if self._callbacks and callback in self._callbacks:
             self._callbacks.remove(callback)
 
     def rename_node(self, src: str, dst: str) -> None:
+        """
+        Rename node.
+
+        Parameters
+        ----------
+        src : str
+            Current node name.
+        dst : str
+            Updated node name.
+
+        """
         if self.node_name == src:
             self._node_name = dst
 
@@ -89,6 +127,17 @@ class PublisherStruct():
                 c.rename_node(src, dst)
 
     def rename_topic(self, src: str, dst: str) -> None:
+        """
+        Rename topic.
+
+        Parameters
+        ----------
+        src : str
+            Current topic name.
+        dst : str
+            Updated topic name.
+
+        """
         if self.topic_name == src:
             self._topic_name = dst
 
