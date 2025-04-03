@@ -188,6 +188,20 @@ class DataModelService:
         self,
         cb_addr: int
     ) -> int | None:
+        """
+        Get rmw subscription handle from callback object.
+
+        Parameters
+        ----------
+        cb_addr : int
+            callback address.
+
+        Returns
+        -------
+        int | None
+            rmw subscription handle.
+
+        """
         try:
             sub = self._get_sub_from_callback_object(cb_addr)
             rmw_handle = None

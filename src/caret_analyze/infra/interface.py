@@ -46,7 +46,7 @@ class RecordsProvider(metaclass=ABCMeta):
         Returns
         -------
         RecordsInterface
-            [description]
+            Records interface
 
         """
         pass
@@ -70,6 +70,7 @@ class RecordsProvider(metaclass=ABCMeta):
         Returns
         -------
         RecordsInterface
+            Records interface
 
         """
         pass

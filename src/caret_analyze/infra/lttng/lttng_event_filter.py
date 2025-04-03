@@ -64,6 +64,22 @@ class SameAddressFilter(LttngEventFilter):
         self._list_callback_group: dict = {}
 
     def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
+        """
+        Determine whether the same address is accepted.
+
+        Parameters
+        ----------
+        event : Event
+            Target event.
+        common : LttngEventFilter.Common
+            Lttng event flter common.
+
+        Returns
+        -------
+        bool
+            False if the maximum number is exceeded, true otherwise.
+
+        """
         event_name = event[self.NAME]
         if event_name == 'ros2_caret:construct_executor':
             event_addr = event['executor_addr']
@@ -90,6 +106,22 @@ class SameAddressFilter(LttngEventFilter):
 class InitEventPassFilter(LttngEventFilter):
 
     def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
+        """
+        Determine whether initialization event is accepted.
+
+        Parameters
+        ----------
+        event : Event
+            Target event.
+        common : LttngEventFilter.Common
+            Lttng event flter common.
+
+        Returns
+        -------
+        bool
+            True if included in initialization event, false otherwise.
+
+        """
         # TODO(hsgwa): Definitions on tracepoint types are scattered. Refactor required.
         init_events = {
             'ros2:rcl_init',
@@ -152,6 +184,22 @@ class EventStripFilter(LttngEventFilter):
         self._init_events = InitEventPassFilter()
 
     def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
+        """
+        Strip acceptance judgment.
+
+        Parameters
+        ----------
+        event : Event
+            Target event.
+        common : LttngEventFilter.Common
+            Lttng event flter common.
+
+        Returns
+        -------
+        bool
+            Acceptance is true, otherwise false.
+
+        """
         if self._init_events.accept(event, common):
             return True
 
@@ -177,6 +225,22 @@ class EventDurationFilter(LttngEventFilter):
         self._init_events = InitEventPassFilter()
 
     def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
+        """
+        Duration acceptance judgment.
+
+        Parameters
+        ----------
+        event : Event
+            Target event.
+        common : LttngEventFilter.Common
+            Lttng event flter common.
+
+        Returns
+        -------
+        bool
+            Acceptance is true, otherwise false.
+
+        """
         if self._init_events.accept(event, common):
             return True
 
