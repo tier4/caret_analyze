@@ -113,6 +113,30 @@ class NodeStruct():
         subscribe_topic_name: str,
         construction_order: int | None = None
     ) -> SubscriptionStruct:
+        """
+        Get subscription.
+
+        Parameters
+        ----------
+        subscribe_topic_name : str
+            Topic name to get.
+        construction_order : int | None
+            Construction order to get.
+            If construction_order is None, searches for information only by topic_name.
+
+        Returns
+        -------
+        SubscriptionStruct
+            Subscription instance that matches the condition.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
+
+        """
 
         def is_target(subscription: SubscriptionStruct):
             match = subscription.topic_name == subscribe_topic_name
@@ -133,6 +157,30 @@ class NodeStruct():
         service_name: str,
         construction_order: int | None
     ) -> ServiceStruct:
+        """
+        Get service.
+
+        Parameters
+        ----------
+        service_name : str
+            Service name to get.
+        construction_order : int | None
+            Construction order to get.
+            If construction_order is None, searches for information only by service_name.
+
+        Returns
+        -------
+        ServiceStruct
+            Service instance that matches the condition.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
+
+        """
 
         def is_target(service: ServiceStruct):
             match = service.service_name == service_name
@@ -153,6 +201,30 @@ class NodeStruct():
         publish_topic_name: str,
         construction_order: int | None
     ) -> PublisherStruct:
+        """
+        Get publisher.
+
+        Parameters
+        ----------
+        publish_topic_name : str
+            Publish topic name to get.
+        construction_order : int | None
+            Construction order to get.
+            If construction_order is None, searches for information only by topic_name.
+
+        Returns
+        -------
+        PublisherStruct
+            Publisher instance that matches the condition.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
+
+        """
         try:
             def is_target_publisher(publisher: PublisherStruct):
                 return publisher.topic_name == publish_topic_name and \
@@ -167,6 +239,15 @@ class NodeStruct():
             raise ItemNotFoundError(msg)
 
     def to_value(self) -> NodeStructValue:
+        """
+        Get node struct value.
+
+        Returns
+        -------
+        NodeStructValue
+            Node struct value instance.
+
+        """
         return NodeStructValue(
             self.node_name,
             tuple(v.to_value() for v in self.publishers),
@@ -180,6 +261,15 @@ class NodeStruct():
             else tuple(v.to_value() for v in self.variable_passings))
 
     def update_node_path(self, paths: list[NodePathStruct]) -> None:
+        """
+        Update node path.
+
+        Parameters
+        ----------
+        paths : list[NodePathStruct]
+            Node path to update.
+
+        """
         self._node_paths = paths
 
     # def update_message_context(self, node_name: str, context_type: str,
@@ -193,6 +283,26 @@ class NodeStruct():
                                   publish_topic_name: str,
                                   callback_name: str,
                                   publisher_construction_order: int) -> None:
+        """
+        Insert publisher callback.
+
+        Parameters
+        ----------
+        publish_topic_name : str
+            Publish topic name to insert.
+        callback_name : str
+            Publish callback name to insert.
+        publisher_construction_order : int
+            Publisher construction order to insert.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
+
+        """
         callback: CallbackStruct = \
             Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
         pub_info = PublishTopicInfoValue(publish_topic_name, publisher_construction_order)
@@ -215,6 +325,24 @@ class NodeStruct():
         publisher.insert_callback(callback)
 
     def insert_variable_passing(self, callback_name_write: str, callback_name_read: str) -> None:
+        """
+        Insert variable passing.
+
+        Parameters
+        ----------
+        callback_name_write : str
+            callback name on the write side.
+        callback_name_read : str
+            callback name on the read side.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
+
+        """
         callback_write: CallbackStruct =\
             Util.find_one(lambda x: x.callback_name == callback_name_write, self.callbacks)
         callback_read: CallbackStruct =\
@@ -232,6 +360,26 @@ class NodeStruct():
                                       publish_topic_name: str,
                                       callback_name: str,
                                       publisher_construction_order: int) -> None:
+        """
+        Remove publisher and callback.
+
+        Parameters
+        ----------
+        publish_topic_name : str
+            Publish topic name to remove.
+        callback_name : str
+            Publish callback name to remove.
+        publisher_construction_order : int
+            Publisher construction order to remove.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
+
+        """
         callback: CallbackStruct = \
             Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
         pub_info = PublishTopicInfoValue(publish_topic_name, publisher_construction_order)
@@ -254,6 +402,17 @@ class NodeStruct():
         publisher.remove_callback(callback)
 
     def remove_variable_passing(self, callback_name_write: str, callback_name_read: str) -> None:
+        """
+        Remove variable passing.
+
+        Parameters
+        ----------
+        callback_name_write : str
+            callback name on the write side.
+        callback_name_read : str
+            callback name on the read side.
+
+        """
         if self._variable_passings_info:
             self._variable_passings_info =\
                 [passing for passing in self._variable_passings_info
@@ -261,6 +420,17 @@ class NodeStruct():
                  (passing.callback_name_write, passing.callback_name_read)]
 
     def rename_node(self, src: str, dst: str) -> None:
+        """
+        Rename node.
+
+        Parameters
+        ----------
+        src : str
+            Current node name.
+        dst : str
+            Updated node name.
+
+        """
         if self.node_name == src:
             self._node_name = dst
 
@@ -285,6 +455,17 @@ class NodeStruct():
                 v.rename_node(src, dst)
 
     def rename_topic(self, src: str, dst: str) -> None:
+        """
+        Rename topic.
+
+        Parameters
+        ----------
+        src : str
+            Current topic name.
+        dst : str
+            Updated topic name.
+
+        """
         for p in self._publishers:
             p.rename_topic(src, dst)
 
@@ -306,6 +487,20 @@ class NodeStruct():
                 v.rename_topic(src, dst)
 
     def get_publisher_from_callback(self, callback_name: str) -> list[PublisherStruct]:
+        """
+        Get publisher from callback.
+
+        Parameters
+        ----------
+        callback_name : str
+            callback name to get.
+
+        Returns
+        -------
+        list[PublisherStruct]
+            Publisher instance that matches the condition.
+
+        """
         l: list[PublisherStruct] = []
         for publisher in self.publishers:
             if publisher.callback_names and callback_name in publisher.callback_names:
@@ -313,6 +508,20 @@ class NodeStruct():
         return l
 
     def get_subscription_from_callback(self, callback_name: str) -> SubscriptionStruct | None:
+        """
+        Get subscription from callback.
+
+        Parameters
+        ----------
+        callback_name : str
+            callback name to get.
+
+        Returns
+        -------
+        SubscriptionStruct
+            Subscription instance that matches the condition.
+
+        """
         for subscription in self.subscriptions:
             if subscription.callback_name == callback_name:
                 return subscription

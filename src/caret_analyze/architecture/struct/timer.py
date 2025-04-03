@@ -57,6 +57,15 @@ class TimerStruct():
         return self._construction_order
 
     def to_value(self) -> TimerStructValue:
+        """
+        Get timer struct value.
+
+        Returns
+        -------
+        TimerStructValue
+            Timer struct value instance.
+
+        """
         return TimerStructValue(
             node_name=self.node_name,
             period_ns=self.period_ns,
@@ -64,6 +73,17 @@ class TimerStruct():
             construction_order=self.construction_order)
 
     def rename_node(self, src: str, dst: str) -> None:
+        """
+        Rename node.
+
+        Parameters
+        ----------
+        src : str
+            Current node name.
+        dst : str
+            Updated node name.
+
+        """
         if self.node_name == src:
             self._node_name = dst
 
@@ -71,5 +91,16 @@ class TimerStruct():
             self._callback_value.rename_node(src, dst)
 
     def rename_topic(self, src: str, dst: str) -> None:
+        """
+        Rename topic.
+
+        Parameters
+        ----------
+        src : str
+            Current topic name.
+        dst : str
+            Updated topic name.
+
+        """
         if self._callback_value is not None:
             self._callback_value.rename_topic(src, dst)

@@ -29,7 +29,6 @@ def check_procedure(
     app_arch: Architecture,
     node_name: str,
 ) -> tuple[NodePathStructValue, ...]:
-
     handler = StreamHandler()
     handler.setLevel(INFO)
 

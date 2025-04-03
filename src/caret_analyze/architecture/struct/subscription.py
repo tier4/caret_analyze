@@ -57,6 +57,15 @@ class SubscriptionStruct():
         return self._construction_order
 
     def to_value(self) -> SubscriptionStructValue:
+        """
+        Get subscription struct value.
+
+        Returns
+        -------
+        SubscriptionStructValue
+            Subscription struct value instance.
+
+        """
         return SubscriptionStructValue(
             node_name=self.node_name,
             topic_name=self.topic_name,
@@ -65,6 +74,17 @@ class SubscriptionStruct():
         )
 
     def rename_node(self, src: str, dst: str) -> None:
+        """
+        Rename node.
+
+        Parameters
+        ----------
+        src : str
+            Current node name.
+        dst : str
+            Updated node name.
+
+        """
         if self.node_name == src:
             self._node_name = dst
 
@@ -72,6 +92,17 @@ class SubscriptionStruct():
             self._callback_value.rename_node(src, dst)
 
     def rename_topic(self, src: str, dst: str) -> None:
+        """
+        Rename topic.
+
+        Parameters
+        ----------
+        src : str
+            Current topic name.
+        dst : str
+            Updated topic name.
+
+        """
         if self.topic_name == src:
             self._topic_name = dst
 

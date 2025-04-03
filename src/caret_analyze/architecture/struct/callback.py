@@ -145,6 +145,20 @@ class CallbackStruct(metaclass=ABCMeta):
         pass
 
     def insert_publisher(self, publish_topic_info: PublishTopicInfoValue) -> None:
+        """
+        Insert publisher.
+
+        Parameters
+        ----------
+        publish_topic_info : PublishTopicInfoValue
+            Publish topic info to insert.
+
+        Raises
+        ------
+        MultipleItemFoundError
+            Occurs when several items were found.
+
+        """
         if self.publish_topics is not None:
             for count in range(len(self.publish_topics)):
                 if self.publish_topics[count] == publish_topic_info:
@@ -162,16 +176,47 @@ class CallbackStruct(metaclass=ABCMeta):
                                          publish_topic_info.construction_order))
 
     def remove_publisher(self, publish_topic_info: PublishTopicInfoValue) -> None:
+        """
+        Remove publisher.
+
+        Parameters
+        ----------
+        publish_topic_info : PublishTopicInfoValue
+            Publish topic info to remove.
+
+        """
         if self.publish_topics is not None:
             for publish_topic in self.publish_topics:
                 if publish_topic == publish_topic_info:
                     self.publish_topics.remove(publish_topic)
 
     def rename_node(self, src: str, dst: str) -> None:
+        """
+        Rename node.
+
+        Parameters
+        ----------
+        src : str
+            Current node name.
+        dst : str
+            Updated node name.
+
+        """
         if self.node_name == src:
             self._node_name = dst
 
     def rename_topic(self, src: str, dst: str) -> None:
+        """
+        Rename topic.
+
+        Parameters
+        ----------
+        src : str
+            Current topic name.
+        dst : str
+            Updated topic name.
+
+        """
         if self.publish_topics is not None:
             for i, p in enumerate(self.publish_topics):
                 if p.topic_name == src:
@@ -214,6 +259,15 @@ class TimerCallbackStruct(CallbackStruct):
         return self._period_ns
 
     def to_value(self) -> TimerCallbackStructValue:
+        """
+        Get timer callback struct value.
+
+        Returns
+        -------
+        TimerCallbackStructValue
+            Timer callback struct value instance.
+
+        """
         return TimerCallbackStructValue(
             self.node_name, self.symbol, self.period_ns,
             None if self.publish_topics is None else tuple(self.publish_topics),
@@ -251,6 +305,15 @@ class SubscriptionCallbackStruct(CallbackStruct):
         return self.__subscribe_topic_name
 
     def to_value(self) -> SubscriptionCallbackStructValue:
+        """
+        Get subscription callback struct value.
+
+        Returns
+        -------
+        SubscriptionCallbackStructValue
+            Subscription callback struct value instance.
+
+        """
         return SubscriptionCallbackStructValue(
             self.node_name, self.symbol,
             self.subscribe_topic_name,
@@ -258,6 +321,17 @@ class SubscriptionCallbackStruct(CallbackStruct):
             self.construction_order, self.callback_name)
 
     def rename_topic(self, src: str, dst: str) -> None:
+        """
+        Rename topic.
+
+        Parameters
+        ----------
+        src : str
+            Current topic name.
+        dst : str
+            Updated topic name.
+
+        """
         if self.publish_topics is not None:
             for i, p in enumerate(self.publish_topics):
                 if p.topic_name == src:
@@ -298,6 +372,15 @@ class ServiceCallbackStruct(CallbackStruct):
         return self.__service_name
 
     def to_value(self) -> ServiceCallbackStructValue:
+        """
+        Get service callback struct value.
+
+        Returns
+        -------
+        ServiceCallbackStructValue
+            Service callback struct value instance.
+
+        """
         return ServiceCallbackStructValue(
             self.node_name,
             self.symbol,
