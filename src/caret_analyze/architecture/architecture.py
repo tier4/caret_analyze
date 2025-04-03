@@ -564,7 +564,7 @@ class Architecture(Summarizable):
             File path.
         force : bool
             Forced specification, by default False.
-            If True, a file with the same name will be overwritten if it exists corrected.
+            If True, a file with the same name will be overwritten if it exists.
 
         """
         exporter = ArchitectureExporter(
