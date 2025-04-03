@@ -112,6 +112,25 @@ class RecordsProviderLttng(RuntimeDataProvider):
         self,
         node_path_val: NodePathStructValue,
     ) -> RecordsInterface:
+        """
+        Provide node records.
+
+        Parameters
+        ----------
+        node_path_val : NodePathStructValue
+            Node path value.
+
+        Returns
+        -------
+        RecordsInterface
+            Interface for Record class.
+
+        Raises
+        ------
+        UnsupportedNodeRecordsError
+            Occurs when message context type is unknown.
+
+        """
         if node_path_val.message_context is None:
             # dummy record
             msg = 'message context is None. return dummy record. '
@@ -146,7 +165,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         Parameters
         ----------
         callback : CallbackStructValue
-            target callback value.
+            Target callback value.
 
         Returns
         -------
@@ -193,6 +212,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         Raises
         ------
         InvalidArgumentError
+            Occurs when callback value were not exist.
 
         """
         callback = subscription.callback
@@ -227,6 +247,11 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
             - [topic_name]/source_timestamp
             - rmw_take_timestamp
+
+        Raises
+        ------
+        InvalidArgumentError
+            Occurs when callback value were not exist.
 
         """
         callback = subscription.callback
@@ -298,6 +323,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         Raises
         ------
         InvalidArgumentError
+            Occurs when callback value were not exist.
 
         """
         callback = subscription.callback
@@ -352,6 +378,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         Raises
         ------
         InvalidArgumentError
+            Occurs when callback value were not exist.
 
         """
         callback = subscription.callback
@@ -411,7 +438,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         Parameters
         ----------
         publisher : PublisherStructValue
-            target publisher
+            Target publisher.
 
         Returns
         -------
@@ -452,7 +479,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         Parameters
         ----------
         publisher : PublisherStructValue
-            target publisher
+            Target publisher.
 
         Returns
         -------
@@ -487,7 +514,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         Parameters
         ----------
         publisher : PublisherStructValue
-            target publisher
+            Target publisher.
 
         Returns
         -------
@@ -548,7 +575,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         Parameters
         ----------
         timer : TimerStructValue
-            [description]
+            Target timer.
 
         Returns
         -------
@@ -608,6 +635,25 @@ class RecordsProviderLttng(RuntimeDataProvider):
         subscription: SubscriptionStructValue,
         publisher: PublisherStructValue
     ) -> RecordsInterface:
+        """
+        Return tilde records.
+
+        Parameters
+        ----------
+        subscription : SubscriptionStructValue
+            Target subscription value.
+        publisher : PublisherStructValue
+            Target publisher value.
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+
+            - subscription_timestamp
+            - publisher_timestamp
+
+        """
         assert subscription.callback is not None
 
         publisher_addresses = self._helper.get_tilde_publishers(publisher)
@@ -641,12 +687,40 @@ class RecordsProviderLttng(RuntimeDataProvider):
         return records
 
     def get_rmw_implementation(self) -> str:
+        """
+        Get rmw implementation.
+
+        Returns
+        -------
+        str
+            Rmw implementation.
+
+        """
         return self._lttng.get_rmw_impl()
 
     def get_qos(
         self,
         pub_sub: PublisherStructValue | SubscriptionStructValue
     ) -> Qos:
+        """
+        Get qos.
+
+        Parameters
+        ----------
+        pub_sub : PublisherStructValue | SubscriptionStructValue
+            Target subscription or publisher.
+
+        Returns
+        -------
+        Qos
+            Subscription qos or publisher qos.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Occurs when callback were not exist.
+
+        """
         if isinstance(pub_sub, SubscriptionStructValue):
             sub_cb = pub_sub.callback
             if sub_cb is None:
@@ -666,6 +740,27 @@ class RecordsProviderLttng(RuntimeDataProvider):
         return self._lttng.get_publisher_qos(pubs_lttng[0])
 
     def get_sim_time_converter(self, min_ns, max_ns) -> ClockConverter:
+        """
+        Get sim time converter.
+
+        Parameters
+        ----------
+        min_ns : float
+            Min time.
+        max_ns : float
+            Max time.
+
+        Returns
+        -------
+        ClockConverter
+            Clock converter
+
+        Raises
+        ------
+        InvalidArgumentError
+            Failed to load sim_time.
+
+        """
         return self._lttng.get_sim_time_converter(min_ns, max_ns)
 
     def variable_passing_records(
@@ -678,7 +773,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         Parameters
         ----------
         variable_passing_info : VariablePassingStructValue
-            target variable passing info.
+            Target variable passing info.
 
         Returns
         -------
@@ -721,6 +816,20 @@ class RecordsProviderLttng(RuntimeDataProvider):
         self,
         communication_value: CommunicationStructValue
     ) -> bool | None:
+        """
+        If inter-proc communication.
+
+        Parameters
+        ----------
+        communication_value : CommunicationStructValue
+            Communication value.
+
+        Returns
+        -------
+        bool | None
+            Intra process communication records count.
+
+        """
         intra_record = self._compose_intra_proc_comm_records(communication_value)
         return len(intra_record) > 0
 
@@ -734,7 +843,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         Parameters
         ----------
         publisher : PublisherStructValue
-            target publisher
+            Target publisher.
 
         Returns
         -------
@@ -766,7 +875,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         Parameters
         ----------
         callback : CallbackStructValue
-            target callback
+            Target callback.
 
         Returns
         -------
@@ -808,6 +917,20 @@ class RecordsProviderLttng(RuntimeDataProvider):
         self,
         communication: CommunicationStructValue,
     ) -> bool:
+        """
+        Verify communication.
+
+        Parameters
+        ----------
+        communication : CommunicationStructValue
+            Communication value.
+
+        Returns
+        -------
+        bool
+            True if communication is enabled, false otherwise.
+
+        """
         is_intra_proc = self.is_intra_process_communication(communication)
         if is_intra_proc is True:
             pub_node = communication.publish_node.node_name
@@ -891,7 +1014,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         Parameters
         ----------
         comm_value : CommunicationStructValue
-            target communication value.
+            Target communication value.
 
         Returns
         -------
@@ -1036,6 +1159,25 @@ class RecordsProviderLttngHelper:
         self,
         callback: CallbackStructValue
     ) -> tuple[int, int | None]:
+        """
+        Get callback objects.
+
+        Parameters
+        ----------
+        callback : CallbackStructValue
+            Target callback.
+
+        Returns
+        -------
+        tuple[int, int | None]
+            Isinstance of TimerCallbackStructValue or SubscriptionCallbackStructValue.
+
+        Raises
+        ------
+        UnsupportedTypeError
+            Argument callback object is not supported.
+
+        """
         if isinstance(callback, TimerCallbackStructValue):
             return self.get_timer_callback_object(callback), None
 
@@ -1054,6 +1196,20 @@ class RecordsProviderLttngHelper:
         self,
         callback: TimerCallbackStructValue
     ) -> int:
+        """
+        Get timer callback objects.
+
+        Parameters
+        ----------
+        callback : TimerCallbackStructValue
+            Target callback.
+
+        Returns
+        -------
+        int
+            Timer callback object.
+
+        """
         callback_lttng = self._bridge.get_timer_callback(callback)
         return callback_lttng.callback_object
 
@@ -1061,12 +1217,40 @@ class RecordsProviderLttngHelper:
         self,
         callback: SubscriptionCallbackStructValue
     ) -> tuple[int, int | None]:
+        """
+        Get subscription callback objects.
+
+        Parameters
+        ----------
+        callback : SubscriptionCallbackStructValue
+            Target callback.
+
+        Returns
+        -------
+        tuple[int, int | None]
+            Subscription callback object.
+
+        """
         return self.get_callback_objects(callback)
 
     def get_subscription_callback_object_inter(
         self,
         callback: SubscriptionCallbackStructValue
     ) -> int:
+        """
+        Get subscription callback objects.
+
+        Parameters
+        ----------
+        callback : SubscriptionCallbackStructValue
+            Target callback.
+
+        Returns
+        -------
+        int
+            Subscription callback object.
+
+        """
         callback_lttng = self._bridge.get_subscription_callback(callback)
         return callback_lttng.callback_object
 
@@ -1074,6 +1258,20 @@ class RecordsProviderLttngHelper:
         self,
         callback: SubscriptionCallbackStructValue
     ) -> int | None:
+        """
+        Get intra subscription callback objects.
+
+        Parameters
+        ----------
+        callback : SubscriptionCallbackStructValue
+            Target callback.
+
+        Returns
+        -------
+        int | None
+            Intra subscription callback object.
+
+        """
         callback_lttng = self._bridge.get_subscription_callback(callback)
         return callback_lttng.callback_object_intra
 
@@ -1081,6 +1279,20 @@ class RecordsProviderLttngHelper:
         self,
         callback: SubscriptionCallbackStructValue
     ) -> int | None:
+        """
+        Get tilde subscription callback objects.
+
+        Parameters
+        ----------
+        callback : SubscriptionCallbackStructValue
+            Target callback.
+
+        Returns
+        -------
+        int | None
+            Tilde subscription callback object.
+
+        """
         callback_lttng = self._bridge.get_subscription_callback(callback)
         return callback_lttng.tilde_subscription
 
@@ -1088,6 +1300,20 @@ class RecordsProviderLttngHelper:
         self,
         publisher: PublisherStructValue
     ) -> list[int]:
+        """
+        Get publisher callback objects.
+
+        Parameters
+        ----------
+        publisher : PublisherStructValue
+            Target publisher.
+
+        Returns
+        -------
+        list[int]
+            Publisher handles.
+
+        """
         publisher_lttng = self._bridge.get_publishers(publisher)
         return [pub_info.publisher_handle
                 for pub_info
@@ -1097,6 +1323,20 @@ class RecordsProviderLttngHelper:
         self,
         publisher_info: PublisherStructValue
     ) -> list[int]:
+        """
+        Get tilde publisher.
+
+        Parameters
+        ----------
+        publisher_info : PublisherStructValue
+            Target publisher info.
+
+        Returns
+        -------
+        list[int]
+            Tilde publisher.
+
+        """
         publisher_lttng = self._bridge.get_publishers(publisher_info)
         publisher = [pub_info.tilde_publisher
                      for pub_info
@@ -1108,18 +1348,60 @@ class RecordsProviderLttngHelper:
         self,
         publisher: PublisherStructValue
     ) -> list[PublisherValueLttng]:
+        """
+        Get lttng publishers.
+
+        Parameters
+        ----------
+        publisher : PublisherStructValue
+            Target publisher.
+
+        Returns
+        -------
+        list[PublisherValueLttng]
+            Publisher values of Lttng.
+
+        """
         return self._bridge.get_publishers(publisher)
 
     def get_lttng_subscription(
         self,
         callback: SubscriptionCallbackStructValue
     ) -> SubscriptionCallbackValueLttng:
+        """
+        Get lttng subscription.
+
+        Parameters
+        ----------
+        callback : SubscriptionCallbackStructValue
+            Target subscription callback.
+
+        Returns
+        -------
+        SubscriptionCallbackValueLttng
+            Subscription callback values of Lttng.
+
+        """
         return self._bridge.get_subscription_callback(callback)
 
     def get_lttng_timer(
         self,
         callback: TimerCallbackStructValue
     ) -> TimerCallbackValueLttng:
+        """
+        Get lttng timer.
+
+        Parameters
+        ----------
+        callback : TimerCallbackStructValue
+            Target timer callback.
+
+        Returns
+        -------
+        TimerCallbackValueLttng
+            Timer callback values of Lttng.
+
+        """
         return self._bridge.get_timer_callback(callback)
 
 

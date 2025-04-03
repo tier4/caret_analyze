@@ -343,6 +343,11 @@ class Ros2Handler():
         """
         Confirm that the data to be converted is appropriate.
 
+        Parameters
+        ----------
+        event : Event
+            Target event.
+
         Returns
         -------
         bool

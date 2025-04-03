@@ -199,6 +199,7 @@ class RecordsSource():
         Returns
         -------
         EventsFactory
+            Created timer events factory.
 
         """
         class TimerEventsFactory(EventsFactory):
@@ -281,6 +282,18 @@ class RecordsSource():
 
     @cached_property
     def intra_callback_records(self) -> RecordsInterface:
+        """
+        Compose intra callback records.
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+            - callback_start_timestamp
+            - callback_object
+            - is_intra_process
+
+        """
         intra_proc_subscribe = RecordsFactory.create_instance(
             None,
             columns=[
@@ -297,6 +310,19 @@ class RecordsSource():
 
     @cached_property
     def inter_callback_records(self) -> RecordsInterface:
+        """
+        Compose inter callback records.
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+            - tid
+            - callback_start_timestamp
+            - callback_object
+            - is_intra_process
+
+        """
         inter_proc_subscribe = RecordsFactory.create_instance(
             None,
             columns=[

@@ -48,12 +48,12 @@ class LttngBridge:
 
         Parameters
         ----------
-        callback :TimerCallbackStructValueTimerCallbackStructValue
+        callback :TimerCallbackStructValue
             Callback value to be searched.
 
         Returns
         -------
-        [TimerCallbackValueLttng]
+        TimerCallbackValueLttng
             Timer callback value, including runtime information.
 
         Raises
@@ -143,6 +143,11 @@ class LttngBridge:
         -------
         list[PublisherValueLttng]
             publisher values that match the condition
+
+        Raises
+        ------
+        ItemNotFoundError
+            No value matching the search condition is found.
 
         """
         try:
