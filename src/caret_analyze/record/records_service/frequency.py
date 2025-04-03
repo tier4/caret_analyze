@@ -16,6 +16,8 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
+import numpy as np
+
 from ..column import ColumnValue
 from ..interface import RecordsInterface
 from ..record_factory import RecordsFactory
@@ -97,31 +99,31 @@ class Frequency:
             - {frequency_column}
 
         """
-        records = self._create_empty_records()
         if not self._target_timestamps:
-            return records
+            return self._create_empty_records()
+
+        if base_timestamp is None:
+            base_timestamp = self._target_timestamps[0]
+        if until_timestamp is None:
+            until_timestamp = self._target_timestamps[-1]
 
         timestamp_list, frequency_list = self._get_frequency_with_timestamp(
             interval_ns,
-            base_timestamp or self._target_timestamps[0],
-            until_timestamp or self._target_timestamps[-1],
+            base_timestamp,
+            until_timestamp,
             converter=converter
         )
+
+        records = self._create_empty_records()
         for ts, freq in zip(timestamp_list, frequency_list):
-            record = {
-                self._target_column: ts,
-                'frequency': freq
-            }
+            record = {self._target_column: ts, 'frequency': freq}
             records.append(record)
 
         return records
 
-    def _create_empty_records(
-        self
-    ) -> RecordsInterface:
-        return RecordsFactory.create_instance(None, columns=[
-            ColumnValue(self._target_column), ColumnValue('frequency')
-        ])
+    def _create_empty_records(self) -> RecordsInterface:
+        columns = [ColumnValue(self._target_column), ColumnValue('frequency')]
+        return RecordsFactory.create_instance(None, columns=columns)
 
     def _get_frequency_with_timestamp(
         self,
@@ -130,27 +132,24 @@ class Frequency:
         until_timestamp: int,
         converter: ClockConverter | None = None
     ) -> tuple[list[int], list[int]]:
+        timestamp_array = np.array(self._target_timestamps).astype(np.int64)
         if converter:
             base_timestamp = round(converter.convert(base_timestamp))
             until_timestamp = round(converter.convert(until_timestamp))
-        timestamp_list: list[int] = [base_timestamp]
-        frequency_list: list[int] = [0]
-        interval_start_time = base_timestamp
+            convert_vector = np.vectorize(converter.convert)
+            timestamp_array = np.round(convert_vector(timestamp_array)).astype(np.int64)
 
-        for timestamp in self._target_timestamps:
-            if converter:
-                timestamp = round(converter.convert(timestamp))
-            if timestamp < base_timestamp:
-                continue
-            while not (interval_start_time <= timestamp < interval_start_time + interval_ns):
-                next_interval_start_time = interval_start_time + interval_ns
-                timestamp_list.append(next_interval_start_time)
-                frequency_list.append(0)
-                interval_start_time = next_interval_start_time
-            frequency_list[-1] += 1
+        timestamp_array = timestamp_array[timestamp_array >= base_timestamp]
+        if len(timestamp_array) == 0:
+            return [base_timestamp], [0]
 
-        while timestamp_list[-1] + interval_ns <= until_timestamp:
-            timestamp_list.append(timestamp_list[-1] + interval_ns)
-            frequency_list.append(0)
+        # frequency is the number of timestamps that appear in each interval
+        interval_index_array = (timestamp_array - base_timestamp) // interval_ns
+        frequency_list = np.bincount(interval_index_array).tolist()
+        expected_freq_list_length = int(np.ceil((until_timestamp - base_timestamp) / interval_ns))
+        frequency_list += [0] * (expected_freq_list_length - len(frequency_list))
+
+        interval_start_time_array = np.arange(len(frequency_list)) * interval_ns + base_timestamp
+        timestamp_list = interval_start_time_array.tolist()
 
         return timestamp_list, frequency_list
