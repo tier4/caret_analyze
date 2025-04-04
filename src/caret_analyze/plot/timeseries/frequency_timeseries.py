@@ -27,34 +27,29 @@ from ...runtime import CallbackBase, Communication, Publisher, Subscription
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 
 
-def _get_approximate_frequency(timeseries_record: RecordsInterface) -> float:
-    if len(timeseries_record) == 0:
-        return 0.0
-
-    timestamp_column_name = timeseries_record.columns[0]
-    timestamps = timeseries_record.get_column_series(timestamp_column_name)
-    interval_nano_sec = max(timestamps) - min(timestamps)
-    if interval_nano_sec == 0:
-        return 0.0
-    
-    approximate_frequency = len(timestamps) / interval_nano_sec * 1e9
-    return approximate_frequency
-
-
 def _get_calculation_interval_ns(timeseries_record: RecordsInterface):
     DEFAULT_INTERVAL_NS = 1000000000  # 1 second
     MAX_INTERVAL_NS = DEFAULT_INTERVAL_NS*100  # 100 seconds
     MINIMUM_SAMPLE_COUNT = 10
 
-    approximate_frequency = _get_approximate_frequency(timeseries_record)
-    if approximate_frequency == 0.0:
+    if len(timeseries_record) == 0:
         return DEFAULT_INTERVAL_NS
-    
+
+    # Calculate approximate frequency.
+    timestamp_column_name = timeseries_record.columns[0]
+    timestamp_list = timeseries_record.get_column_series(timestamp_column_name)
+    interval_nano_sec = max(timestamp_list) - min(timestamp_list)
+    if interval_nano_sec == 0:
+        return DEFAULT_INTERVAL_NS
+    interval_sec = interval_nano_sec * 1e-9
+    approximate_frequency = len(timestamp_list) / interval_sec
+
+    # Decide calculation interval.
     calculation_interval_nano_sec = int(1e9 / approximate_frequency) * MINIMUM_SAMPLE_COUNT
     if calculation_interval_nano_sec > MAX_INTERVAL_NS:
-        calculation_interval_nano_sec = MAX_INTERVAL_NS
-    elif calculation_interval_nano_sec < DEFAULT_INTERVAL_NS:
-        calculation_interval_nano_sec = DEFAULT_INTERVAL_NS
+        return MAX_INTERVAL_NS
+    if calculation_interval_nano_sec < DEFAULT_INTERVAL_NS:
+        return DEFAULT_INTERVAL_NS
     return calculation_interval_nano_sec
 
 
