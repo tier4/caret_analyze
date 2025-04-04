@@ -95,28 +95,31 @@ class FrequencyTimeSeries(MetricsBase):
             Frequency records list of all target objects.
 
         """
-        if self._target_objects and isinstance(self._target_objects[0], Communication):
-            columns = self._target_objects[0].to_records().columns
-            start_column = columns[0]
-            end_column = columns[1]
-
-            def row_filter_communication(record) -> bool:
-                """Return True only if communication is established."""
-                comm_start_column = start_column
-                comm_end_column = end_column
-                if (record.data.get(comm_start_column) is not None
-                        and record.data.get(comm_end_column) is not None):
-                    return True
-                else:
-                    return False
+        if len(self._target_objects) == 0:
+            return []
+        if isinstance(self._target_objects[0], CallbackBase) is False:
+            target_type = type(self._target_objects[0])
+            raise TypeError(f"Invalid type of target object: {target_type}")
 
         timeseries_records_list: list[RecordsInterface] = [
-            _.to_records() for _ in self._target_objects
+            obj.to_records() for obj in self._target_objects
         ]
+        columns = timeseries_records_list[0].columns
 
-        converter: ClockConverter | None = None
+        def row_filter_communication(record: RecordsInterface) -> bool:
+            """Return True only if communication is established."""
+            comm_start_column = columns[0]
+            comm_end_column = columns[1]
+            if record.data.get(comm_start_column) is None:
+                return False
+            if record.data.get(comm_end_column) is None:
+                return False
+            return True
+
         if xaxis_type == 'sim_time':
             converter = get_clock_converter(self._target_objects)
+        else:
+            converter = None
 
         min_time, max_time = self._get_timestamp_range(timeseries_records_list)
 
@@ -127,10 +130,12 @@ class FrequencyTimeSeries(MetricsBase):
                 row_filter=row_filter_communication
                 if isinstance(records, Communication) else None
             )
-            frequency_timeseries_list.append(frequency.to_records(
-                base_timestamp=min_time, until_timestamp=max_time,
+            frequency_record = frequency.to_records(
+                base_timestamp=min_time,
+                until_timestamp=max_time,
                 converter=converter
-            ))
+            )
+            frequency_timeseries_list.append(frequency_record)
 
         return frequency_timeseries_list
 
