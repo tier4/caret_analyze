@@ -45,7 +45,7 @@ class LttngBridge:
         - callback type
         - period_ns
         - symbol
-        - consruction order
+        - construction order
 
         Parameters
         ----------
@@ -179,7 +179,7 @@ class TimerCallbackBindCondition:
     - callback type
     - period_ns
     - symbol
-    - consruction order
+    - construction order
 
     """
 
