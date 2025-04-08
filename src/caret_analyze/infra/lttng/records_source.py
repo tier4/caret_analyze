@@ -461,13 +461,20 @@ class RecordsSource():
         Returns
         -------
         RecordsInterface
-            columns:
+            columns: (in the case of humble)
             - tid
             - callback_object
             - callback_start_timestamp
             - publisher_handle
             - rclcpp_publish_timestamp
             - message_timestamp
+
+            columns: (in the case of iron and after)
+            - tid
+            - callback_object
+            - callback_start_timestamp
+            - publisher_handle
+            - rclcpp_publish_timestamp
 
         """
         if self._info.get_distribution()[0] >= 'i':

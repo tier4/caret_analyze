@@ -41,7 +41,7 @@ class RecordsProvider(metaclass=ABCMeta):
         Parameters
         ----------
         callback_info : CallbackStructValue
-            [description]
+            Static info of callback.
 
         Returns
         -------

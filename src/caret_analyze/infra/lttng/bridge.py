@@ -44,7 +44,8 @@ class LttngBridge:
         - node name
         - callback type
         - period_ns
-        - publish topic names
+        - symbol
+        - consruction order
 
         Parameters
         ----------
@@ -90,8 +91,9 @@ class LttngBridge:
         used conditions:
         - node name
         - callback type
-        - subscription topic name
-        - publish topic names
+        - symbol
+        - subscribe topic name
+        - construction order
 
         Parameters
         ----------
@@ -134,6 +136,11 @@ class LttngBridge:
         """
         Get publisher handles.
 
+        used conditions:
+        - node name
+        - topic name
+        - construction order
+
         Parameters
         ----------
         publisher_value : PublisherStructValue
@@ -171,7 +178,8 @@ class TimerCallbackBindCondition:
     - node name
     - callback type
     - period_ns
-    - publish topic names
+    - symbol
+    - consruction order
 
     """
 
@@ -217,8 +225,9 @@ class SubscriptionCallbackBindCondition:
     used conditions:
     - node name
     - callback type
-    - subscription topic name
-    - publish topic names
+    - symbol
+    - subscribe topic name
+    - construction order
 
     """
 
@@ -270,6 +279,7 @@ class PublisherBindCondition:
     used conditions:
     - node name
     - topic name
+    - construction order
 
     """
 

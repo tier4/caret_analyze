@@ -58,7 +58,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         Sequence[tuple[str | None, str | None]]
-            Node names and callback symbols.
+            Always empty sequence.
 
         """
         logger.warning('get_node_names_and_cb_symbols method is not implemented '
@@ -72,7 +72,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         Sequence[NodeValueWithId]
-            Node value with id.
+            Value object for represent a node with id.
 
         """
         nodes_dict = self._get_value(self._arch, 'nodes')
@@ -138,8 +138,8 @@ class ArchitectureReaderYaml(ArchitectureReader):
 
         Returns
         -------
-        Sequence[TimerCallbackValue]
-            timer callback values
+        list[TimerCallbackValue]
+            Value object for represent a timer.
 
         """
         node_dict = self._get_node_dict(node.node_name)
@@ -220,7 +220,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         list[CallbackGroupValue]
-            Callback group value.
+            Value object for represent a callback group.
 
         """
         node_dict = self._get_node_dict(node.node_name)
@@ -250,7 +250,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         list[PathValue]
-            Path value.
+            Value object for represent a node path.
 
         """
         aliases_info = self._get_value(self._arch, 'named_paths')
@@ -303,7 +303,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         list[VariablePassingValue]
-            Variable passing value.
+            Value object for represent a variable passing info.
 
         """
         node_dict = self._get_node_dict(node.node_name)
@@ -329,7 +329,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         list[ExecutorValue]
-            Executor value.
+            Value object for represent a executor.
 
         """
         executors = []
@@ -358,7 +358,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         list[SubscriptionCallbackValue]
-            Subscription callback value.
+            Value object for represent a subscription callback.
 
         """
         def is_target(x: dict):
@@ -405,7 +405,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         Sequence[ServiceCallbackValue]
-            Service callback value.
+            Always empty sequence.
 
         """
         return []
@@ -425,7 +425,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         list[PublisherValue]
-            Publisher value.
+            Value object for represent a publisher.
 
         """
         node_dict = self._get_node_dict(node.node_name)
@@ -461,7 +461,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         list[TimerValue]
-            Timer value.
+            Value object for represent a timer.
 
         """
         node_dict = self._get_node_dict(node.node_name)
@@ -502,7 +502,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         list[SubscriptionValue]
-            Subscription value.
+            Value object for represent a subscription.
 
         """
         node_dict = self._get_node_dict(node.node_name)
@@ -535,7 +535,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         Sequence[ServiceValue]
-            Service value.
+            Value object for represent a service.
 
         """
         return []

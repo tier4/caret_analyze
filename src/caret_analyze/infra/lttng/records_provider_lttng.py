@@ -123,7 +123,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         Returns
         -------
         RecordsInterface
-            Interface for Record class.
+            Record corresponding to specified message context type.
 
         Raises
         ------
@@ -484,18 +484,21 @@ class RecordsProviderLttng(RuntimeDataProvider):
         Returns
         -------
         RecordsInterface
-            Columns
-
+            Columns: (in the case of tilde publisher)
             - [topic_name]/rclcpp_publish_timestamp
-            - [topic_name]/rclcpp_intra_publish_timestamp (Optional)
-            - [topic_name]/rclcpp_inter_publish_timestamp (Optional)
             - [topic_name]/rcl_publish_timestamp (Optional)
             - [topic_name]/dds_write_timestamp (Optional)
             - [topic_name]/message_timestamp
-            - [topic_name]/source_timestamp (Optional)
-            ---
-            - [topic_name]/tilde_publish_timestamp (Optional)
-            - [topic_name]/tilde_message_id (Optional)
+            - [topic_name]/source_timestamp
+            - [topic_name]/tilde_publish_timestamp
+            - [topic_name]/tilde_message_id
+
+            Columns: (for cases other than tilde publisher)
+            - [topic_name]/rclcpp_publish_timestamp
+            - [topic_name]/rcl_publish_timestamp (Optional)
+            - [topic_name]/dds_write_timestamp (Optional)
+            - [topic_name]/message_timestamp
+            - [topic_name]/source_timestamp
 
         """
         tilde_publishers = self._helper.get_tilde_publishers(publisher)
@@ -522,8 +525,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             Columns
 
             - [topic_name]/rclcpp_publish_timestamp
-            - [topic_name]/rclcpp_intra_publish_timestamp
-            - [topic_name]/rclcpp_inter_publish_timestamp
             - [topic_name]/rcl_publish_timestamp (Optional)
             - [topic_name]/dds_write_timestamp (Optional)
             - [topic_name]/message_timestamp
@@ -650,8 +651,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
         RecordsInterface
             Columns
 
-            - subscription_timestamp
-            - publisher_timestamp
+            - tilde_subscribe_timestamp
+            - tilde_publish_timestamp
 
         """
         assert subscription.callback is not None
@@ -746,14 +747,16 @@ class RecordsProviderLttng(RuntimeDataProvider):
         Parameters
         ----------
         min_ns : float
-            Min time.
+            Minimum timestamp value of the data
+                used to create the system time to sim_time converter.
         max_ns : float
-            Max time.
+            Maximum timestamp value of the data
+                used to create the system time to sim_time converter.
 
         Returns
         -------
         ClockConverter
-            Clock converter
+            Object that converts timestamps from system time to sim_time.
 
         Raises
         ------
@@ -928,7 +931,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
         Returns
         -------
         bool
-            True if communication is enabled, false otherwise.
+            True if the trace points required to constitute a communication record are included
+            in the trace data, false otherwise.
 
         """
         is_intra_proc = self.is_intra_process_communication(communication)
@@ -1825,6 +1829,12 @@ class FilteredRecordsSource:
             )
             records.drop_columns(['tilde_subscription])
 
+            Columns
+
+            - [topic_name]/tilde_subscribe_timestamp
+            - [topic_name]/tilde_subscription
+            - [topic_name]/tilde_message_id
+
         """
         grouped_records = self._grouped_tilde_sub_records
         if len(grouped_records) == 0:
@@ -2066,8 +2076,6 @@ class FilteredRecordsSource:
         - dds_write_timestamp (Optional)
         - message_timestamp
         - source_timestamp
-        - tilde_publish_timestamp (Optional)
-        - tilde_message_id (Optional)
 
         """
         grouped_records = self._grouped_publish_records
@@ -2188,7 +2196,6 @@ class FilteredRecordsSource:
 
         - callback_start_timestamp
         - callback_end_timestamp
-        - is_intra_process
         - callback_object
 
         """

@@ -346,7 +346,7 @@ class MultiHostIdRemapper:
             self._current_host_not_remapped_ids.add(target_id)
 
     def change_host(self):
-        """Change host."""
+        """Change internal state to remap IDs of trace data measured by other hosts."""
         self._other_host_ids |= self._current_host_remapped_ids
         self._other_host_ids |= self._current_host_not_remapped_ids
         self._current_host_remapped_ids.clear()
@@ -714,7 +714,7 @@ class Lttng(InfraBase):
         Returns
         -------
         str
-            Rmw_implementation
+            Name of rmw implementation.
 
         """
         return self._info.get_rmw_impl()
@@ -999,7 +999,7 @@ class Lttng(InfraBase):
         Returns
         -------
         pd.DataFrame
-            Counter dataframe.
+            Event counter in pandas DataFrame format.
 
         """
         groupby = groupby or ['trace_point']

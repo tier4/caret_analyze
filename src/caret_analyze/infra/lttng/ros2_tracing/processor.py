@@ -183,6 +183,7 @@ class Ros2Handler():
     def create_init_handler_map(
         self,
     ) -> None:
+        """Link a ROS trace initialize event to its corresponding handling method."""
         # Link a ROS trace event to its corresponding handling method
 
         handler_map = {}
@@ -297,6 +298,7 @@ class Ros2Handler():
     def create_runtime_handler_map(
         self,
     ) -> None:
+        """Link a ROS trace runtime event to its corresponding handling method."""
         # Link a ROS trace event to its corresponding handling method
 
         handler_map = {}
@@ -339,13 +341,13 @@ class Ros2Handler():
 
         self.handler_map = handler_map
 
-    def _is_valid_data(self, event) -> bool:
+    def _is_valid_data(self, event: dict) -> bool:
         """
         Confirm that the data to be converted is appropriate.
 
         Parameters
         ----------
-        event : Event
+        event : dict
             Target event.
 
         Returns

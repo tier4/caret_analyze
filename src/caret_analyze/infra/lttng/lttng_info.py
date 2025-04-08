@@ -1116,8 +1116,8 @@ class DataFrameFormatted:
 
             - callback_group_id
             - callback_group_addr
-            - executor_addr
             - group_type_name
+            - executor_addr
 
         """
         return self._cbg

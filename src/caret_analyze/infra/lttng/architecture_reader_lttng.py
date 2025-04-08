@@ -112,7 +112,7 @@ class ArchitectureReaderLttng(ArchitectureReader):
         Returns
         -------
         Sequence[VariablePassingValue]
-            Variable passing value.
+            Always empty sequence.
 
         """
         return []
@@ -132,7 +132,7 @@ class ArchitectureReaderLttng(ArchitectureReader):
         Returns
         -------
         Sequence[dict]
-            Message contexts.
+            Always empty sequence.
 
         """
         return []

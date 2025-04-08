@@ -67,6 +67,8 @@ class SameAddressFilter(LttngEventFilter):
         """
         Determine whether the same address is accepted.
 
+        Accept if the specified event name is already registered and is within the max count.
+
         Parameters
         ----------
         event : Event
@@ -108,6 +110,8 @@ class InitEventPassFilter(LttngEventFilter):
     def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
         """
         Determine whether initialization event is accepted.
+
+        Accept if the specified event is an initialization event.
 
         Parameters
         ----------
@@ -187,6 +191,8 @@ class EventStripFilter(LttngEventFilter):
         """
         Strip acceptance judgment.
 
+        Accept if the timestamp(x) of the specified event satisfies l_strip <x< r_strip.
+
         Parameters
         ----------
         event : Event
@@ -227,6 +233,8 @@ class EventDurationFilter(LttngEventFilter):
     def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
         """
         Duration acceptance judgment.
+
+        Accept if the timestamp (x) of the specified event satisfies offset <x< duration.
 
         Parameters
         ----------
