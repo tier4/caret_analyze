@@ -485,7 +485,9 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             (in the case of tilde publisher)
-            Columns:
+
+            Columns
+
             - [topic_name]/rclcpp_publish_timestamp
             - [topic_name]/rcl_publish_timestamp (Optional)
             - [topic_name]/dds_write_timestamp (Optional)
@@ -495,7 +497,9 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/tilde_message_id
 
             (for cases other than tilde publisher)
-            Columns:
+
+            Columns
+
             - [topic_name]/rclcpp_publish_timestamp
             - [topic_name]/rcl_publish_timestamp (Optional)
             - [topic_name]/dds_write_timestamp (Optional)
