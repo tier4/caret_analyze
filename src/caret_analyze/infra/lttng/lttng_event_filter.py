@@ -236,7 +236,9 @@ class EventDurationFilter(LttngEventFilter):
 
         The acceptance conditions for this class are as follows:
 
-            self._offset <= elapsed_s and elapsed_s < (self._offset + self._duration)
+            offset <= elapsed_s and elapsed_s < (offset + duration)
+
+                elapsed_s is (event[TIMESTAMP] - common.start_time) * 1.0e-9
 
         Parameters
         ----------

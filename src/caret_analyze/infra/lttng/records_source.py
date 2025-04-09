@@ -66,6 +66,7 @@ class RecordsSource():
         -------
         RecordsInterface
             Columns
+
             - publisher_handle
             - rclcpp_publish_timestamp
             - rcl_publish_timestamp (Optional)
@@ -244,6 +245,7 @@ class RecordsSource():
         -------
         RecordsInterface
             columns:
+
             - tilde_publish_timestamp
             - tilde_publisher
             - tilde_message_id
@@ -271,6 +273,7 @@ class RecordsSource():
         -------
         RecordsInterface
             columns:
+
             - tilde_subscribe_timestamp
             - tilde_subscription
             - tilde_message_id
@@ -289,6 +292,7 @@ class RecordsSource():
         -------
         RecordsInterface
             columns:
+
             - callback_start_timestamp
             - callback_object
             - is_intra_process
@@ -317,6 +321,7 @@ class RecordsSource():
         -------
         RecordsInterface
             columns:
+
             - tid
             - callback_start_timestamp
             - callback_object
@@ -346,6 +351,7 @@ class RecordsSource():
         -------
         RecordsInterface
             columns:
+
             - callback_start_timestamp
             - callback_object
             - is_intra_process
@@ -437,6 +443,7 @@ class RecordsSource():
         -------
         RecordsInterface
             columns:
+
             - tid
             - rmw_take_timestamp
             - rmw_subscription_handle
@@ -461,8 +468,11 @@ class RecordsSource():
         Returns
         -------
         RecordsInterface
+
             (in the case of humble)
+
             columns:
+
             - tid
             - publisher_handle
             - callback_object
@@ -470,8 +480,11 @@ class RecordsSource():
             - message_timestamp
             - callback_start_timestamp
 
+
             (in the case of iron and after)
+
             columns:
+
             - tid
             - publisher_handle
             - callback_object
@@ -573,6 +586,7 @@ class RecordsSource():
         -------
         RecordsInterface
             columns:
+
             - tid
             - callback_object
             - callback_start_timestamp
@@ -690,6 +704,7 @@ class RecordsSource():
         -------
         RecordsInterface
             columns:
+
             - callback_start_timestamp
             - callback_end_timestamp
             - callback_object

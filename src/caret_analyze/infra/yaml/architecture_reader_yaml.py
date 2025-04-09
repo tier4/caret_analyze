@@ -72,7 +72,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         Sequence[NodeValueWithId]
-            Value object for represent a node with id.
+            All node objects defined in the architecture file.
 
         """
         nodes_dict = self._get_value(self._arch, 'nodes')
@@ -139,7 +139,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         list[TimerCallbackValue]
-            Value object for represent a timer.
+            Timer callback object of specified node defined in architecture file.
 
         """
         node_dict = self._get_node_dict(node.node_name)
@@ -189,7 +189,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         list[dict]
-            Message contexts.
+            Message context object of specified node defined in architecture file.
 
         """
         node_dict = self._get_node_dict(node.node_name)
@@ -220,7 +220,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         list[CallbackGroupValue]
-            Value object for represent a callback group.
+            Callback group object of specified node defined in architecture file.
 
         """
         node_dict = self._get_node_dict(node.node_name)
@@ -250,7 +250,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         list[PathValue]
-            Value object for represent a node path.
+            All path information objects defined in the architecture file.
 
         """
         aliases_info = self._get_value(self._arch, 'named_paths')
@@ -303,7 +303,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         list[VariablePassingValue]
-            Value object for represent a variable passing info.
+            Variable passing object of specified node defined in architecture file.
 
         """
         node_dict = self._get_node_dict(node.node_name)
@@ -329,7 +329,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         list[ExecutorValue]
-            Value object for represent a executor.
+            All executor objects defined in the architecture file.
 
         """
         executors = []
@@ -358,7 +358,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         list[SubscriptionCallbackValue]
-            Value object for represent a subscription callback.
+            Subscription callback object of specified node defined in architecture file.
 
         """
         def is_target(x: dict):
@@ -425,7 +425,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         list[PublisherValue]
-            Value object for represent a publisher.
+            Publisher object of specified node defined in architecture file.
 
         """
         node_dict = self._get_node_dict(node.node_name)
@@ -461,7 +461,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         list[TimerValue]
-            Value object for represent a timer.
+            Timer object of specified node defined in architecture file.
 
         """
         node_dict = self._get_node_dict(node.node_name)
@@ -502,7 +502,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         list[SubscriptionValue]
-            Value object for represent a subscription.
+            Subscription object of specified node defined in architecture file.
 
         """
         node_dict = self._get_node_dict(node.node_name)
