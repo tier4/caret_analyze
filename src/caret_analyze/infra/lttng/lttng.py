@@ -90,6 +90,15 @@ class EventCollection(Iterable, Sized):
         return iter(self._iterable_events)
 
     def time_range(self) -> tuple[int, int]:
+        """
+        Get begin and end time range.
+
+        Returns
+        -------
+        tuple[int, int]
+            begin and end time.
+
+        """
         return self._iterable_events.time_range()
 
     def _cache_path(self, events_path: str) -> str:
@@ -174,9 +183,27 @@ class PickleEventCollection(IterableEvents):
 
     @property
     def events(self) -> list[dict]:
+        """
+        Get events.
+
+        Returns
+        -------
+        list[dict]
+            events.
+
+        """
         return self._events
 
     def time_range(self) -> tuple[int, int]:
+        """
+        Get begin and end time range.
+
+        Returns
+        -------
+        tuple[int, int]
+            begin and end time.
+
+        """
         begin_time = self._events[0][LttngEventFilter.TIMESTAMP]
         end_time = self._events[-1][LttngEventFilter.TIMESTAMP]
         return begin_time, end_time
@@ -237,9 +264,27 @@ class CtfEventCollection(IterableEvents):
 
     @cached_property
     def events(self) -> list[dict]:
+        """
+        Get events.
+
+        Returns
+        -------
+        list[dict]
+            events.
+
+        """
         return self._to_dicts(self._events_path, self._size)
 
     def time_range(self) -> tuple[int, int]:
+        """
+        Get begin and end time range.
+
+        Returns
+        -------
+        tuple[int, int]
+            begin and end time.
+
+        """
         return self._begin_time, self._end_time
 
     @staticmethod
@@ -274,6 +319,15 @@ class MultiHostIdRemapper:
         self._next_id = 1000000000
 
     def remap(self, event: dict):
+        """
+        Remap target id as necessary.
+
+        Parameters
+        ----------
+        event : dict
+            event data.
+
+        """
         target_id = get_field(event, self._id_key)
         if target_id in self._other_host_ids or target_id in self._current_host_remapped_ids:
             if target_id in self._current_host_id_map:
@@ -292,6 +346,7 @@ class MultiHostIdRemapper:
             self._current_host_not_remapped_ids.add(target_id)
 
     def change_host(self):
+        """Change internal state to remap IDs of trace data measured by other hosts."""
         self._other_host_ids |= self._current_host_remapped_ids
         self._other_host_ids |= self._current_host_not_remapped_ids
         self._current_host_remapped_ids.clear()
@@ -577,6 +632,17 @@ class Lttng(InfraBase):
         events: list,
         monotonic_to_system_offset: int | None,
     ):
+        """
+        Apply init timestamp.
+
+        Parameters
+        ----------
+        events : list
+            event data.
+        monotonic_to_system_offset : int | None
+            monotonic to system offset.
+
+        """
         for event in events:
             if monotonic_to_system_offset is not None:
                 if 'init_timestamp' in event:
@@ -608,10 +674,15 @@ class Lttng(InfraBase):
         """
         Get node names and callback symbols from callback group id.
 
+        Parameters
+        ----------
+        callback_group_id : str
+            Callback group id.
+
         Returns
         -------
         Sequence[tuple[str | None, str | None]]
-            node names and callback symbols.
+            Node names and callback symbols.
             tuple structure: (node_name, callback_symbol)
 
         """
@@ -629,7 +700,7 @@ class Lttng(InfraBase):
         Returns
         -------
         Sequence[NodeValueWithId]
-            nodes info.
+            Nodes value.
 
         """
         return self._info.get_nodes()
@@ -643,7 +714,7 @@ class Lttng(InfraBase):
         Returns
         -------
         str
-            rmw_implementation
+            Name of rmw implementation.
 
         """
         return self._info.get_rmw_impl()
@@ -657,6 +728,7 @@ class Lttng(InfraBase):
         Returns
         -------
         Sequence[ExecutorValue]
+            Executor values
 
         """
         return self._info.get_executors()
@@ -668,9 +740,15 @@ class Lttng(InfraBase):
         """
         Get callback group information.
 
+        Parameters
+        ----------
+        node : NodeValue
+            Target node.
+
         Returns
         -------
         Sequence[CallbackGroupValue]
+            Callback group value.
 
         """
         return self._info.get_callback_groups(node)
@@ -685,11 +763,12 @@ class Lttng(InfraBase):
         Parameters
         ----------
         node : NodeValue
-            target node.
+            Target node.
 
         Returns
         -------
-        Sequence[PublisherInfoLttng]
+        Sequence[PublisherValueLttng]
+            Publisher value.
 
         """
         return self._info.get_publishers(node)
@@ -704,11 +783,12 @@ class Lttng(InfraBase):
         Parameters
         ----------
         node : NodeValue
-            target node.
+            Target node.
 
         Returns
         -------
         Sequence[SubscriptionValue]
+            Subscription value.
 
         """
         return self._info.get_subscriptions(node)
@@ -723,11 +803,12 @@ class Lttng(InfraBase):
         Parameters
         ----------
         node : NodeValue
-            target node.
+            Target node.
 
         Returns
         -------
         Sequence[ServiceValue]
+            Service value
 
         """
         return self._info.get_services(node)
@@ -742,11 +823,12 @@ class Lttng(InfraBase):
         Parameters
         ----------
         node : NodeValue
-            target node name.
+            Target node.
 
         Returns
         -------
         Sequence[TimerValue]
+            Timer value
 
         """
         return self._info.get_timers(node)
@@ -761,11 +843,12 @@ class Lttng(InfraBase):
         Parameters
         ----------
         node : NodeValue
-            target node name.
+            Target node.
 
         Returns
         -------
         Sequence[TimerCallbackValueLttng]
+            Timer callback value
 
         """
         return self._info.get_timer_callbacks(node)
@@ -780,11 +863,12 @@ class Lttng(InfraBase):
         Parameters
         ----------
         node : NodeValue
-            target node name.
+            Target node.
 
         Returns
         -------
         Sequence[SubscriptionCallbackValueLttng]
+            Subscription callback value
 
         """
         return self._info.get_subscription_callbacks(node)
@@ -799,11 +883,12 @@ class Lttng(InfraBase):
         Parameters
         ----------
         node : NodeValue
-            target node name.
+            Target node.
 
         Returns
         -------
         Sequence[ServiceCallbackValueLttng]
+            Service callback value
 
         """
         return self._info.get_service_callbacks(node)
@@ -818,11 +903,12 @@ class Lttng(InfraBase):
         Parameters
         ----------
         pub : PublisherValueLttng
-            target publisher
+            Target publisher.
 
         Returns
         -------
         Qos
+            Publisher qos
 
         """
         return self._info.get_publisher_qos(pub)
@@ -837,11 +923,12 @@ class Lttng(InfraBase):
         Parameters
         ----------
         sub : SubscriptionCallbackValueLttng
-            target subscription
+            Target subscription.
 
         Returns
         -------
         Qos
+            Subscription qos
 
         """
         return self._info.get_subscription_qos(sub)
@@ -851,6 +938,27 @@ class Lttng(InfraBase):
         min_ns: float,
         max_ns: float
     ) -> ClockConverter:
+        """
+        Get sim time converter.
+
+        Parameters
+        ----------
+        min_ns : float
+            Min time.
+        max_ns : float
+            Max time.
+
+        Returns
+        -------
+        ClockConverter
+            Clock converter
+
+        Raises
+        ------
+        InvalidArgumentError
+            Failed to load sim_time.
+
+        """
         records: RecordsInterface = self._source.system_and_sim_times
         system_times = records.get_column_series('system_time')
         sim_times = records.get_column_series('sim_time')
@@ -880,6 +988,20 @@ class Lttng(InfraBase):
         self,
         groupby: list[str] | None = None
     ) -> pd.DataFrame:
+        """
+        Get count.
+
+        Parameters
+        ----------
+        groupby : list[str] | None
+            Data group.
+
+        Returns
+        -------
+        pd.DataFrame
+            Event counter in pandas DataFrame format.
+
+        """
         groupby = groupby or ['trace_point']
         return self._counter.get_count(groupby)
 
@@ -891,7 +1013,7 @@ class Lttng(InfraBase):
 
         Returns
         -------
-        trace_range: tuple[datetime, datetime]
+        tuple[datetime, datetime]
             Trace begin time and trace end time.
 
         """
@@ -906,7 +1028,7 @@ class Lttng(InfraBase):
 
         Returns
         -------
-        trace_creation_datetime: datetime
+        datetime
             Date and time the trace data was created.
 
         """
@@ -954,32 +1076,118 @@ class Lttng(InfraBase):
     def compose_publish_records(
         self,
     ) -> RecordsInterface:
+        """
+        Compose publish records of all communications in one records.
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+
+            - publisher_handle
+            - rclcpp_publish_timestamp
+            - rcl_publish_timestamp (Optional)
+            - dds_write_timestamp (Optional)
+            - message_timestamp
+            - source_timestamp
+
+        """
         return self._source.publish_records.clone()
 
     def compose_subscribe_records(
         self,
     ) -> RecordsInterface:
+        """
+        Compose subscribe records of all communications in one records.
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+
+            - callback_start_timestamp
+            - callback_object
+            - is_intra_process
+            - source_timestamp
+
+        """
         return self._source.subscribe_records.clone()
 
     def compose_rmw_take_records(
         self,
     ) -> RecordsInterface:
+        """
+        Compose rmw_take records of all communications in one records.
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+
+            - tid
+            - rmw_take_timestamp
+            - rmw_subscription_handle
+            - message
+            - source_timestamp
+
+        """
         return self._source.rmw_take_records.clone()
 
     def create_timer_events_factory(
         self,
         timer_callback: TimerCallbackValueLttng
     ) -> EventsFactory:
+        """
+        Create timer events factory.
+
+        Parameters
+        ----------
+        timer_callback : TimerCallbackValueLttng
+            Timer callback.
+
+        Returns
+        -------
+        EventsFactory
+            Callback to create timer events.
+
+        """
         return self._source.create_timer_events_factory(timer_callback)
 
     def compose_tilde_publish_records(
         self,
     ) -> RecordsInterface:
+        """
+        Compose tilde publish records of all communications in one records.
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+
+            - tilde_publish_timestamp
+            - tilde_publisher
+            - tilde_message_id
+            - tilde_subscription
+
+        """
         return self._source.tilde_publish_records.clone()
 
     def compose_tilde_subscribe_records(
         self,
     ) -> RecordsInterface:
+        """
+        Compose tilde subscribe records of all communications in one records.
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+
+            - tilde_subscribe_timestamp
+            - tilde_subscription
+            - tilde_message_id
+
+        """
         return self._source.tilde_subscribe_records.clone()
 
     def compose_path_beginning_records(

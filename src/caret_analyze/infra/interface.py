@@ -41,12 +41,12 @@ class RecordsProvider(metaclass=ABCMeta):
         Parameters
         ----------
         callback_info : CallbackStructValue
-            [description]
+            Static info of callback.
 
         Returns
         -------
         RecordsInterface
-            [description]
+            Records interface
 
         """
         pass
@@ -70,6 +70,7 @@ class RecordsProvider(metaclass=ABCMeta):
         Returns
         -------
         RecordsInterface
+            Records interface
 
         """
         pass
