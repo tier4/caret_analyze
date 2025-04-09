@@ -191,7 +191,7 @@ class EventStripFilter(LttngEventFilter):
         """
         Strip acceptance judgment.
 
-        Accept if the timestamp(x) of the specified event satisfies l_strip <x< r_strip.
+        Accept if the timestamp x of the specified event satisfies l_strip < x < r_strip.
 
         Parameters
         ----------
@@ -234,7 +234,9 @@ class EventDurationFilter(LttngEventFilter):
         """
         Duration acceptance judgment.
 
-        Accept if the timestamp (x) of the specified event satisfies offset <x< duration.
+        The acceptance conditions for this class are as follows:
+
+            self._offset <= elapsed_s and elapsed_s < (self._offset + self._duration)
 
         Parameters
         ----------

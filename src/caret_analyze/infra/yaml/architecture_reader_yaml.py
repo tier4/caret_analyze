@@ -535,7 +535,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         Returns
         -------
         Sequence[ServiceValue]
-            Value object for represent a service.
+            Always empty sequence.
 
         """
         return []
