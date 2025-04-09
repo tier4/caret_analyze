@@ -52,7 +52,7 @@ class EventCounter:
         Raises
         ------
         InvalidArgumentError
-            Occurs when groupby were invalid.
+            Occurs when groupby keys were invalid.
 
         """
         if len(set(groupby) - self._allowed_keys) > 0:
