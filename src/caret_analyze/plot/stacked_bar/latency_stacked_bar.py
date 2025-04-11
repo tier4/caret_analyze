@@ -50,6 +50,11 @@ class LatencyStackedBar:
         pd.DataFrame
             Latency dataframe.
 
+        Raises
+        ------
+        NotImplementedError
+            Argument xaxis_type is not "system_time" or "sim_time".
+
         """
         # NOTE: returned columns aren't used because they don't include 'start time'
         # TODO: delete 1e-6
@@ -108,6 +113,11 @@ class LatencyStackedBar:
         RecordsInterface
             Response time records of the path.
 
+        Raises
+        ------
+        ValueError
+            - Case is not "all", "best", "worst", or "worst-with-external-latency".
+
         """
         response_time = ResponseTime(target_object.to_records(),
                                      columns=target_object.column_names)
@@ -134,4 +144,13 @@ class LatencyStackedBar:
 
     @property
     def target_objects(self) -> Path:
+        """
+        Get target objects.
+
+        Returns
+        -------
+        Path
+            target objects.
+
+        """
         return self._target_objects

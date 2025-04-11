@@ -121,16 +121,15 @@ class ValueObject():
                     d[attr] = value
         return d
 
-    def __generate_public_attrs(self):
-        attrs = inspect.getmembers(self)
+    # cache
+    _public_attrs_cache = None
 
-        # ignore private variables and Constant variables
-        attrs = list(filter(
-            lambda x: x[0][0] != '_' and x[0][0].islower(), attrs
-        ))
-        for attr in attrs:
-            key, value = attr[0], attr[1]
-            # ignore callable
-            if callable(value):
-                continue
-            yield key
+    def __generate_public_attrs(self):
+        if self._public_attrs_cache is None:
+            attrs = inspect.getmembers(self)
+            self._public_attrs_cache = tuple(
+                # Exclude private variables, constants, and callable attributes
+                key for key, value in attrs
+                if key[0] != '_' and key[0].islower() and not callable(value)
+            )
+        yield from self._public_attrs_cache

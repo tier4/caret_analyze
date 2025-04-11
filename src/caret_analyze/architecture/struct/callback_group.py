@@ -39,14 +39,10 @@ class CallbackGroupStruct():
             callback group type
         node_name: str
             node name
-        callbacks: tuple[CallbackStruct, ...]
+        callbacks: list[CallbackStruct, ...]
             callbacks
         callback_group_name: str
             callback group name
-
-        Returns
-        -------
-        None
 
         """
         self._callback_group_type = callback_group_type
@@ -57,11 +53,12 @@ class CallbackGroupStruct():
     @property
     def callback_group_type(self) -> CallbackGroupType:
         """
-        Get callback_group_type.
+        Get callback group type.
 
         Returns
         -------
         CallbackGroupType
+            Callback group type.
 
         """
         return self._callback_group_type
@@ -69,17 +66,27 @@ class CallbackGroupStruct():
     @property
     def callback_group_type_name(self) -> str:
         """
-        Get callback_group_type name.
+        Get callback group type name.
 
         Returns
         -------
-        CallbackGroupType name
+        str
+            Callback group type name.
 
         """
         return self._callback_group_type.type_name
 
     @property
     def callback_group_name(self) -> str:
+        """
+        Get callback group name.
+
+        Returns
+        -------
+        str
+            Callback group name.
+
+        """
         return self._callback_group_name
 
     @property
@@ -90,7 +97,7 @@ class CallbackGroupStruct():
         Returns
         -------
         str
-            node name
+            Node name.
 
         """
         return self._node_name
@@ -104,11 +111,31 @@ class CallbackGroupStruct():
         return [i.callback_name for i in self._callbacks]
 
     def to_value(self) -> CallbackGroupStructValue:
+        """
+        Get callback group struct value.
+
+        Returns
+        -------
+        CallbackGroupStructValue
+            Callback group struct value instance.
+
+        """
         return CallbackGroupStructValue(self.callback_group_type, self.node_name,
                                         tuple(v.to_value() for v in self.callbacks),
                                         self.callback_group_name)
 
     def rename_node(self, src: str, dst: str) -> None:
+        """
+        Rename node.
+
+        Parameters
+        ----------
+        src : str
+            Current node name.
+        dst : str
+            Updated node name.
+
+        """
         if self.node_name == src:
             self._node_name = dst
 
@@ -116,5 +143,16 @@ class CallbackGroupStruct():
             c.rename_node(src, dst)
 
     def rename_topic(self, src: str, dst: str) -> None:
+        """
+        Rename topic.
+
+        Parameters
+        ----------
+        src : str
+            Current topic name.
+        dst : str
+            Updated topic name.
+
+        """
         for c in self._callbacks:
             c.rename_topic(src, dst)

@@ -29,6 +29,25 @@ class ColorSelectorFactory:
 
     @staticmethod
     def create_instance(coloring_rule: str) -> ColorSelectorInterface:
+        """
+        Create ColorSelector instance.
+
+        Parameters
+        ----------
+        coloring_rule : str
+            Coloring rule.
+
+        Returns
+        -------
+        ColorSelectorInterface
+            Created ColorSelector instance.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Argument coloring_rule is not "unique", "callback", "callback_group", or "node".
+
+        """
         if coloring_rule == 'unique':
             return ColorSelectorUnique()
 
@@ -83,6 +102,7 @@ class ColorSelectorInterface:
         Returns
         -------
         Color
+            color interface
 
         """
         color_hash = self._get_color_hash(node_name, cbg_name, callback_name)

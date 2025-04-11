@@ -32,6 +32,35 @@ def chain_latency(
     lstrip_s=0,
     rstrip_s=0,
 ) -> Digraph | None:
+    """
+    Chain latency.
+
+    Parameters
+    ----------
+    path : Path
+        Path.
+    export_path : str | None
+        Export path.
+    granularity : str
+        Granularity.
+    treat_drop_as_delay : bool
+        Treat drop as delay.
+    lstrip_s : float, optional
+        Start time of cropping range, by default 0.
+    rstrip_s: float, optional
+        End point of cropping range, by default 0.
+
+    Returns
+    -------
+    Digraph | None
+        Created directed graph.
+
+    Raises
+    ------
+    UnsupportedTypeError
+        Argument granularity is not "node", "end-to-end".
+
+    """
     granularity = granularity or 'node'
     if granularity not in ['node', 'end-to-end']:
         raise InvalidArgumentError('granularity must be [ node / end-to-end ]')
@@ -84,6 +113,20 @@ class GraphAttr:
 
 
 def to_label(latency: np.ndarray) -> str:
+    """
+    To label.
+
+    Parameters
+    ----------
+    latency : np.ndarray
+        Latency.
+
+    Returns
+    -------
+    str
+        Label.
+
+    """
     latency = latency[[not pd.isnull(_) for _ in latency]]
     label = (
         'min: {:.2f} ms\n'.format(np.min(latency * 1.0e-6))
@@ -99,6 +142,26 @@ def get_attr_node(
     lstrip_s: float,
     rstrip_s: float
 ) -> GraphAttr:
+    """
+    Get attribute node.
+
+    Parameters
+    ----------
+    path : Path
+        Path.
+    treat_drop_as_delay : bool
+        Treat drop as delay.
+    lstrip_s : float, optional
+        Start time of cropping range, by default 0.
+    rstrip_s: float, optional
+        End point of cropping range, by default 0.
+
+    Returns
+    -------
+    GraphAttr
+        Graph attribute node.
+
+    """
     def calc_latency_from_path_df(target_columns: list[str]) -> np.ndarray:
         target_df = path.to_dataframe(
             remove_dropped=remove_dropped,
@@ -165,6 +228,26 @@ def get_attr_end_to_end(
     lstrip_s: float,
     rstrip_s: float
 ) -> GraphAttr:
+    """
+    Get attribute end to end.
+
+    Parameters
+    ----------
+    path : Path
+        Path.
+    treat_drop_as_delay : bool
+        Treat drop as delay.
+    lstrip_s : float, optional
+        Start time of cropping range, by default 0.
+    rstrip_s: float, optional
+        End point of cropping range, by default 0.
+
+    Returns
+    -------
+    GraphAttr
+        End to end graph attribute node.
+
+    """
     node_paths = path.node_paths
     remove_dropped = False
 

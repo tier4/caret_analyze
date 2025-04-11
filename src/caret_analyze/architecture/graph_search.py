@@ -16,7 +16,6 @@ from __future__ import annotations
 
 from collections import defaultdict, UserList
 from collections.abc import Callable
-from copy import deepcopy
 from itertools import product
 from logging import getLogger
 
@@ -48,9 +47,27 @@ class GraphPathCore(UserList):
 
     @property
     def path(self) -> tuple[GraphEdgeCore, ...]:
+        """
+        Get path.
+
+        Returns
+        -------
+        tuple[GraphEdgeCore, ...]
+            path.
+
+        """
         return tuple(self.data)
 
     def to_graph_node_indices(self) -> list[int]:
+        """
+        Get a list of node indices representing path.
+
+        Returns
+        -------
+        list[int]
+            nodes indices.
+
+        """
         if len(self) == 0:
             return []
 
@@ -75,109 +92,101 @@ class GraphCore:
         self._graph = defaultdict(list)
 
     def add_edge(self, u: int, v: int, label: str | None = None):
+        """
+        Add edge.
+
+        Parameters
+        ----------
+        u : int
+            from index.
+        v : int
+            to index.
+        label : str | None
+            label.
+
+        """
         self._v = max(self._v, u + 1, v + 1)
         self._graph[u].append(GraphEdgeCore(u, v, label))
 
-    def _search_paths_recursion(
+    def search_paths(
         self,
         u: int,
         d: int,
-        edge: GraphEdgeCore | None,
-        visited: dict[tuple[int, int], bool],
-        path: GraphPathCore,
-        paths: list[GraphPathCore],
-    ) -> None:
-
-        if edge is not None:
-            path.append(edge)
-
-        if u == d:
-            paths.append(deepcopy(path))
-        else:
-            for edge in self._graph[u]:
-                i = edge.i_to
-
-                if visited[u, i] is False:
-                    visited[u, i] = True
-                    self._search_paths_recursion(
-                        i, d, edge, visited, path, paths)
-                    visited[u, i] = False
-
-        if len(path) > 0:
-            path.pop()
-
-    def _search_paths(
-        self,
-        u: int,
-        d: int,
-        edge: GraphEdgeCore | None,
-        visited: dict[tuple[int, int], bool],
-        path: GraphPathCore,
-        paths: list[GraphPathCore],
         max_depth: int = 0
-    ) -> None:
+    ) -> list[GraphPathCore]:
+        """
+        Search for paths from the given start to end node using Depth First Search (DFS).
 
+        Parameters
+        ----------
+        u : int
+            Index of the start node
+        d : int
+            Index of the end node
+        max_depth : int
+            Maximum depth of the search. Defaults to 0=unlimited (optional)
+
+        Returns
+        -------
+        list[GraphPathCore]
+            Returns list to all found paths.
+
+        """
+        paths: list[GraphPathCore] = []        # for result
+        # Initialize visited node management
+        visited = [[False for _ in range(self._v)] for _ in range(self._v)]
+        edge: GraphEdgeCore | None = None      # Last edge used in the current search path
+        path: GraphPathCore = GraphPathCore()  # List to store the current search path
+        has_max_depth = max_depth > 0
         edges_cache = []
         forward = True
-
-        def get_next_edge(u, edges_cache) -> GraphEdgeCore | None:
-            last_cache = edges_cache[-1]
-            if 0 < max_depth and max_depth < len(path):
-                return None
-            while len(last_cache) > 0:
-                edge = last_cache.pop()
-                i = edge.i_to
-                if visited[u, i] is False:
-                    return edge
-            return None
-
         u_start = u
 
-        edges_cache.append(deepcopy(self._graph[u]))
-        while True:
-            if u == d and forward and len(path) > 0:
-                paths.append(deepcopy(path))
+        # Add the initial edge list.
+        current_edges = self._graph[u].copy()
+        edges_cache.append(current_edges)
 
-            if u != d or u == u_start:
-                edge = get_next_edge(u, edges_cache)
-            else:
-                edge = None
+        while edges_cache:
+            if u == d and forward and path:
+                # If the goal is reached, record the path.
+                paths.append(path.copy())
+
+            # Get the next edge.
+            edge = None
+            if (u != d or u == u_start):
+                last_cache = edges_cache[-1]
+                if not (has_max_depth and len(path) > max_depth):
+                    idx = len(last_cache) - 1
+                    while idx >= 0:
+                        candidate_edge = last_cache[idx]
+                        i = candidate_edge.i_to
+                        if not visited[u][i]:
+                            edge = candidate_edge
+                            last_cache.pop(idx)
+                            break
+                        idx -= 1
+
+                    if edge is None:
+                        last_cache.clear()
 
             if edge is not None:
+                # forward.
                 i = edge.i_to
-                visited[u, i] = True
+                visited[u][i] = True
                 u = i
                 path.append(edge)
-                edges_cache.append(deepcopy(self._graph[u]))
-                forward = True
+                current_edges = self._graph[u].copy()
+                edges_cache.append(current_edges)
+                forward = True  # Set the flag to forward.
             else:
-                forward = False
+                # backward.
+                forward = False  # Set the flag to backward.
                 edges_cache.pop()
-                if len(path) > 0:
+                if path:
                     last_edge = path.pop()
                     u = last_edge.i_from
                     i = last_edge.i_to
-                    visited[u, i] = False
-
-                if edges_cache == []:
-                    return
-
-    def search_paths(
-        self,
-        start: int,
-        goal: int,
-        max_depth: int = 0
-    ) -> list[GraphPathCore]:
-
-        visited: dict[tuple[int, int], bool] = {}
-        for i, j in product(range(self._v), range(self._v)):
-            visited[i, j] = False
-
-        path: GraphPathCore = GraphPathCore()
-        paths: list[GraphPathCore] = []
-
-        # self._search_paths_recursion(start, goal, None, visited, path, paths)
-        self._search_paths(start, goal, None, visited, path, paths, max_depth)
+                    visited[u][i] = False
 
         return paths
 
@@ -189,6 +198,15 @@ class GraphNode(ValueObject):
 
     @property
     def node_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node name.
+
+        """
         return self._node_name
 
 
@@ -206,22 +224,67 @@ class GraphEdge(ValueObject):
 
     @property
     def label(self) -> str:
+        """
+        Get label.
+
+        Returns
+        -------
+        str
+            label.
+
+        """
         return self._label
 
     @property
     def node_from(self) -> GraphNode:
+        """
+        Get starting point of GraphNode.
+
+        Returns
+        -------
+        GraphNode
+            Starting point of GraphNode instance.
+
+        """
         return self._node_from
 
     @property
     def node_name_from(self) -> str:
+        """
+        Get starting point of node name.
+
+        Returns
+        -------
+        str
+           Starting point of node name.
+
+        """
         return self.node_from.node_name
 
     @property
     def node_to(self) -> GraphNode:
+        """
+        Get ending point of GraphNode.
+
+        Returns
+        -------
+        GraphNode
+            Ending point of GraphNode instance.
+
+        """
         return self._node_to
 
     @property
     def node_name_to(self) -> str:
+        """
+        Get ending point of node name.
+
+        Returns
+        -------
+        str
+            Ending point of node name.
+
+        """
         return self.node_to.node_name
 
 
@@ -233,10 +296,28 @@ class GraphPath(UserList):
 
     @property
     def edges(self) -> list[GraphEdge]:
+        """
+        Get edges.
+
+        Returns
+        -------
+        list[GraphEdge]
+            GraphEdge.
+
+        """
         return self.data
 
     @property
     def nodes(self) -> list[GraphNode]:
+        """
+        Get nodes.
+
+        Returns
+        -------
+        list[GraphNode]
+            GraphNode.
+
+        """
         if len(self) == 0:
             return []
 
@@ -262,12 +343,34 @@ class Graph:
         self._graph = GraphCore()
 
     def add_node(self, node: GraphNode) -> None:
+        """
+        Add node.
+
+        Parameters
+        ----------
+        node : GraphNode
+            node.
+
+        """
         index = len(self._nodes)
         self._idx_to_node[index] = node
         self._node_to_idx[node] = index
         self._nodes.add(node)
 
     def add_edge(self, node_from: GraphNode, node_to: GraphNode, label: str | None = None):
+        """
+        Add edge.
+
+        Parameters
+        ----------
+        node_from : GraphNode
+            from node.
+        node_to : GraphNode
+            to node.
+        label : str | None
+            label.
+
+        """
         if node_from not in self._nodes:
             self.add_node(node_from)
 
@@ -291,6 +394,27 @@ class Graph:
         *nodes: GraphNode,
         max_depth: int | None = None
     ) -> list[GraphPath]:
+        """
+        Search paths.
+
+        Parameters
+        ----------
+        nodes : GraphNode
+            Nodes.
+        max_depth : int | None
+            Max depth.
+
+        Returns
+        -------
+        list[GraphPath]:
+            Searched Graph Path.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Occurs when there are 2 or fewer nodes.
+
+        """
         if len(nodes) < 2:
             raise InvalidArgumentError('nodes must be at least 2')
 
@@ -321,10 +445,12 @@ class Graph:
 
 
 class CallbackPathSearcher:
+    """Searcher of callback path."""
 
     def __init__(
         self,
         node: NodeStruct,
+        max_callback_construction_order: int
     ) -> None:
         self._node = node
 
@@ -337,7 +463,10 @@ class CallbackPathSearcher:
         self._graph = Graph()
 
         for callback in callbacks:
-            if callback.callback_name is None:
+            if callback.callback_name is None or (
+                max_callback_construction_order != 0 and
+                callback.construction_order > max_callback_construction_order
+            ):
                 continue
 
             write_name = self._to_node_point_name(callback.callback_name, 'write')
@@ -345,10 +474,14 @@ class CallbackPathSearcher:
 
             self._graph.add_edge(GraphNode(read_name), GraphNode(write_name))
 
+        callback_names = [callback.callback_name for callback in callbacks]
+
         for var_pass in var_passes:
-            if var_pass.callback_name_read is None:
+            if var_pass.callback_name_read is None or \
+                    var_pass.callback_name_read not in callback_names:
                 continue
-            if var_pass.callback_name_write is None:
+            if var_pass.callback_name_write is None or \
+                    var_pass.callback_name_write not in callback_names:
                 continue
 
             write_name = self._to_node_point_name(var_pass.callback_name_write, 'write')
@@ -362,6 +495,24 @@ class CallbackPathSearcher:
         end_callback: CallbackStruct,
         node: NodeStruct
     ) -> tuple[NodePathStruct, ...]:
+        """
+        Search paths.
+
+        Parameters
+        ----------
+        start_callback : CallbackStruct
+            start callback.
+        end_callback : CallbackStruct
+            end callback.
+        node : NodeStruct
+            node.
+
+        Returns
+        -------
+        tuple[NodePathStruct, ...]
+            Searched Node Path struct.
+
+        """
         # src_node = GraphNode(self._to_node_point_name(start_callback.callback_name, 'write'))
         # dst_node = GraphNode(self._to_node_point_name(end_callback.callback_name, 'read'))
 
@@ -378,8 +529,6 @@ class CallbackPathSearcher:
             publisher = node.get_publisher_from_callback(end_callback.callback_name)
             paths += self._to_paths(
                 graph_path,
-                start_callback,
-                end_callback,
                 subscription,
                 publisher
             )
@@ -389,8 +538,6 @@ class CallbackPathSearcher:
     def _to_paths(
         self,
         callback_graph_path: GraphPath,
-        start_callback: CallbackStruct,
-        end_callback: CallbackStruct,
         start_callback_subscription: SubscriptionStruct | None,
         end_callback_publishers: list[PublisherStruct] | None
     ) -> list[NodePathStruct]:
@@ -519,11 +666,13 @@ CommKey = tuple[
 
 
 class NodePathSearcher:
+    """Searcher of node path."""
 
     def __init__(
         self,
         nodes: tuple[NodeStruct, ...],
         communications: tuple[CommunicationStruct, ...],
+        max_callback_construction_order: int,
         node_filter: Callable[[str], bool] | None = None,
         communication_filter: Callable[[str], bool] | None = None,
     ) -> None:
@@ -567,6 +716,11 @@ class NodePathSearcher:
             if node_filter is not None and not node_filter(comm.publish_node_name):
                 continue
             if node_filter is not None and not node_filter(comm.subscribe_node_name):
+                continue
+
+            sub_cb = comm.subscribe_callback
+            if max_callback_construction_order != 0 and sub_cb is not None and \
+                    sub_cb.construction_order > max_callback_construction_order:
                 continue
 
             key = self._comm_key(comm)
@@ -646,6 +800,22 @@ class NodePathSearcher:
         *node_names: str,
         max_node_depth: int | None = None
     ) -> list[PathStruct]:
+        """
+        Search paths.
+
+        Parameters
+        ----------
+        node_names : str
+            Node names.
+        max_node_depth : int | None
+            Max node depth.
+
+        Returns
+        -------
+        list[PathStruct]
+            Searched path struct.
+
+        """
         paths: list[PathStruct] = []
 
         max_search_depth = max_node_depth or 0

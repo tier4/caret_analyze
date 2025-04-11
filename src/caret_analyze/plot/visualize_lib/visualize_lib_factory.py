@@ -33,9 +33,12 @@ class VisualizeLibFactory:
         Returns
         -------
         VisualizeLibInterface
+            Created instance of VisualizeLibInterface.
 
         Raises
         ------
+        NotImplementedError
+            Specified use_package is not implemented.
         UnsupportedTypeError
             Argument use_package is not "bokeh" or "graphviz".
 

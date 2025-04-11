@@ -50,6 +50,20 @@ class CallbackSchedulingPlot(PlotBase):
         self._rstrip_s = rstrip_s
 
     def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
+        """
+        Get data in pandas DataFrame format.
+
+        Parameters
+        ----------
+        xaxis_type : str
+            Type of time for timestamp.
+
+        Returns
+        -------
+        pd.DataFrame
+            Callback scheduling plot DataFrame.
+
+        """
         logger.warning("'to_dataframe' method is not implemented in CallbackSchedulingPlot.")
         return pd.DataFrame()
 
@@ -115,6 +129,25 @@ class CallbackSchedulingPlot(PlotBase):
         full_legends: bool | None = None,
         coloring_rule: str | None = None,
     ) -> None:
+        """
+        Show a callback scheduling plot.
+
+        Parameters
+        ----------
+        xaxis_type : str, optional
+            Type of x-axis of the line graph to be plotted.
+            "system_time", "index", or "sim_time" can be specified, by default "system_time".
+        ywheel_zoom : bool, optional
+            If True, the drawn graph can be expanded in the y-axis direction
+            by the mouse wheel, by default False.
+        full_legends : bool, optional
+            If True, all legends are drawn
+            even if the number of legends exceeds the threshold, by default False.
+        coloring_rule : str, optional
+            The unit of color change
+            There are there rules which are [callback/callback_group/node], by default 'callback'
+
+        """
         p = self.figure(xaxis_type, ywheel_zoom, full_legends, coloring_rule)
         show(p)
 
@@ -127,6 +160,29 @@ class CallbackSchedulingPlot(PlotBase):
         full_legends: bool | None = None,
         coloring_rule: str | None = None
     ) -> None:
+        """
+        Save a callback scheduling plot.
+
+        Parameters
+        ----------
+        export_path : str
+            The graph will be saved as a file.
+        title: str, optional
+            Title of the graph, by default ''.
+        xaxis_type : str, optional
+            Type of x-axis of the line graph to be plotted.
+            "system_time", "index", or "sim_time" can be specified, by default "system_time".
+        ywheel_zoom : bool, optional
+            If True, the drawn graph can be expanded in the y-axis direction
+            by the mouse wheel, by default False.
+        full_legends : bool, optional
+            If True, all legends are drawn
+            even if the number of legends exceeds the threshold, by default False.
+        coloring_rule : str, optional
+            The unit of color change
+            There are there rules which are [callback/callback_group/node], by default 'callback'
+
+        """
         p = self.figure(xaxis_type, ywheel_zoom, full_legends, coloring_rule)
         save(p, export_path, title=title, resources=CDN)
 

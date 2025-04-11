@@ -100,10 +100,30 @@ class PathStruct():
             raise InvalidArgumentError(msg)
 
     def to_value(self) -> PathStructValue:
+        """
+        Get path struct value.
+
+        Returns
+        -------
+        PathStructValue
+            Path struct value instance.
+
+        """
         return PathStructValue(None if self.path_name is None else self.path_name,
                                tuple(v.to_value() for v in self.child))
 
     def rename_node(self, src: str, dst: str) -> None:
+        """
+        Rename node.
+
+        Parameters
+        ----------
+        src : str
+            Current node name.
+        dst : str
+            Updated node name.
+
+        """
         for n in self.node_paths:
             n.rename_node(src, dst)
 
@@ -111,6 +131,17 @@ class PathStruct():
             c.rename_node(src, dst)
 
     def rename_topic(self, src: str, dst: str) -> None:
+        """
+        Rename topic.
+
+        Parameters
+        ----------
+        src : str
+            Current topic name.
+        dst : str
+            Updated topic name.
+
+        """
         for n in self.node_paths:
             n.rename_topic(src, dst)
 
