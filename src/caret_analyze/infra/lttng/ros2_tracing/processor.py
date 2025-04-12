@@ -145,9 +145,6 @@ class Ros2Handler():
             'ros2:rclcpp_ipb_to_subscription',
             'ros2:rclcpp_construct_ring_buffer',
             # For Agnocast
-            'ros2:agnocast_subscription_init',
-            'ros2:agnocast_publisher_init',
-            'ros2:agnocast_construct_executor',
             'ros2:agnocast_publish',
             'ros2:agnocast_create_callable',
             'ros2:agnocast_callable_start',
@@ -175,6 +172,10 @@ class Ros2Handler():
                     'ros2_caret:rclcpp_buffer_to_ipb',
                     'ros2_caret:rclcpp_ipb_to_subscription',
                     'ros2_caret:rclcpp_construct_ring_buffer',
+                    # For Agnocast
+                    'ros2_caret:agnocast_subscription_init',
+                    'ros2_caret:agnocast_publisher_init',
+                    'ros2_caret:agnocast_construct_executor',
                 ]
             )
         return tracepoints
@@ -302,9 +303,9 @@ class Ros2Handler():
             self._handle_rclcpp_construct_ring_buffer
 
         # For Agnocast (initialization)
-        handler_map['ros2:agnocast_subscription_init'] = self._handle_agnocast_subscription_init
-        handler_map['ros2:agnocast_publisher_init'] = self._handle_agnocast_publisher_init
-        handler_map['ros2:agnocast_construct_executor'] = self._handle_agnocast_construct_executor
+        handler_map['ros2_caret:agnocast_subscription_init'] = self._handle_agnocast_subscription_init
+        handler_map['ros2_caret:agnocast_publisher_init'] = self._handle_agnocast_publisher_init
+        handler_map['ros2_caret:agnocast_construct_executor'] = self._handle_agnocast_construct_executor
 
         self.handler_map = handler_map
 
