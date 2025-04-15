@@ -163,7 +163,8 @@ class LttngInfo:
 
         Returns
         -------
-        Sequence[TimerCallbackInfo]
+        Sequence[TimerCallbackValueLttng]
+            Timer callback value of lttng.
 
         """
         if node.node_id is None:
@@ -183,8 +184,8 @@ class LttngInfo:
 
         Returns
         -------
-        Sequence[NodeValue]
-            node names.
+        Sequence[NodeValueLttng]
+            node names of lttng.
 
         """
         nodes_data = self._formatted.nodes.clone()
@@ -281,7 +282,8 @@ class LttngInfo:
 
         Returns
         -------
-        Sequence[SubscriptionCallbackInfo]
+        Sequence[SubscriptionCallbackValueLttng]
+            Subscription callback values of lttng.
 
         """
         if node.node_id is None:
@@ -359,7 +361,8 @@ class LttngInfo:
 
         Returns
         -------
-        Sequence[ServiceCallbackInfo]
+        Sequence[ServiceCallbackValueLttng]
+            Service callback value of lttng.
 
         """
         if node.node_id is None:
@@ -388,7 +391,8 @@ class LttngInfo:
 
         Returns
         -------
-        list[PublisherInfo]
+        list[PublisherValueLttng]
+            Publisher value of lttng.
 
         """
         if node.node_id is None:
@@ -408,12 +412,13 @@ class LttngInfo:
 
         Parameters
         ----------
-        node: NodeValue
+        node: NodeValueLttng
             target node.
 
         Returns
         -------
         list[SubscriptionValue]
+            Subscription values.
 
         """
         node_id = node.node_id
@@ -483,12 +488,13 @@ class LttngInfo:
 
         Parameters
         ----------
-        node: NodeValue
+        node: NodeValueLttng
             target node.
 
         Returns
         -------
         list[ServiceValue]
+            Service value
 
         """
         node_id = node.node_id
@@ -562,7 +568,8 @@ class LttngInfo:
 
         Returns
         -------
-        list[PublisherInfo]
+        list[PublisherValueLttng]
+            Publisher value of lttng.
 
         """
         pub = self._formatted.publishers.clone()
@@ -679,9 +686,15 @@ class LttngInfo:
         """
         Get callback groups value.
 
+        Parameters
+        ----------
+        node: NodeValue
+            target node.
+
         Returns
         -------
-        list[CallbackGroupInfo]
+        list[CallbackGroupValueLttng]
+            Callback group value of lttng.
 
         """
         if node.node_id is None:
@@ -700,7 +713,8 @@ class LttngInfo:
 
         Returns
         -------
-        list[ExecutorInfo]
+        list[ExecutorValue]
+            Executor value.
 
         """
         executor = self._formatted.executor.clone()
@@ -722,6 +736,25 @@ class LttngInfo:
         return execs
 
     def get_publisher_qos(self, publisher: PublisherValueLttng) -> Qos:
+        """
+        Get publishers qos information.
+
+        Parameters
+        ----------
+        publisher : PublisherValueLttng
+            target publisher value
+
+        Returns
+        -------
+        Qos
+            Publisher qos.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Occurs when publisher were not exist.
+
+        """
         publishers = self._formatted.publishers.clone()
         publishers.filter_rows('publisher_handle', publisher.publisher_handle)
 
@@ -736,6 +769,25 @@ class LttngInfo:
         return Qos(depth)
 
     def get_subscription_qos(self, callback: SubscriptionCallbackValueLttng) -> Qos:
+        """
+        Get subscription qos information.
+
+        Parameters
+        ----------
+        callback : SubscriptionCallbackValueLttng
+            target Subscription callback value
+
+        Returns
+        -------
+        Qos
+            Subscription qos.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Occurs when subscription were not exist.
+
+        """
         subscription = self._formatted.subscription_callbacks.clone()
         subscription.filter_rows('callback_object', callback.callback_object)
 
@@ -756,12 +808,13 @@ class LttngInfo:
 
         Parameters
         ----------
-        node: NodeValue
+        node: NodeValueLttng
             target node.
 
         Returns
         -------
         list[TimerValue]
+            Timers information.
 
         """
         node_id = node.node_id
@@ -779,6 +832,7 @@ class LttngInfo:
         Returns
         -------
         list[TimerValue]
+            Timers information.
 
         """
         tim = self._formatted.timers.clone()
@@ -815,6 +869,20 @@ class LttngInfo:
         return times_info
 
     def get_timer_controls(self) -> Sequence[TimerControl]:
+        """
+        Get timer controls information.
+
+        Returns
+        -------
+        Sequence[TimerControl]
+            Timer controls information.
+
+        Raises
+        ------
+        NotImplementedError
+            Unsupported timer control type.
+
+        """
         timer_controls = self._formatted.timer_controls.clone()
         controls: list[TimerControl] = []
         for _, row in timer_controls.df.iterrows():
@@ -861,13 +929,9 @@ class DataFrameFormatted:
         """
         Build timer callbacks table.
 
-        Parameters
-        ----------
-        data : Ros2DataModel
-
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Column
 
             - callback_id
@@ -887,13 +951,9 @@ class DataFrameFormatted:
         """
         Build subscription callback table.
 
-        Parameters
-        ----------
-        data : Ros2DataModel
-
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             columns
 
             - callback_id
@@ -915,13 +975,9 @@ class DataFrameFormatted:
         """
         Build service callback table.
 
-        Parameters
-        ----------
-        data : Ros2DataModel
-
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Columns
 
             - callback_id
@@ -941,13 +997,9 @@ class DataFrameFormatted:
         """
         Build node table.
 
-        Parameters
-        ----------
-        data : Ros2DataModel
-
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Columns
 
             - node_id
@@ -964,7 +1016,7 @@ class DataFrameFormatted:
 
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Columns
 
             - publisher_id
@@ -984,7 +1036,7 @@ class DataFrameFormatted:
 
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Columns
 
             - subscription_id
@@ -1004,7 +1056,7 @@ class DataFrameFormatted:
 
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Columns
 
             - service_id
@@ -1023,7 +1075,7 @@ class DataFrameFormatted:
 
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Columns
 
             - timer_id
@@ -1042,7 +1094,7 @@ class DataFrameFormatted:
 
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Columns
 
             - executor_id
@@ -1059,13 +1111,13 @@ class DataFrameFormatted:
 
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Columns
 
             - callback_group_id
             - callback_group_addr
-            - executor_addr
             - group_type_name
+            - executor_addr
 
         """
         return self._cbg
@@ -1077,7 +1129,7 @@ class DataFrameFormatted:
 
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Columns
 
             - tilde_publisher
@@ -1095,7 +1147,7 @@ class DataFrameFormatted:
 
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Columns
             - tilde_subscription
             - node_name
@@ -1106,6 +1158,20 @@ class DataFrameFormatted:
 
     @property
     def timer_controls(self) -> TracePointData:
+        """
+        Get timer controls info table.
+
+        Returns
+        -------
+        TracePointData
+            Columns
+
+            - timestamp
+            - timer_handle
+            - type
+            - params
+
+        """
         return self._timer_control
 
     @staticmethod

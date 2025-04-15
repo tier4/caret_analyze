@@ -47,11 +47,34 @@ class ArchitectureReaderYaml(ArchitectureReader):
         self,
         callback_group_id: str
     ) -> Sequence[tuple[str | None, str | None]]:
+        """
+        Get node names and callback symbols.
+
+        Parameters
+        ----------
+        callback_group_id : str
+            callback group id.
+
+        Returns
+        -------
+        Sequence[tuple[str | None, str | None]]
+            Always empty sequence.
+
+        """
         logger.warning('get_node_names_and_cb_symbols method is not implemented '
                        'in ArchitectureReaderYaml class.')
         return []
 
     def get_nodes(self) -> Sequence[NodeValueWithId]:
+        """
+        Get nodes.
+
+        Returns
+        -------
+        Sequence[NodeValueWithId]
+            All node objects defined in the architecture file.
+
+        """
         nodes_dict = self._get_value(self._arch, 'nodes')
         nodes = []
         for node_dict in nodes_dict:
@@ -105,6 +128,20 @@ class ArchitectureReaderYaml(ArchitectureReader):
         self,
         node: NodeValue,
     ) -> list[TimerCallbackValue]:
+        """
+        Get timer callback values.
+
+        Parameters
+        ----------
+        node : NodeValue
+            target node
+
+        Returns
+        -------
+        list[TimerCallbackValue]
+            Timer callback object of specified node defined in architecture file.
+
+        """
         node_dict = self._get_node_dict(node.node_name)
 
         if 'callbacks' not in node_dict:
@@ -141,6 +178,20 @@ class ArchitectureReaderYaml(ArchitectureReader):
         self,
         node: NodeValue
     ) -> list[dict]:
+        """
+        Get message contexts.
+
+        Parameters
+        ----------
+        node : NodeValue
+            Target node value.
+
+        Returns
+        -------
+        list[dict]
+            Message context object of specified node defined in architecture file.
+
+        """
         node_dict = self._get_node_dict(node.node_name)
         if 'message_contexts' not in node_dict.keys():
             return []
@@ -158,6 +209,20 @@ class ArchitectureReaderYaml(ArchitectureReader):
         self,
         node: NodeValue
     ) -> list[CallbackGroupValue]:
+        """
+        Get callback groups.
+
+        Parameters
+        ----------
+        node : NodeValue
+            Target node value.
+
+        Returns
+        -------
+        list[CallbackGroupValue]
+            Callback group object of specified node defined in architecture file.
+
+        """
         node_dict = self._get_node_dict(node.node_name)
         if 'callback_groups' not in node_dict.keys():
             return []
@@ -179,6 +244,15 @@ class ArchitectureReaderYaml(ArchitectureReader):
         return callback_groups
 
     def get_paths(self) -> list[PathValue]:
+        """
+        Get paths.
+
+        Returns
+        -------
+        list[PathValue]
+            All path information objects defined in the architecture file.
+
+        """
         aliases_info = self._get_value(self._arch, 'named_paths')
 
         paths_info = []
@@ -218,6 +292,20 @@ class ArchitectureReaderYaml(ArchitectureReader):
         self,
         node: NodeValue,
     ) -> list[VariablePassingValue]:
+        """
+        Get variable passings.
+
+        Parameters
+        ----------
+        node : NodeValue
+            Target node value.
+
+        Returns
+        -------
+        list[VariablePassingValue]
+            Variable passing object of specified node defined in architecture file.
+
+        """
         node_dict = self._get_node_dict(node.node_name)
 
         if 'variable_passings' not in node_dict.keys():
@@ -235,6 +323,15 @@ class ArchitectureReaderYaml(ArchitectureReader):
         return var_passes
 
     def get_executors(self) -> list[ExecutorValue]:
+        """
+        Get executors.
+
+        Returns
+        -------
+        list[ExecutorValue]
+            All executor objects defined in the architecture file.
+
+        """
         executors = []
         for e in self._get_value(self._arch, 'executors'):
             cbg_names = self._get_value(e, 'callback_group_names')
@@ -250,6 +347,20 @@ class ArchitectureReaderYaml(ArchitectureReader):
         self,
         node: NodeValue
     ) -> list[SubscriptionCallbackValue]:
+        """
+        Get subscription callbacks.
+
+        Parameters
+        ----------
+        node : NodeValue
+            Target node value.
+
+        Returns
+        -------
+        list[SubscriptionCallbackValue]
+            Subscription callback object of specified node defined in architecture file.
+
+        """
         def is_target(x: dict):
             return self._get_value(x, 'callback_type') == CallbackType.SUBSCRIPTION.type_name
         node_dict = self._get_node_dict(node.node_name)
@@ -283,12 +394,40 @@ class ArchitectureReaderYaml(ArchitectureReader):
         return callbacks
 
     def get_service_callbacks(self, node: NodeValue) -> Sequence[ServiceCallbackValue]:
+        """
+        Get service callbacks.
+
+        Parameters
+        ----------
+        node : NodeValue
+            Target node value.
+
+        Returns
+        -------
+        Sequence[ServiceCallbackValue]
+            Always empty sequence.
+
+        """
         return []
 
     def get_publishers(
         self,
         node: NodeValue
     ) -> list[PublisherValue]:
+        """
+        Get publishers.
+
+        Parameters
+        ----------
+        node : NodeValue
+            Target node value.
+
+        Returns
+        -------
+        list[PublisherValue]
+            Publisher object of specified node defined in architecture file.
+
+        """
         node_dict = self._get_node_dict(node.node_name)
         publishers = []
 
@@ -311,6 +450,20 @@ class ArchitectureReaderYaml(ArchitectureReader):
         self,
         node: NodeValue
     ) -> list[TimerValue]:
+        """
+        Get timers.
+
+        Parameters
+        ----------
+        node : NodeValue
+            Target node value.
+
+        Returns
+        -------
+        list[TimerValue]
+            Timer object of specified node defined in architecture file.
+
+        """
         node_dict = self._get_node_dict(node.node_name)
         timers = []
 
@@ -338,6 +491,20 @@ class ArchitectureReaderYaml(ArchitectureReader):
         self,
         node: NodeValue
     ) -> list[SubscriptionValue]:
+        """
+        Get subscriptions.
+
+        Parameters
+        ----------
+        node : NodeValue
+            Target node value.
+
+        Returns
+        -------
+        list[SubscriptionValue]
+            Subscription object of specified node defined in architecture file.
+
+        """
         node_dict = self._get_node_dict(node.node_name)
         subscriptions = []
 
@@ -357,6 +524,20 @@ class ArchitectureReaderYaml(ArchitectureReader):
         return subscriptions
 
     def get_services(self, node: NodeValue) -> Sequence[ServiceValue]:
+        """
+        Get services.
+
+        Parameters
+        ----------
+        node : NodeValue
+            Target node value.
+
+        Returns
+        -------
+        Sequence[ServiceValue]
+            Always empty sequence.
+
+        """
         return []
 
     def _get_node_dict(
