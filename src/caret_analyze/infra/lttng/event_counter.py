@@ -36,6 +36,25 @@ class EventCounter:
             self._validate()
 
     def get_count(self, groupby: list[str]) -> pd.DataFrame:
+        """
+        Get event counter in pandas DataFrame format.
+
+        Parameters
+        ----------
+        groupby : list[str]
+            Data group.
+
+        Returns
+        -------
+        pd.DataFrame
+            Event counter dataframe.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Occurs when groupby keys were invalid.
+
+        """
         if len(set(groupby) - self._allowed_keys) > 0:
             raise InvalidArgumentError(
                 f'invalid groupby: {groupby}. {self._allowed_keys} are allowed.')
