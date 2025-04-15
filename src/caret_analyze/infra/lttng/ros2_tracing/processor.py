@@ -1209,13 +1209,8 @@ class Ros2Handler():
         executor_addr = get_field(event, 'executor_addr')
         executor_type_name = get_field(event, 'executor_type_name')
 
-        distribution = self._get_distribution(self.data)
-        if distribution[0] >= 'jazzy'[0]:
-            executor_addr = self._remapper.executor_addr_remapper.get_nearest_object_id(
-                executor_addr, event)
-        else:
-            executor_addr = self._remapper.executor_addr_remapper.register_and_get_object_id(
-                executor_addr, event)
+        executor_addr = self._remapper.executor_addr_remapper.register_and_get_object_id(
+            executor_addr, event)
 
         # HACK: add to existing data
         self.data.add_executor(executor_addr, timestamp, executor_type_name)
