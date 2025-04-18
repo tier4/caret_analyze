@@ -20,7 +20,7 @@ import pandas as pd
 
 from ..metrics_base import MetricsBase
 from ..util import get_clock_converter
-from ...common import ClockConverter, Util
+from ...common import Util
 from ...record import Frequency, RecordsInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
@@ -99,7 +99,7 @@ class FrequencyTimeSeries(MetricsBase):
             return []
         if isinstance(self._target_objects[0], CallbackBase) is False:
             target_type = type(self._target_objects[0])
-            raise TypeError(f"Invalid type of target object: {target_type}")
+            raise TypeError(f'Invalid type of target object: {target_type}')
 
         timeseries_records_list: list[RecordsInterface] = [
             obj.to_records() for obj in self._target_objects

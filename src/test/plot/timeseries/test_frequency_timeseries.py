@@ -94,7 +94,6 @@ class TestGetTimestampRange:
         assert max_ts == 1
 
 
-
 def create_sample_record(record_raw_list: list[dict]) -> RecordsFactory:
     records = RecordsFactory.create_instance()
     columns = [ColumnValue(key) for key in record_raw_list[0].keys()]
@@ -108,6 +107,7 @@ def create_sample_record(record_raw_list: list[dict]) -> RecordsFactory:
 
 
 class TestFrequencyTimeSeries:
+
     def test_sample_record_to_dataframe(self, mocker):
         records = create_sample_record([
                 {'timestamp': 1, 'some_data': 2},
@@ -130,7 +130,7 @@ class TestFrequencyTimeSeries:
         frequency_timeseries = FrequencyTimeSeries([cb_mock])
 
         actual_df = frequency_timeseries.to_dataframe('timestamp')
-        actual_df.columns = actual_df.columns.droplevel(0) # MultiIndex to single index
+        actual_df.columns = actual_df.columns.droplevel(0)  # MultiIndex to single index
 
         actual_df = actual_df.astype(except_freq_df.dtypes.to_dict())  # Type conversion
         assert actual_df.equals(except_freq_df)
