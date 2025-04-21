@@ -106,7 +106,7 @@ class FrequencyTimeSeries(MetricsBase):
         ]
         columns = timeseries_records_list[0].columns
 
-        def row_filter_communication(record: RecordsInterface) -> bool:
+        def row_filter_communication(record) -> bool:
             """Return True only if communication is established."""
             comm_start_column = columns[0]
             comm_end_column = columns[1]
