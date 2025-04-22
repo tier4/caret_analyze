@@ -27,6 +27,45 @@ from ...runtime import CallbackBase, Communication, Publisher, Subscription
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 
 
+def _get_calculation_offset_ns(timeseries_record: RecordsInterface) -> int:
+    """
+    Calculate the offset time for frequency calculation.
+
+    Parameters
+    ----------
+    timeseries_record : RecordsInterface
+        Timeseries record.
+
+    Returns
+    -------
+    int
+        Offset in nanoseconds. The offset is half the interval time.
+        For example, if the frequency is 1Hz, the interval is 500ms.
+
+    Notes
+    -----
+    If the data frequency is 1Hz and calculated without an offset,
+    the output may become unstable. For instance, if the interval is 999ms,
+    no data is included, resulting in 0Hz. Conversely, if the interval is 1001ms,
+    two data points are included, resulting in 2Hz.
+    Using an offset ensures stable calculations.
+
+    """
+    if len(timeseries_record) == 0:
+        return 0
+
+    # Get the timestamp array
+    timestamp_column_name = timeseries_record.columns[0]
+    timestamp_list = timeseries_record.get_column_series(timestamp_column_name)
+    if len(timestamp_list) < 2:
+        return 0
+    if timestamp_list[0] is None or timestamp_list[1] is None:
+        return 0
+    timestamp_diff = int(timestamp_list[1]) - int(timestamp_list[0])
+    timestamp_offset_ns = int(timestamp_diff / 2)
+    return timestamp_offset_ns
+
+
 class FrequencyTimeSeries(MetricsBase):
     """Class that provides frequency timeseries data."""
 
@@ -123,13 +162,14 @@ class FrequencyTimeSeries(MetricsBase):
 
         frequency_timeseries_list: list[RecordsInterface] = []
         for records in timeseries_records_list:
+            offset_ns = _get_calculation_offset_ns(records)
             frequency = Frequency(
                 records,
                 row_filter=row_filter_communication
                 if isinstance(records, Communication) else None
             )
             frequency_record = frequency.to_records(
-                base_timestamp=min_time,
+                base_timestamp=min_time + offset_ns,
                 until_timestamp=max_time,
                 converter=converter
             )
