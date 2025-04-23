@@ -54,13 +54,15 @@ def _get_calculation_offset_ns(timeseries_record: RecordsInterface) -> int:
     if len(timeseries_record) == 0:
         return 0
 
-    # Get the timestamp array
+    # Get timestamp array
     timestamp_column_name = timeseries_record.columns[0]
     timestamp_list = timeseries_record.get_column_series(timestamp_column_name)
     if len(timestamp_list) < 2:
         return 0
     if timestamp_list[0] is None or timestamp_list[1] is None:
         return 0
+
+    # Calculate timestamp offset
     timestamp_diff = int(timestamp_list[1]) - int(timestamp_list[0])
     timestamp_offset_ns = int(timestamp_diff / 2)
     return timestamp_offset_ns
