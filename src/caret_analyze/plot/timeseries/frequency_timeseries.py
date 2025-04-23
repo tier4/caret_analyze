@@ -27,7 +27,7 @@ from ...runtime import CallbackBase, Communication, Publisher, Subscription
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 
 
-def _get_calculation_offset_ns(timeseries_record: RecordsInterface) -> int:
+def _get_frequency_computing_timestamp_offset_ns(timeseries_record: RecordsInterface) -> int:
     """
     Calculate the offset time for frequency calculation.
 
@@ -164,7 +164,7 @@ class FrequencyTimeSeries(MetricsBase):
 
         frequency_timeseries_list: list[RecordsInterface] = []
         for records in timeseries_records_list:
-            offset_ns = _get_calculation_offset_ns(records)
+            offset_ns = _get_frequency_computing_timestamp_offset_ns(records)
             frequency = Frequency(
                 records,
                 row_filter=row_filter_communication
