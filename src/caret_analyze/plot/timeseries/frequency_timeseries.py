@@ -63,6 +63,8 @@ def _get_frequency_computing_timestamp_offset_ns(timeseries_record: RecordsInter
         return 0
 
     # Calculate timestamp offset
+    # Approximate period estimation using the first two timestamps.
+    # Accuracy is not critical, as the offset only needs to prevent boundary collisions.
     timestamp_diff = int(timestamp_list[1]) - int(timestamp_list[0])
     timestamp_offset_ns = int(timestamp_diff / 2)
     return timestamp_offset_ns
