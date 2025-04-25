@@ -15,6 +15,8 @@
 from caret_analyze.plot.timeseries.frequency_timeseries import FrequencyTimeSeries
 from caret_analyze.record import ColumnValue
 from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
+from caret_analyze.runtime.callback import CallbackBase
+import pandas as pd
 
 
 def create_expect_records(records_raw):
@@ -29,7 +31,7 @@ def create_expect_records(records_raw):
     return records
 
 
-class TestFrequencyTimeSeries:
+class TestGetTimestampRange:
 
     def test_get_timestamp_range_normal(self, mocker):
         records0 = create_expect_records([
@@ -90,3 +92,45 @@ class TestFrequencyTimeSeries:
 
         assert min_ts == 0
         assert max_ts == 1
+
+
+def create_sample_record(record_raw_list: list[dict]) -> RecordsFactory:
+    records = RecordsFactory.create_instance()
+    columns = [ColumnValue(key) for key in record_raw_list[0].keys()]
+    for column in columns:
+        records.append_column(column, [])
+
+    for record_raw in record_raw_list:
+        record = RecordFactory.create_instance(record_raw)
+        records.append(record)
+    return records
+
+
+class TestFrequencyTimeSeries:
+
+    def test_sample_record_to_dataframe(self, mocker):
+        records = create_sample_record([
+                {'timestamp': 1, 'some_data': 2},
+                {'timestamp': 2, 'some_data': 3}
+        ])
+        except_freq_df = pd.DataFrame(
+            data=[
+                {'timestamp [ns]': 1, 'frequency [Hz]': 2}
+            ]
+        )
+
+        cb_mock = mocker.Mock(spec=CallbackBase)
+        mocker.patch.object(cb_mock, 'to_records', return_value=records)
+        mocker.patch.object(cb_mock, 'column_names', ['timestamp', 'some_data'])
+
+        # Check if mock works as expected
+        assert cb_mock.to_records() == records
+        assert cb_mock.column_names == ['timestamp', 'some_data']
+
+        frequency_timeseries = FrequencyTimeSeries([cb_mock])
+
+        actual_df = frequency_timeseries.to_dataframe('timestamp')
+        actual_df.columns = actual_df.columns.droplevel(0)  # MultiIndex to single index
+
+        actual_df = actual_df.astype(except_freq_df.dtypes.to_dict())  # Type conversion
+        assert actual_df.equals(except_freq_df)
