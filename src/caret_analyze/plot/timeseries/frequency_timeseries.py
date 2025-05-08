@@ -170,7 +170,7 @@ class FrequencyTimeSeries(MetricsBase):
             INTERVAL_NS = 1000000000  # 1 second. Default value to calculate frequency.
             start_ns = min_time + offset_ns
             sample_num = (max_time - start_ns) // INTERVAL_NS
-            end_ns = start_ns + sample_num*INTERVAL_NS  # To trim the last sampling period due to insufficient duration.
+            end_ns = start_ns + sample_num*INTERVAL_NS - 1  # To trim the last sampling period due to insufficient duration.
 
             frequency = Frequency(
                 records,

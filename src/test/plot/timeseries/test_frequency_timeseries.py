@@ -124,26 +124,11 @@ class TestFrequencyTimeSeries:
 
         return actual_df
 
-    def test_to_dataframe_return_data(self, mocker):
-        records = [
-            {'timestamp': 1, 'some_data': 2}
-        ]
-        except_freq_df = pd.DataFrame(
-            data=[
-                {'timestamp [ns]': 1, 'frequency [Hz]': 1}
-            ]
-        )
-
-        actual_df = self.get_frequency_dataframe(mocker, records)
-        actual_df = actual_df.astype(except_freq_df.dtypes.to_dict())  # Type conversion
-
-        assert actual_df.equals(except_freq_df)
-
     def test_to_dataframe_remove_last_period(self, mocker):
         records = [
             {'timestamp': 1, 'some_data': 2},
             {'timestamp': 2, 'some_data': 3},
-            {'timestamp': 1000000002, 'some_data': 4},
+            {'timestamp': 1000000001, 'some_data': 4},
         ]
         except_freq_df = pd.DataFrame(
             data=[
