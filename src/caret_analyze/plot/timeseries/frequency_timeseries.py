@@ -166,15 +166,24 @@ class FrequencyTimeSeries(MetricsBase):
 
         frequency_timeseries_list: list[RecordsInterface] = []
         for records in timeseries_records_list:
+            # Calculate the start time to shift calculation period from event period.
             offset_ns = _get_frequency_computing_timestamp_offset_ns(records)
+            start_ns = min_time + offset_ns
+
+            # Calculate the end time to exclude periods with insufficient data.
+            INTERVAL_NS = 1000000000  # 1 second. Default value to calculate frequency.
+            sample_num = (max_time - start_ns) // INTERVAL_NS
+            end_ns = start_ns + sample_num*INTERVAL_NS - 1
+
             frequency = Frequency(
                 records,
                 row_filter=row_filter_communication
                 if isinstance(records, Communication) else None
             )
             frequency_record = frequency.to_records(
-                base_timestamp=min_time + offset_ns,
-                until_timestamp=max_time,
+                interval_ns=INTERVAL_NS,
+                base_timestamp=start_ns,
+                until_timestamp=end_ns,
                 converter=converter
             )
             frequency_timeseries_list.append(frequency_record)
