@@ -245,6 +245,7 @@ class RecordsMerged:
 
             # adjust the columns for the case that the message is not taken by callback
             if is_match_column(right_records.columns[0], 'source_timestamp'):
+            # if isinstance(target_, Communication) and target_.use_take_manually:
                 left_records.drop_columns([left_records.columns[-1]])
 
             if left_records.columns[-1] != right_records.columns[0]:
