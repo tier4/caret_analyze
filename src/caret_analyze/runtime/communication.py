@@ -22,7 +22,8 @@ from .subscription import Subscription
 from ..common import Summarizable, Summary
 from ..infra import RecordsProvider, RuntimeDataProvider
 from ..record import RecordsInterface
-from ..value_objects import CommunicationStructValue
+from ..value_objects import CommunicationStructValue, CallbackGroupType
+
 
 
 class Communication(PathBase, Summarizable):
@@ -293,8 +294,25 @@ class Communication(PathBase, Summarizable):
         """
         assert self._records_provider is not None
         records = self._records_provider.communication_records(self._val)
+        # if self.use_take_manually and records:
+        #     records.drop_columns([records.columns[-1]])
 
         return records
+
+    @property
+    def use_take_manually(self) -> bool:
+        callback_groups = self.subscribe_node.callback_groups
+        if callback_groups is None:
+            return False
+
+        cbg_type = None
+        for cbg in callback_groups:
+            for cb in cbg.callbacks:
+                if cb.subscription == self.subscription:
+                    cbg_type = cbg.callback_group_type
+                    break
+        is_automatically_add_to_executor = cbg_type == CallbackGroupType.UNDEFINED
+        return is_automatically_add_to_executor
 
     @property
     def subscription_construction_order(self) -> int | None:
