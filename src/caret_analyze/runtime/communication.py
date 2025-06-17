@@ -294,13 +294,12 @@ class Communication(PathBase, Summarizable):
         """
         assert self._records_provider is not None
         records = self._records_provider.communication_records(self._val)
-        # if self.use_take_manually and records:
-        #     records.drop_columns([records.columns[-1]])
 
         return records
 
-    @property
     def use_take_manually(self) -> bool:
+        # TODO: Refactor whether the communication uses 'take' should be determinable
+        # from the Subscription alone, rather than from Communication.
         callback_groups = self.subscribe_node.callback_groups
         if callback_groups is None:
             return False
