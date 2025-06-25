@@ -297,6 +297,22 @@ class Communication(PathBase, Summarizable):
 
         return records
 
+
+    def to_take_records(self) -> RecordsInterface:
+        """
+        Calculate records.
+
+        Returns
+        -------
+        RecordsInterface
+            communication latency (publish-subscribe).
+
+        """
+        assert self._records_provider is not None
+        records = self._records_provider._compose_inter_proc_take_comm_records(self._val)
+
+        return records
+
     def use_take_manually(self) -> bool:
         # TODO: Refactor whether the communication uses 'take' should be determinable
         # from the Subscription alone, rather than from Communication.
