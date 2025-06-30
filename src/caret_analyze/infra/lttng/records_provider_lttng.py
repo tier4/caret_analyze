@@ -1088,7 +1088,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/rcl_publish_timestamp (Optional)
             - [topic_name]/dds_write_timestamp (Optional)
             - [topic_name]/source_timestamp
-            - [topic_name]/rmw_take
+            - [topic_name]/rmw_take_timestamp
+            - [topic_name]/callback_start_timestamp (copied from rmw_take_timestamp)
 
         """
         publisher = comm_value.publisher
@@ -1098,7 +1099,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
         assert isinstance(subscription_cb, SubscriptionCallbackStructValue)
 
         publisher_handles = self._helper.get_publisher_handles(publisher)
-        callback_object = self._helper.get_subscription_callback_object_inter(subscription_cb)
 
         callback = comm_value.subscription.callback
         if callback is not None:
@@ -1108,29 +1108,63 @@ class RecordsProviderLttng(RuntimeDataProvider):
                 rmw_handle =\
                     self._srv.get_rmw_subscription_handle_from_callback_object(callback_objects[0])
             except InvalidArgumentError:
-                rmw_handle = None
-
-        if rmw_handle is None:
-            raise Exception
+                raise InvalidArgumentError(
+                    'Failed to get rmw subscription handle from callback object.'
+                    f'callback_object: {callback_objects[0]}'
+                )
 
         records = self._source.inter_take_comm_records(publisher_handles, rmw_handle)
 
+        num_rows = len(records.data)
+
+        empty_uint64_values = [0] * num_rows
+
+        column_name_str = COLUMN_NAME.CALLBACK_START_TIMESTAMP
+
+        if column_name_str not in records.columns:
+            try:
+                column_value_object_to_pass = ColumnValue(column_name_str)
+                records.append_column(column_value_object_to_pass, empty_uint64_values)
+            except Exception as e:
+                msg = (f"Failed to append column '{column_name_str}': {e}")
+                raise RuntimeError(msg) from e
+
+        # copy rmw_take_timestamp to callback_start_timestamp
+        try:
+            rmw_take_raw_values = records.get_column_series(COLUMN_NAME.RMW_TAKE_TIMESTAMP)
+
+            # Replace None in the list with a value that can be converted to uint64_t "0"
+            rmw_take_values_for_cpp = [v if v is not None else 0 for v in rmw_take_raw_values]
+
+            if COLUMN_NAME.CALLBACK_START_TIMESTAMP in records.columns:
+                records.drop_columns([COLUMN_NAME.CALLBACK_START_TIMESTAMP])
+
+            callback_start_column_value_for_copy = ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP)
+            records.append_column(callback_start_column_value_for_copy, rmw_take_values_for_cpp)
+
+        except Exception as e:
+            msg = f"Failed to copy: {e}"
+            raise RuntimeError(msg) from e
+
         columns = [COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP]
-        if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in records.columns:
-            columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
-        if COLUMN_NAME.DDS_WRITE_TIMESTAMP in records.columns:
-            columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
-        columns += [
-            COLUMN_NAME.SOURCE_TIMESTAMP,
-            COLUMN_NAME.RMW_TAKE_TIMESTAMP,
-            # COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-        ]
+        try:
+            if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in records.columns:
+                columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
+            if COLUMN_NAME.DDS_WRITE_TIMESTAMP in records.columns:
+                columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
+            columns += [
+                COLUMN_NAME.SOURCE_TIMESTAMP,
+                COLUMN_NAME.RMW_TAKE_TIMESTAMP,
+                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            ]
+        except Exception as e:
+            msg = f"Column list construction failed: {e}"
+            raise RuntimeError(msg) from e
 
         self._format(records, columns)
 
         self._rename_column(records, comm_value.subscribe_callback_name,
                             comm_value.topic_name, None)
-
         return records
 
     @staticmethod
@@ -2077,10 +2111,9 @@ class FilteredRecordsSource:
         RecordsInterface
             columns:
 
-            - callback_object
-            - callback_start_timestamp
             - publisher_handle
             - rclcpp_publish_timestamp
+            - rmw_take_timestamp
             - rcl_publish_timestamp (Optional)
             - dds_write_timestamp (Optional)
             - message_timestamp
@@ -2089,13 +2122,6 @@ class FilteredRecordsSource:
         """
         pub_records = self.publish_records(publisher_handles)
         rmw_records = self._grouped_rmw_take_records[rmw_handle].clone()
-        '''
-        - tid
-        - rmw_take_timestamp
-        - rmw_subscription_handle
-        - message
-        - source_timestamp
-        '''
         rmw_records.drop_columns([
             'rmw_subscription_handle'])
 
@@ -2111,8 +2137,6 @@ class FilteredRecordsSource:
         )
 
         columns = [
-            # COLUMN_NAME.CALLBACK_OBJECT,
-            # COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             COLUMN_NAME.PUBLISHER_HANDLE,
             COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
             COLUMN_NAME.RMW_TAKE_TIMESTAMP,
@@ -2127,8 +2151,6 @@ class FilteredRecordsSource:
         ]
         drop = list(set(merged.columns) - set(columns))
         merged.drop_columns(drop)
-        print(columns)
-        print(merged.columns)
         merged.reindex(columns)
 
         # NOTE: After merge, the dropped data are aligned at the end
