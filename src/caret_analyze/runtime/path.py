@@ -294,7 +294,6 @@ class RecordsMerged:
                             isinstance(target_.message_context, CallbackChain)
 
             if is_sequential:
-                print("!!! 1-9")
                 left_records = merge_sequential(
                     left_records=left_records,
                     right_records=right_records,
