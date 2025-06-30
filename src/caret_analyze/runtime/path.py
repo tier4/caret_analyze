@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from logging import getLogger
+import re
 
 from .callback import CallbackBase
 from .communication import Communication
@@ -26,7 +27,7 @@ from ..exceptions import Error, InvalidArgumentError, InvalidRecordsError
 from ..record import (Columns,
                       merge, merge_sequential,
                       RecordsFactory,
-                      RecordsInterface)
+                      RecordInterface, RecordsInterface)
 from ..value_objects import CallbackChain, PathStructValue
 
 logger = getLogger(__name__)
@@ -214,18 +215,29 @@ class RecordsMerged:
             first_element = targets[0].to_path_beginning_records()
         else:
             if len(targets[0].to_records().data) == 0:
+                # If the first element has no data, skip it and re-evaluate targets
                 targets = targets[1:]
-
+                if not targets: # Check if targets list became empty after removal
+                    msg = "Targets list became empty after filtering out first element. Returning empty records."
+                    raise InvalidRecordsError(msg)
             first_element = targets[0].to_records()
 
-        left_records = first_element
+        left_records: RecordsInterface = first_element 
 
-        rename_rule = column_merger.append_columns_and_return_rename_rule(
-            left_records)
-
+        rename_rule = column_merger.append_columns_and_return_rename_rule(left_records)
         left_records.rename_columns(rename_rule)
-        first_column = first_element.columns[0]
+        # Handle case where first_element might have no columns
+        first_column = left_records.columns[0] if left_records.columns else None 
 
+        last_communication_in_full_list = None
+        replace_communication_to_rmw_take_list = None
+        for item in reversed(targets):
+            if isinstance(item, Communication):
+                last_communication_in_full_list = item
+                break
+
+        take_records_applied_for_last_communication: bool = False
+        
         for target_, target in zip(targets[:-1], targets[1:]):
             right_records: RecordsInterface = target.to_records()
 
@@ -239,17 +251,32 @@ class RecordsMerged:
                     msg = 'Detected dummy_records before merging end_records. merge terminated.'
                     logger.warning(msg)
                 break
-            rename_rule = column_merger.append_columns_and_return_rename_rule(
-                right_records)
-            right_records.rename_columns(rename_rule)
-
-            # adjust the columns for the case that the message is not taken by callback
             if isinstance(target, Communication) and target.use_take_manually():
+                # target is a Communication and uses rmw_take, we need to handle it
                 right_records.drop_columns([right_records.columns[-1]])
 
-            if left_records.columns[-1] != right_records.columns[0]:
-                raise InvalidRecordsError('left columns[-1] != right columns[0]')
+                if target == last_communication_in_full_list:
+                    # Applying right_records = target.to_take_records() for the identified last Communication target")
+                    try:
+                        right_records = target.to_take_records()
+                        replace_communication_to_rmw_take_list = right_records
+                        take_records_applied_for_last_communication = True
+                    except Exception as e:
+                        msg = f"Failed to get take records for the last Communication target: {e}"
+                        logger.error(msg)
+                        raise InvalidRecordsError(msg)
+                else:
+                    right_records.drop_columns([right_records.columns[-1]])
+                    
+            rename_rule = column_merger.append_columns_and_return_rename_rule(right_records)
+            right_records.rename_columns(rename_rule)
 
+            if left_records.columns[-1] != right_records.columns[0]:
+                raise InvalidRecordsError(f'{left_records.columns[-1]=} != {right_records.columns[0]=}')
+
+            if left_records.columns[0] in right_records.columns:
+                right_records.drop_columns([left_records.columns[0]])
+                
             left_stamp_key = left_records.columns[-1]
             right_stamp_key = right_records.columns[0]
 
@@ -263,10 +290,11 @@ class RecordsMerged:
             )
 
             is_sequential = isinstance(target_, NodePath) and \
-                isinstance(target, Communication) and \
-                isinstance(target_.message_context, CallbackChain)
+                            isinstance(target, Communication) and \
+                            isinstance(target_.message_context, CallbackChain)
 
             if is_sequential:
+                print("!!! 1-9")
                 left_records = merge_sequential(
                     left_records=left_records,
                     right_records=right_records,
@@ -291,37 +319,38 @@ class RecordsMerged:
                     how='left'
                 )
 
-        if include_last_callback and isinstance(targets[-1], NodePath):
+        if include_last_callback and targets and isinstance(targets[-1], NodePath):
             if not is_match_column(left_records.columns[-1], 'source_timestamp'):
                 right_records = targets[-1].to_path_end_records()
 
                 rename_rule = column_merger.append_columns_and_return_rename_rule(right_records)
                 right_records.rename_columns(rename_rule)
+                
                 if left_records.columns[-1] != right_records.columns[0]:
-                    raise InvalidRecordsError('left columns[-1] != right columns[0]')
-                if len(right_records.data) != 0:
-                    left_records = merge(
-                        left_records=left_records,
-                        right_records=right_records,
-                        join_left_key=left_records.columns[-1],
-                        join_right_key=right_records.columns[0],
-                        columns=Columns.from_str(
-                            left_records.columns + right_records.columns
-                        ).column_names,
-                        how='left'
-                    )
+                    raise InvalidRecordsError(f'{left_records.columns[-1]=} != {right_records.columns[0]=}')
                 else:
-                    msg = 'Empty records are not merged.'
-                    logger.warning(msg)
+                    if len(right_records.data) != 0:
+                        left_records = merge(
+                            left_records=left_records,
+                            right_records=right_records,
+                            join_left_key=left_records.columns[-1],
+                            join_right_key=right_records.columns[0],
+                            columns=Columns.from_str(
+                                left_records.columns + right_records.columns
+                            ).column_names,
+                            how='left'
+                        )
+                    else:
+                        msg = 'Empty records are not merged.'
+                        logger.warning(msg)
             else:
                 msg = 'Since the path cannot be extended, '
                 msg += 'the merge process for the last callback record is skipped.'
                 logger.warning(msg)
-
+        
         logger.info('Finished merging path records.')
         left_records.sort(first_column)
 
-        # search drop columns, which contain 'source_timestamp'
         source_columns = [
             column for column in left_records.columns
             if is_match_column(column, 'source_timestamp')
@@ -332,7 +361,90 @@ class RecordsMerged:
             column for column in left_records.columns
             if is_match_column(column, 'rmw_take_timestamp')
         ]
+
+        column_to_exclude_from_drop = None
+        if last_communication_in_full_list and \
+           isinstance(last_communication_in_full_list, Communication) and \
+           last_communication_in_full_list.use_take_manually():
+            try:
+                potential_rmw_take_cols = replace_communication_to_rmw_take_list.get_rmw_take_timestamp_columns()
+                if potential_rmw_take_cols:
+                    column_to_exclude_from_drop = potential_rmw_take_cols[0]
+                    logger.info(f"Identified RMW take column to preserve from final drop: '{column_to_exclude_from_drop}'")
+            except Exception as e:
+                comm_name = last_communication_in_full_list.node_name if hasattr(last_communication_in_full_list, 'node_name') else 'Unknown Communication'
+                logger.warning(f"Could not get take records columns for last communication ({comm_name}): {e}")
+
+        if column_to_exclude_from_drop and column_to_exclude_from_drop in rmw_take_column:
+            rmw_take_column.remove(column_to_exclude_from_drop)
+            logger.info(f"Removed '{column_to_exclude_from_drop}' from rmw_take_column list before final drop.")
+
         left_records.drop_columns(rmw_take_column)
+
+        # Delete records with 0/NA columns
+        logger.info("remove records with 0 or NA in any applicable column.")
+        
+        TARGET_SUBSTRINGS = [
+            'rclcpp_publish_timestamp',
+            'callback_start_timestamp',
+            'rmw_take_timestamp'
+        ]
+
+        def filter_func(record: RecordInterface) -> bool:
+            for col_name in record.columns: 
+                is_relevant_column = any(
+                    substring in col_name for substring in TARGET_SUBSTRINGS
+                )
+
+                if not is_relevant_column:
+                    continue
+
+                value = record.get(col_name) 
+                
+                if value == 0 or value is None: 
+                    logger.debug(f"Filtering out record due to {col_name}={value} (column: {col_name}, record: {record.data})")
+                    return False
+            return True
+
+        left_records.filter_if(filter_func)
+        
+        initial_row_count = len(first_element.data) if 'first_element' in locals() else 0
+        if len(left_records.data) < initial_row_count:
+            logger.info(f"Removed {initial_row_count - len(left_records.data)} rows due to 0 or NA values in applicable columns.")
+
+        columns_to_drop_by_content = []
+        try:
+            df_temp = left_records.to_dataframe()
+
+            for col in df_temp.columns:
+                if df_temp[col].isna().all():
+                    columns_to_drop_by_content.append(col)
+                elif (df_temp[col] == 0).all():
+                    columns_to_drop_by_content.append(col)
+                
+            if columns_to_drop_by_content:
+                unique_cols_to_drop = list(set(columns_to_drop_by_content))
+                logger.info(f"Dropping columns: {unique_cols_to_drop}")
+                left_records.drop_columns(unique_cols_to_drop)
+
+        except Exception as e:
+            logger.error(f"Error during column filtering: {e}")
+
+        if take_records_applied_for_last_communication:
+            column_to_rename = None
+            new_column_name = None
+            for col_name in reversed(left_records.columns):
+                # ex. "/planning/planning_validator/callback_6/callback_start_timestamp/0"
+                # rename to "/planning/planning_validator/rmw_take_timestamp/0"
+                match = re.match(r'(.*)/callback_\d+/callback_start_timestamp/(\d+)', col_name)
+                if match:
+                    new_column_name = f"{match.group(1)}/rmw_take_timestamp/{match.group(2)}"
+                    column_to_rename = col_name
+                    break
+            
+            if column_to_rename:
+                logger.info(f"Rename column '{column_to_rename}' to '{new_column_name}'")
+                left_records.rename_columns({column_to_rename: new_column_name})
 
         return left_records
 
