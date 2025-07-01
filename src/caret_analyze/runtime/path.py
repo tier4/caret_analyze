@@ -241,6 +241,11 @@ class RecordsMerged:
         for target_, target in zip(targets[:-1], targets[1:]):
             right_records: RecordsInterface = target.to_records()
 
+            import pandas as pd
+            pd.set_option('display.max_columns', None)
+            print(f"### 1. target_: {type(target_)=} {target_.to_dataframe()=}")
+            print(f"### 2. target: {type(target)=} {target.to_dataframe()=}")
+
             is_dummy_records = len(right_records.columns) == 0
 
             if is_dummy_records:
@@ -318,6 +323,11 @@ class RecordsMerged:
                     how='left'
                 )
 
+        if replace_communication_to_rmw_take_list:
+            import pandas as pd
+            pd.set_option('display.max_columns', None)
+            print(f"### last right_records: {replace_communication_to_rmw_take_list.to_dataframe()=}")
+
         if include_last_callback and targets and isinstance(targets[-1], NodePath):
             if not is_match_column(left_records.columns[-1], 'source_timestamp'):
                 right_records = targets[-1].to_path_end_records()
@@ -361,23 +371,6 @@ class RecordsMerged:
             if is_match_column(column, 'rmw_take_timestamp')
         ]
 
-        column_to_exclude_from_drop = None
-        if last_communication_in_full_list and \
-           isinstance(last_communication_in_full_list, Communication) and \
-           last_communication_in_full_list.use_take_manually():
-            try:
-                potential_rmw_take_cols = replace_communication_to_rmw_take_list.get_rmw_take_timestamp_columns()
-                if potential_rmw_take_cols:
-                    column_to_exclude_from_drop = potential_rmw_take_cols[0]
-                    logger.info(f"Identified RMW take column to preserve from final drop: '{column_to_exclude_from_drop}'")
-            except Exception as e:
-                comm_name = last_communication_in_full_list.node_name if hasattr(last_communication_in_full_list, 'node_name') else 'Unknown Communication'
-                logger.warning(f"Could not get take records columns for last communication ({comm_name}): {e}")
-
-        if column_to_exclude_from_drop and column_to_exclude_from_drop in rmw_take_column:
-            rmw_take_column.remove(column_to_exclude_from_drop)
-            logger.info(f"Removed '{column_to_exclude_from_drop}' from rmw_take_column list before final drop.")
-
         left_records.drop_columns(rmw_take_column)
 
         # Delete records with 0/NA columns
@@ -400,7 +393,8 @@ class RecordsMerged:
 
                 value = record.get(col_name) 
                 
-                if value == 0 or value is None: 
+                import pandas as pd
+                if value == 0 or value is None or pd.isna(value): 
                     logger.debug(f"Filtering out record due to {col_name}={value} (column: {col_name}, record: {record.data})")
                     return False
             return True
@@ -437,7 +431,21 @@ class RecordsMerged:
                 # rename to "/planning/planning_validator/rmw_take_timestamp/0"
                 match = re.match(r'(.*)/callback_\d+/callback_start_timestamp/(\d+)', col_name)
                 if match:
-                    new_column_name = f"{match.group(1)}/rmw_take_timestamp/{match.group(2)}"
+                    columns = replace_communication_to_rmw_take_list.columns
+                    topic_name = None
+                    for col in columns:
+                        if 'rclcpp_publish_timestamp' in col:
+                            match_topic = re.match(r'(.*)/rclcpp_publish_timestamp/\d+', col)
+                            if match_topic:
+                                topic_name = match_topic.group(1)
+                                break
+                            elif col.endswith('/rclcpp_publish_timestamp'): 
+                                topic_name = col.rsplit('/rclcpp_publish_timestamp', 1)[0]
+                                break
+                    if topic_name:
+                        new_column_name = f"{match.group(1)}::{topic_name}/rmw_take_timestamp/{match.group(2)}"
+                    else:
+                        new_column_name = f"{match.group(1)}/rmw_take_timestamp/{match.group(2)}"
                     column_to_rename = col_name
                     break
             
