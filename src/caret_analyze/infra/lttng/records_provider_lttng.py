@@ -1115,37 +1115,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         records = self._source.inter_take_comm_records(publisher_handles, rmw_handle)
 
-        num_rows = len(records.data)
-
-        empty_uint64_values = [0] * num_rows
-
-        column_name_str = COLUMN_NAME.CALLBACK_START_TIMESTAMP
-
-        if column_name_str not in records.columns:
-            try:
-                column_value_object_to_pass = ColumnValue(column_name_str)
-                records.append_column(column_value_object_to_pass, empty_uint64_values)
-            except Exception as e:
-                msg = (f"Failed to append column '{column_name_str}': {e}")
-                raise RuntimeError(msg) from e
-
-        # copy rmw_take_timestamp to callback_start_timestamp
-        try:
-            rmw_take_raw_values = records.get_column_series(COLUMN_NAME.RMW_TAKE_TIMESTAMP)
-
-            # Replace None in the list with a value that can be converted to uint64_t "0"
-            rmw_take_values_for_cpp = [v if v is not None else 0 for v in rmw_take_raw_values]
-
-            if COLUMN_NAME.CALLBACK_START_TIMESTAMP in records.columns:
-                records.drop_columns([COLUMN_NAME.CALLBACK_START_TIMESTAMP])
-
-            callback_start_column_value_for_copy = ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP)
-            records.append_column(callback_start_column_value_for_copy, rmw_take_values_for_cpp)
-
-        except Exception as e:
-            msg = f"Failed to copy: {e}"
-            raise RuntimeError(msg) from e
-
         columns = [COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP]
         try:
             if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in records.columns:
@@ -1155,7 +1124,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             columns += [
                 COLUMN_NAME.SOURCE_TIMESTAMP,
                 COLUMN_NAME.RMW_TAKE_TIMESTAMP,
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+                #COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             ]
         except Exception as e:
             msg = f"Column list construction failed: {e}"

@@ -241,11 +241,6 @@ class RecordsMerged:
         for target_, target in zip(targets[:-1], targets[1:]):
             right_records: RecordsInterface = target.to_records()
 
-            import pandas as pd
-            pd.set_option('display.max_columns', None)
-            print(f"### 1. target_: {type(target_)=} {target_.to_dataframe()=}")
-            print(f"### 2. target: {type(target)=} {target.to_dataframe()=}")
-
             is_dummy_records = len(right_records.columns) == 0
 
             if is_dummy_records:
@@ -261,13 +256,12 @@ class RecordsMerged:
                 right_records.drop_columns([right_records.columns[-1]])
 
                 if target == last_communication_in_full_list:
-                    # Applying right_records = target.to_take_records() for the identified last Communication target")
+                    # right_records = target.to_take_records() last Communication record")
                     try:
                         right_records = target.to_take_records()
-                        replace_communication_to_rmw_take_list = right_records
                         take_records_applied_for_last_communication = True
                     except Exception as e:
-                        msg = f"Failed to get take records for the last Communication target: {e}"
+                        msg = f"Failed to get take records for the last Communication record: {e}"
                         logger.error(msg)
                         raise InvalidRecordsError(msg)
                 else:
@@ -323,12 +317,7 @@ class RecordsMerged:
                     how='left'
                 )
 
-        if replace_communication_to_rmw_take_list:
-            import pandas as pd
-            pd.set_option('display.max_columns', None)
-            print(f"### last right_records: {replace_communication_to_rmw_take_list.to_dataframe()=}")
-
-        if include_last_callback and targets and isinstance(targets[-1], NodePath):
+        if not take_records_applied_for_last_communication and include_last_callback and targets and isinstance(targets[-1], NodePath):
             if not is_match_column(left_records.columns[-1], 'source_timestamp'):
                 right_records = targets[-1].to_path_end_records()
 
@@ -360,97 +349,55 @@ class RecordsMerged:
         logger.info('Finished merging path records.')
         left_records.sort(first_column)
 
+        # remove source_timestamp columns
         source_columns = [
             column for column in left_records.columns
             if is_match_column(column, 'source_timestamp')
         ]
         left_records.drop_columns(source_columns)
 
-        rmw_take_column = [
-            column for column in left_records.columns
-            if is_match_column(column, 'rmw_take_timestamp')
-        ]
+        # remove rmw_take columns except for the last one
+        rmw_cols = [col for col in left_records.columns if ('rmw_take' in col) ]
+        is_last_take = targets[-2].use_take_manually()
+        if is_last_take:
+            drop_rmw_cols = rmw_cols[:-1]
+        else:
+            drop_rmw_cols = rmw_cols
+        left_records.drop_columns(drop_rmw_cols)
 
-        left_records.drop_columns(rmw_take_column)
-
-        # Delete records with 0/NA columns
-        logger.info("remove records with 0 or NA in any applicable column.")
-        
-        TARGET_SUBSTRINGS = [
-            'rclcpp_publish_timestamp',
-            'callback_start_timestamp',
-            'rmw_take_timestamp'
-        ]
-
-        def filter_func(record: RecordInterface) -> bool:
-            for col_name in record.columns: 
-                is_relevant_column = any(
-                    substring in col_name for substring in TARGET_SUBSTRINGS
-                )
-
-                if not is_relevant_column:
-                    continue
-
-                value = record.get(col_name) 
-                
-                import pandas as pd
-                if value == 0 or value is None or pd.isna(value): 
-                    logger.debug(f"Filtering out record due to {col_name}={value} (column: {col_name}, record: {record.data})")
-                    return False
-            return True
-
-        left_records.filter_if(filter_func)
-        
-        initial_row_count = len(first_element.data) if 'first_element' in locals() else 0
-        if len(left_records.data) < initial_row_count:
-            logger.info(f"Removed {initial_row_count - len(left_records.data)} rows due to 0 or NA values in applicable columns.")
-
-        columns_to_drop_by_content = []
-        try:
-            df_temp = left_records.to_dataframe()
-
-            for col in df_temp.columns:
-                if df_temp[col].isna().all():
-                    columns_to_drop_by_content.append(col)
-                elif (df_temp[col] == 0).all():
-                    columns_to_drop_by_content.append(col)
-                
-            if columns_to_drop_by_content:
-                unique_cols_to_drop = list(set(columns_to_drop_by_content))
-                logger.info(f"Dropping columns: {unique_cols_to_drop}")
-                left_records.drop_columns(unique_cols_to_drop)
-
-        except Exception as e:
-            logger.error(f"Error during column filtering: {e}")
-
+        # rename rmw_take_timestamp columns to node_name::topic_name/rmw_take_timestamp/n
         if take_records_applied_for_last_communication:
+            extracted_node_name = ""
+            for col_name in reversed(last_communication_in_full_list.column_names):
+                # ex. "/planning/planning_validator/callback_6/callback_start_timestamp"
+                # match.group(1): "/planning/planning_validator" (node name)
+                match = re.match(r'(.*)/callback_\d+/callback_start_timestamp(?:/\d+)?', col_name)
+                if match:
+                    print(f"### match: {match.group(0)=} {match.group(1)=}")
+                    extracted_node_name = match.group(1)
+                    break
+
             column_to_rename = None
             new_column_name = None
             for col_name in reversed(left_records.columns):
-                # ex. "/planning/planning_validator/callback_6/callback_start_timestamp/0"
-                # rename to "/planning/planning_validator/rmw_take_timestamp/0"
-                match = re.match(r'(.*)/callback_\d+/callback_start_timestamp/(\d+)', col_name)
+                # ex. "/planning/scenario_planning/velocity_smoother/trajectory/rmw_take_timestamp/0"
+                # match.group(1): "/planning/scenario_planning/velocity_smoother/trajectory" (topic name)
+                # match.group(2): "/0" (suffix)
+                match = re.match(r'(.*)/rmw_take_timestamp(?:/(\d+))?', col_name)
                 if match:
-                    columns = replace_communication_to_rmw_take_list.columns
-                    topic_name = None
-                    for col in columns:
-                        if 'rclcpp_publish_timestamp' in col:
-                            match_topic = re.match(r'(.*)/rclcpp_publish_timestamp/\d+', col)
-                            if match_topic:
-                                topic_name = match_topic.group(1)
-                                break
-                            elif col.endswith('/rclcpp_publish_timestamp'): 
-                                topic_name = col.rsplit('/rclcpp_publish_timestamp', 1)[0]
-                                break
-                    if topic_name:
-                        new_column_name = f"{match.group(1)}::{topic_name}/rmw_take_timestamp/{match.group(2)}"
-                    else:
-                        new_column_name = f"{match.group(1)}/rmw_take_timestamp/{match.group(2)}"
+                    extracted_topic_name = match.group(1)
                     column_to_rename = col_name
+                    
+                    rmw_suffix = match.group(2) if match.group(2) else None
+
+                    # new format node_name::topic_name/rmw_take_timestamp/n
+                    new_rmw_column_name_base = f"{extracted_node_name}::{extracted_topic_name}/rmw_take_timestamp"
+                    if rmw_suffix:
+                        new_column_name = f"{new_rmw_column_name_base}/{rmw_suffix}"
+                    else:
+                        new_column_name = new_rmw_column_name_base
                     break
-            
-            if column_to_rename:
-                logger.info(f"Rename column '{column_to_rename}' to '{new_column_name}'")
+            if column_to_rename and new_column_name:
                 left_records.rename_columns({column_to_rename: new_column_name})
 
         return left_records
