@@ -373,7 +373,6 @@ class RecordsMerged:
                 # match.group(1): "/planning/planning_validator" (node name)
                 match = re.match(r'(.*)/callback_\d+/callback_start_timestamp(?:/\d+)?', col_name)
                 if match:
-                    print(f"### match: {match.group(0)=} {match.group(1)=}")
                     extracted_node_name = match.group(1)
                     break
 
