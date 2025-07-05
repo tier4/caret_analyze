@@ -230,7 +230,6 @@ class RecordsMerged:
         first_column = left_records.columns[0] if left_records.columns else None 
 
         last_communication_in_full_list = None
-        replace_communication_to_rmw_take_list = None
         for item in reversed(targets):
             if isinstance(item, Communication):
                 last_communication_in_full_list = item
@@ -365,7 +364,7 @@ class RecordsMerged:
 
         # remove rmw_take columns except for the last one
         rmw_cols = [col for col in left_records.columns if ('rmw_take' in col) ]
-        is_last_take = targets[-2].use_take_manually()
+        is_last_take = isinstance(targets[-2], Communication) and targets[-2].use_take_manually()
         if is_last_take:
             drop_rmw_cols = rmw_cols[:-1]
         else:

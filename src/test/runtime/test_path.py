@@ -248,6 +248,7 @@ class TestRecordsMerged:
         )
 
         comm_path = mocker.Mock(spec=Communication)
+        mocker.patch.object(comm_path, 'use_take_manually', return_value=False)
         mocker.patch.object(
             comm_path, 'to_records',
             return_value=RecordsCppImpl(
@@ -336,6 +337,7 @@ class TestRecordsMerged:
         )
 
         comm_path = mocker.Mock(spec=Communication)
+        mocker.patch.object(comm_path, 'use_take_manually', return_value=False)
         mocker.patch.object(
             comm_path, 'to_records',
             return_value=RecordsCppImpl(
@@ -416,6 +418,7 @@ class TestRecordsMerged:
         )
 
         comm_path = mocker.Mock(spec=Communication)
+        mocker.patch.object(comm_path, 'use_take_manually', return_value=False)
         mocker.patch.object(
             comm_path, 'to_records',
             return_value=RecordsCppImpl(
@@ -501,6 +504,7 @@ class TestRecordsMerged:
         )
 
         comm_path = mocker.Mock(spec=Communication)
+        mocker.patch.object(comm_path, 'use_take_manually', return_value=False)
         mocker.patch.object(
             comm_path, 'to_records',
             return_value=RecordsCppImpl(
@@ -578,6 +582,7 @@ class TestRecordsMerged:
 
     def test_take_impl_case(self, mocker):
         comm_path = mocker.Mock(spec=Communication)
+        mocker.patch.object(comm_path, 'use_take_manually', return_value=True)
         topic0 = 'topic_0'
         topic1 = 'topic_1'
         mocker.patch.object(
@@ -596,7 +601,7 @@ class TestRecordsMerged:
                     ColumnValue(f'{topic0}/rcl_publish_timestamp'),
                     ColumnValue(f'{topic0}/dds_write_timestamp'),
                     ColumnValue(f'{topic0}/source_timestamp'),
-                    ColumnValue(f'{topic0}/callback_start_timestamp'),
+                    # ColumnValue(f'{topic0}/callback_start_timestamp'),
                 ]
             )
         )
@@ -686,6 +691,7 @@ class TestRecordsMerged:
         )
 
         comm_path = mocker.Mock(spec=Communication)
+        mocker.patch.object(comm_path, 'use_take_manually', return_value=False)
         mocker.patch.object(
             comm_path, 'to_records',
             return_value=RecordsCppImpl(
@@ -759,6 +765,7 @@ class TestRecordsMerged:
         topic0 = 'topic_0'
         topic1 = 'topic_1'
         comm_path = mocker.Mock(spec=Communication)
+        mocker.patch.object(comm_path, 'use_take_manually', return_value=True)
         mocker.patch.object(
             comm_path, 'to_records',
             return_value=RecordsCppImpl(
