@@ -1092,7 +1092,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/dds_write_timestamp (Optional)
             - [topic_name]/source_timestamp
             - [topic_name]/rmw_take_timestamp
-            - [topic_name]/callback_start_timestamp (copied from rmw_take_timestamp)
 
         """
         publisher = comm_value.publisher
