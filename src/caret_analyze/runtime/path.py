@@ -229,10 +229,10 @@ class RecordsMerged:
         # Handle case where first_element might have no columns
         first_column = left_records.columns[0] if left_records.columns else None 
 
-        last_communication_in_full_list = None
+        last_communication_record = None
         for item in reversed(targets):
             if isinstance(item, Communication):
-                last_communication_in_full_list = item
+                last_communication_record = item
                 break
 
         take_records_applied_for_last_communication: bool = False
@@ -250,12 +250,9 @@ class RecordsMerged:
                     msg = 'Detected dummy_records before merging end_records. merge terminated.'
                     logger.warning(msg)
                 break
+            should_drop_last_column = False
             if isinstance(target, Communication) and target.use_take_manually():
-                # target is a Communication and uses rmw_take, we need to handle it
-                right_records.drop_columns([right_records.columns[-1]])
-
-                if target == last_communication_in_full_list:
-                    # right_records = target.to_take_records() last Communication record")
+                if target == last_communication_record:
                     try:
                         right_records = target.to_take_records()
                         take_records_applied_for_last_communication = True
@@ -264,21 +261,25 @@ class RecordsMerged:
                         logger.error(msg)
                         raise InvalidRecordsError(msg)
                 else:
-                    right_records.drop_columns([right_records.columns[-1]])
-                    
+                    should_drop_last_column = True
+
+            if should_drop_last_column:
+                if len(right_records.columns) > 0:
+                    columns_to_remove = [right_records.columns[-1]]
+                    # For take records in the middle of a path, 
+                    # delete both callback_start_taimestamp and rmw_take_timestamp
+                    # and make source_timestamp the final column
+                    if len(right_records.columns) >= 2 and "rmw_take_timestamp" in right_records.columns[-2]:
+                        columns_to_remove.append(right_records.columns[-2])
+                    right_records.drop_columns(columns_to_remove)
+
             rename_rule = column_merger.append_columns_and_return_rename_rule(right_records)
             right_records.rename_columns(rename_rule)
 
             if left_records.columns[-1] != right_records.columns[0]:
                 raise InvalidRecordsError(f'{left_records.columns[-1]=} != {right_records.columns[0]=}')
-
-            if left_records.columns[0] in right_records.columns:
-                right_records.drop_columns([left_records.columns[0]])
-                
+            
             left_stamp_key = left_records.columns[-1]
-            right_stamp_key = right_records.columns[0]
-
-            right_records.drop_columns([left_records.columns[0]])
             right_stamp_key = right_records.columns[0]
 
             logger.info(
@@ -316,41 +317,35 @@ class RecordsMerged:
                     how='left'
                 )
 
-        if include_last_callback and targets and isinstance(targets[-1], NodePath):
-            if take_records_applied_for_last_communication:
-                logger.info(
-                    'If the last comm record is rmw_take, '
-                    'include_last_callback is meaningless,'
-                    'so the following process is skipped.'
-                )
-            else:
-                if not is_match_column(left_records.columns[-1], 'source_timestamp'):
-                    right_records = targets[-1].to_path_end_records()
+        if not take_records_applied_for_last_communication and \
+          include_last_callback and targets and isinstance(targets[-1], NodePath):
+            if not is_match_column(left_records.columns[-1], 'source_timestamp'):
+                right_records = targets[-1].to_path_end_records()
 
-                    rename_rule = column_merger.append_columns_and_return_rename_rule(right_records)
-                    right_records.rename_columns(rename_rule)
+                rename_rule = column_merger.append_columns_and_return_rename_rule(right_records)
+                right_records.rename_columns(rename_rule)
 
-                    if left_records.columns[-1] != right_records.columns[0]:
-                        raise InvalidRecordsError(f'{left_records.columns[-1]=} != {right_records.columns[0]=}')
-                    else:
-                        if len(right_records.data) != 0:
-                            left_records = merge(
-                                left_records=left_records,
-                                right_records=right_records,
-                                join_left_key=left_records.columns[-1],
-                                join_right_key=right_records.columns[0],
-                                columns=Columns.from_str(
-                                    left_records.columns + right_records.columns
-                                ).column_names,
-                                how='left'
-                            )
-                        else:
-                            msg = 'Empty records are not merged.'
-                            logger.warning(msg)
+                if left_records.columns[-1] != right_records.columns[0]:
+                    raise InvalidRecordsError(f'{left_records.columns[-1]=} != {right_records.columns[0]=}')
                 else:
-                    msg = 'Since the path cannot be extended, '
-                    msg += 'the merge process for the last callback record is skipped.'
-                    logger.warning(msg)
+                    if len(right_records.data) != 0:
+                        left_records = merge(
+                            left_records=left_records,
+                            right_records=right_records,
+                            join_left_key=left_records.columns[-1],
+                            join_right_key=right_records.columns[0],
+                            columns=Columns.from_str(
+                                left_records.columns + right_records.columns
+                            ).column_names,
+                            how='left'
+                        )
+                    else:
+                        msg = 'Empty records are not merged.'
+                        logger.warning(msg)
+            else:
+                msg = 'Since the path cannot be extended, '
+                msg += 'the merge process for the last callback record is skipped.'
+                logger.info(msg)
         
         logger.info('Finished merging path records.')
         left_records.sort(first_column)
@@ -364,8 +359,7 @@ class RecordsMerged:
 
         # remove rmw_take columns except for the last one
         rmw_cols = [col for col in left_records.columns if ('rmw_take' in col) ]
-        is_last_take = isinstance(targets[-2], Communication) and targets[-2].use_take_manually()
-        if is_last_take:
+        if take_records_applied_for_last_communication:
             drop_rmw_cols = rmw_cols[:-1]
         else:
             drop_rmw_cols = rmw_cols
@@ -374,10 +368,10 @@ class RecordsMerged:
         # rename rmw_take_timestamp columns to /node_name/rmw_take_timestamp/n
         if take_records_applied_for_last_communication:
             extracted_node_name = ""
-            for col_name in reversed(last_communication_in_full_list.column_names):
+            for col_name in reversed(last_communication_record.column_names):
                 # ex. "/planning/planning_validator/callback_6/callback_start_timestamp"
                 # match.group(1): "/planning/planning_validator" (node name)
-                match = re.match(r'(.*)/callback_\d+/callback_start_timestamp(?:/\d+)?', col_name)
+                match = re.match(r'(.*)(?:/callback_\d+)?/callback_start_timestamp(?:/\d+)?', col_name)
                 if match:
                     extracted_node_name = match.group(1)
                     break
@@ -387,13 +381,11 @@ class RecordsMerged:
             for col_name in reversed(left_records.columns):
                 # ex. 
                 # "/planning/scenario_planning/velocity_smoother/trajectory/rmw_take_timestamp/0"
-                # match.group(2): "/0" (suffix)
-                match = re.match(r'(.*)/rmw_take_timestamp(?:/(\d+))?', col_name)
+                # match.group(1): "/0" (suffix)
+                match = re.match(r'(?:.*)/rmw_take_timestamp(?:/(\d+))?', col_name)
                 if match:
                     column_to_rename = col_name
-                    
-                    rmw_suffix = match.group(2) if match.group(2) else None
-
+                    rmw_suffix = match.group(1) if match.group(1) else None
                     # new format node_name::topic_name/rmw_take_timestamp/n
                     new_rmw_column_name_base = f"{extracted_node_name}/rmw_take_timestamp"
                     if rmw_suffix:
