@@ -2021,6 +2021,7 @@ class FilteredRecordsSource:
             - dds_write_timestamp (Optional)
             - message_timestamp
             - source_timestamp
+            - rmw_take_timestamp (Optional)
 
         """
         pub_records = self.publish_records(publisher_handles)
@@ -2043,8 +2044,6 @@ class FilteredRecordsSource:
             COLUMN_NAME.PUBLISHER_HANDLE,
             COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
         ]
-        if COLUMN_NAME.RMW_TAKE_TIMESTAMP in merged.columns:
-            columns.append(COLUMN_NAME.RMW_TAKE_TIMESTAMP)
         if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in merged.columns:
             columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
         if COLUMN_NAME.DDS_WRITE_TIMESTAMP in merged.columns:
@@ -2053,6 +2052,8 @@ class FilteredRecordsSource:
             COLUMN_NAME.MESSAGE_TIMESTAMP,
             COLUMN_NAME.SOURCE_TIMESTAMP
         ]
+        if COLUMN_NAME.RMW_TAKE_TIMESTAMP in merged.columns:
+            columns.append(COLUMN_NAME.RMW_TAKE_TIMESTAMP)
         drop = list(set(merged.columns) - set(columns))
         merged.drop_columns(drop)
         merged.reindex(columns)
