@@ -131,14 +131,13 @@ class StackedBar:
             elif 'rclcpp_publish' in column:
                 topic_name = column.split('/')[:-2]
                 rename_map[column] = '/'.join(topic_name)
+            elif 'rmw_take' in column:
+                node_name = column.split('/')[:-2]
+                rename_map[column] = '/'.join(node_name)
             elif 'callback_start' in column:
                 node_name = column.split('/')[:-2]
                 rename_map[column] = '/'.join(node_name)
             elif 'callback_end' in column:
-                node_name = column.split('/')[:-2]
-                rename_map[column] = '/'.join(node_name)
-                rename_map[column] += '_end'
-            elif 'rmw_take' in column:
                 node_name = column.split('/')[:-2]
                 rename_map[column] = '/'.join(node_name)
                 rename_map[column] += '_end'
