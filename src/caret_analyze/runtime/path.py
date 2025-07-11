@@ -371,7 +371,7 @@ class RecordsMerged:
             for col_name in reversed(last_communication_record.column_names):
                 # ex. "/planning/planning_validator/callback_6/callback_start_timestamp"
                 # match.group(1): "/planning/planning_validator" (node name)
-                match = re.match(r'(.*)(?:/callback_\d+)?/callback_start_timestamp(?:/\d+)?', col_name)
+                match = re.match(r'(.+?)(?:/callback_\d+)?/callback_start_timestamp(?:/\d+)?', col_name)
                 if match:
                     extracted_node_name = match.group(1)
                     break
