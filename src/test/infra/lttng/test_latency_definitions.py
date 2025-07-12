@@ -2073,5 +2073,4 @@ class TestSimTimeConverter:
         assert (s300 == d300)
         assert 'Out-of-range time is used to convert sim_time' in caplog.text
         assert caplog.records[0].levelno == WARNING
-        #captured = capsys.readouterr()
         #assert 'Out-of-range time is used to convert sim_time' in captured.err
