@@ -267,7 +267,7 @@ class RecordsMerged:
                 if len(right_records.columns) > 0:
                     columns_to_remove = [right_records.columns[-1]]
                     # For take records in the middle of a path, 
-                    # delete both callback_start_taimestamp and rmw_take_timestamp
+                    # delete both callback_start_timestamp and rmw_take_timestamp
                     # and make source_timestamp the final column
                     if len(right_records.columns) >= 2 and "rmw_take_timestamp" in right_records.columns[-2]:
                         columns_to_remove.append(right_records.columns[-2])

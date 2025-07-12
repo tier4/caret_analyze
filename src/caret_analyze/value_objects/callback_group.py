@@ -34,7 +34,7 @@ class CallbackGroupType(ValueObject):
 
     MUTUALLY_EXCLUSIVE: CallbackGroupType
     REENTRANT: CallbackGroupType
-    # TODO: rename UNDEFIND
+    # TODO: rename UNDEFINED
     # The CallbackGroup type marked as UNDEFINED here indicates that it is not connected to an Executor.
     UNDEFINED: CallbackGroupType
 

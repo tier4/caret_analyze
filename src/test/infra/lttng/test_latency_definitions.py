@@ -2069,11 +2069,9 @@ class TestSimTimeConverter:
         converter = provider.get_sim_time_converter(min_ns, max_ns)
         d100 = converter.convert(100)
         d300 = converter.convert(300)
-
         assert (s100 == d100)
         assert (s300 == d300)
         assert 'Out-of-range time is used to convert sim_time' in caplog.text
         assert caplog.records[0].levelno == WARNING
         #captured = capsys.readouterr()
         #assert 'Out-of-range time is used to convert sim_time' in captured.err
-
