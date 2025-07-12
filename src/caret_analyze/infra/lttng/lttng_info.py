@@ -855,8 +855,6 @@ class LttngInfo:
         for _, row in tim.df.iterrows():
             if row['node_id'] != node_id:
                 continue
-            if row['callback_id'] is pd.NA:
-                continue
 
             times_info.append(
                 TimerValue(
