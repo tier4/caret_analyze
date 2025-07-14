@@ -36,9 +36,9 @@ import pytest
 class TestLttng:
 
     def test_file_not_found_error(self, mocker):
-        mocker.patch('os.path.exists', return_value=False):
-        with pytest.raises(FileNotFoundError):
-            Lttng('', force_conversion=True)
+        with mocker.patch('os.path.exists', return_value=False):
+            with pytest.raises(FileNotFoundError):
+                Lttng('', force_conversion=True)
 
     @pytest.mark.parametrize(
         'need_validate',
