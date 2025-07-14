@@ -411,6 +411,7 @@ class Application(Summarizable):
         list[str]
             A sorted list of application path names defined in the architecture.
             Any path names that are None are excluded from the list.
+
         """
         return sorted([p.path_name for p in self.paths if p.path_name is not None])
 
