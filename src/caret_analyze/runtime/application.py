@@ -156,7 +156,7 @@ class Application(Summarizable):
             All paths defined in the architecture.
 
         """
-        return sorted(p.path_name for p in self.paths if p.path_name is not None)
+        return sorted(self._paths, key=lambda x: x.path_name or '')
 
     @property
     def callbacks(self) -> list[CallbackBase]:
@@ -412,7 +412,7 @@ class Application(Summarizable):
             App path names defined in the architecture.
 
         """
-        return sorted(_.path_name for _ in self.paths)
+        return sorted([p.path_name for p in self.paths if p.path_name is not None])
 
     @property
     def callback_names(self) -> list[str]:
