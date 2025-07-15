@@ -218,7 +218,10 @@ class RecordsMerged:
                 # If the first element has no data, skip it and re-evaluate targets
                 targets = targets[1:]
                 if not targets:  # Check if targets list became empty after removal
-                    msg = 'Targets list became empty after filtering out first element. Returning empty records.'
+                    msg = (
+                        'Targets list became empty after filtering out first element. '
+                        'Returning empty records.'
+                    )
                     raise InvalidRecordsError(msg)
             first_element = targets[0].to_records()
 
@@ -270,8 +273,8 @@ class RecordsMerged:
                     # delete both callback_start_timestamp and rmw_take_timestamp
                     # and make source_timestamp the final column
                     if (len(right_records.columns) >= 2 and
-                    'rmw_take_timestamp' in right_records.columns[-2]):
-                                    columns_to_remove.append(right_records.columns[-2])
+                        'rmw_take_timestamp' in right_records.columns[-2]):
+                            columns_to_remove.append(right_records.columns[-2])
                     right_records.drop_columns(columns_to_remove)
 
             rename_rule = column_merger.append_columns_and_return_rename_rule(right_records)
@@ -282,7 +285,6 @@ class RecordsMerged:
                     f'{left_records.columns[-1]=} != '
                     f'{right_records.columns[0]=}'
                 )
-
 
             left_stamp_key = left_records.columns[-1]
             right_stamp_key = right_records.columns[0]
@@ -327,7 +329,8 @@ class RecordsMerged:
         if (not take_records_applied_for_last_communication and
             include_last_callback and
             targets and
-            isinstance(targets[-1], NodePath)):
+            isinstance(targets[-1], NodePath)
+        ):
             if not is_match_column(left_records.columns[-1], 'source_timestamp'):
                 right_records = targets[-1].to_path_end_records()
 

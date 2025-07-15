@@ -976,8 +976,9 @@ class TestRecordsMerged:
         from unittest.mock import MagicMock
         mocker.patch(
             'caret_analyze.record.Columns.from_str',
-            side_effect=lambda column_names_list: \
-                MagicMock(column_names=list(dict.fromkeys(column_names_list)))
+            side_effect=lambda column_names_list: MagicMock(
+                column_names=list(dict.fromkeys(column_names_list))
+            )
         )
 
         merged = RecordsMerged([comm_path1, node_path, comm_path2], include_first_callback=False,
