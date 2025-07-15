@@ -273,8 +273,9 @@ class RecordsMerged:
                     # delete both callback_start_timestamp and rmw_take_timestamp
                     # and make source_timestamp the final column
                     if (len(right_records.columns) >= 2 and
-                        'rmw_take_timestamp' in right_records.columns[-2]):
-                            columns_to_remove.append(right_records.columns[-2])
+                        'rmw_take_timestamp' in right_records.columns[-2]
+                    ):
+                        columns_to_remove.append(right_records.columns[-2])
                     right_records.drop_columns(columns_to_remove)
 
             rename_rule = column_merger.append_columns_and_return_rename_rule(right_records)
