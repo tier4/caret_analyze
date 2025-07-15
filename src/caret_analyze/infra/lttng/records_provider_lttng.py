@@ -1144,7 +1144,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
                 self._srv.get_rmw_subscription_handle_from_callback_object(callback_objects[0])
         else:
             raise InvalidArgumentError('comm_value subscription has no callbacks')
-            
+
         if rmw_handle is not None:
             records = self._source.inter_take_comm_records(publisher_handles, rmw_handle)
         else:
