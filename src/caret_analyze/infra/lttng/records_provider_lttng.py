@@ -1136,19 +1136,22 @@ class RecordsProviderLttng(RuntimeDataProvider):
         publisher_handles = self._helper.get_publisher_handles(publisher)
 
         callback = comm_value.subscription.callback
+        rmw_handle = None
         if callback is not None:
             callback_objects = self._helper.get_subscription_callback_objects(callback)
 
-            try:
-                rmw_handle =\
-                    self._srv.get_rmw_subscription_handle_from_callback_object(callback_objects[0])
-            except InvalidArgumentError:
-                raise InvalidArgumentError(
-                    'Failed to get rmw subscription handle from callback object.'
-                    f'callback_object: {callback_objects[0]}'
-                )
-
-        records = self._source.inter_take_comm_records(publisher_handles, rmw_handle)
+            rmw_handle =\
+                self._srv.get_rmw_subscription_handle_from_callback_object(callback_objects[0])
+        else:
+            raise InvalidArgumentError('comm_value subscription has no callbacks')
+            
+        if rmw_handle is not None:
+            records = self._source.inter_take_comm_records(publisher_handles, rmw_handle)
+        else:
+            raise InvalidArgumentError(
+                'Failed to get rmw subscription handle from callback object.'
+                f'callback_object: {callback_objects[0]}'
+            )
 
         columns = [COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP]
         try:

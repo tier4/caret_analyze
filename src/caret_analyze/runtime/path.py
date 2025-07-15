@@ -363,10 +363,10 @@ class RecordsMerged:
                 logger.info(msg)
 
         logger.info('Finished merging path records.')
-        try:
+        if first_column is not None:
             left_records.sort(first_column)
-        except InvalidArgumentError as e:
-            raise InvalidRecordsError('first colum not in columns') from e
+        else:
+            raise InvalidRecordsError('first column not in columns')
 
         # remove source_timestamp columns
         source_columns = [
