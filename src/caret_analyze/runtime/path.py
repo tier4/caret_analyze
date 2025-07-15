@@ -273,7 +273,7 @@ class RecordsMerged:
                     # delete both callback_start_timestamp and rmw_take_timestamp
                     # and make source_timestamp the final column
                     if (len(right_records.columns) >= 2 and
-                        'rmw_take_timestamp' in right_records.columns[-2]):
+                            'rmw_take_timestamp' in right_records.columns[-2]):
                         columns_to_remove.append(right_records.columns[-2])
                     right_records.drop_columns(columns_to_remove)
 
@@ -327,9 +327,9 @@ class RecordsMerged:
                 )
 
         if (not take_records_applied_for_last_communication and
-            include_last_callback and
-            targets and
-            isinstance(targets[-1], NodePath)):
+                include_last_callback and
+                targets and
+                isinstance(targets[-1], NodePath)):
             if not is_match_column(left_records.columns[-1], 'source_timestamp'):
                 right_records = targets[-1].to_path_end_records()
 
