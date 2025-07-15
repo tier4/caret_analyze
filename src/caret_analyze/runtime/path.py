@@ -238,6 +238,9 @@ class RecordsMerged:
                 last_communication_record = item
                 break
 
+        if not last_communication_record:
+            raise InvalidRecordsError('Communication record does not exist')
+
         take_records_applied_for_last_communication: bool = False
 
         for target_, target in zip(targets[:-1], targets[1:]):
@@ -282,8 +285,7 @@ class RecordsMerged:
 
             if left_records.columns[-1] != right_records.columns[0]:
                 raise InvalidRecordsError(
-                    f'{left_records.columns[-1]=} != '
-                    f'{right_records.columns[0]=}'
+                    f'{left_records.columns[-1]=} != {right_records.columns[0]=}'
                 )
 
             left_stamp_key = left_records.columns[-1]
@@ -361,7 +363,10 @@ class RecordsMerged:
                 logger.info(msg)
 
         logger.info('Finished merging path records.')
-        left_records.sort(first_column)
+        try:
+            left_records.sort(first_column)
+        except InvalidArgumentError as e:
+            raise InvalidRecordsError('first colum not in columns') from e
 
         # remove source_timestamp columns
         source_columns = [

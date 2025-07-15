@@ -307,7 +307,7 @@ class Communication(PathBase, Summarizable):
 
         """
         assert self._records_provider is not None
-        records = self._records_provider._compose_inter_proc_take_comm_records(self._val)
+        records = self._records_provider.communication_take_records(self._val)
 
         return records
 

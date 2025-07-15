@@ -108,6 +108,39 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         return self._compose_inter_proc_comm_records(comm_val)
 
+    def communication_take_records(
+        self,
+        comm_val: CommunicationStructValue
+    ) -> RecordsInterface:
+        """
+        Provide communication take records.
+
+        Parameters
+        ----------
+        comm_val : CommunicationStructValue
+            communication value.
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+
+            inter-proc communication only
+
+            - [topic_name]/rclcpp_publish_timestamp
+            - [topic_name]/rcl_publish_timestamp (Optional)
+            - [topic_name]/dds_write_timestamp (Optional)
+            - [topic_name]/source_timestamp
+            - [callback_name_name]/callback_start_timestamp
+
+        """
+        assert comm_val.subscribe_callback_name is not None
+
+        if self.is_intra_process_communication(comm_val):
+            return self._compose_intra_proc_comm_records(comm_val)
+
+        return self._compose_inter_proc_take_comm_records(comm_val)
+
     def node_records(
         self,
         node_path_val: NodePathStructValue,
@@ -2075,8 +2108,8 @@ class FilteredRecordsSource:
         ----------
         publisher_handles : list[int]
             publisher handles
-        callback_object : int
-            callback object
+        rmw_handle : int
+            rmw_take subscription handle
 
         Returns
         -------
