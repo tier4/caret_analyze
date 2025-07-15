@@ -1126,10 +1126,9 @@ class RecordsProviderLttng(RuntimeDataProvider):
             columns += [
                 COLUMN_NAME.SOURCE_TIMESTAMP,
                 COLUMN_NAME.RMW_TAKE_TIMESTAMP,
-                #COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             ]
         except Exception as e:
-            msg = f"Column list construction failed: {e}"
+            msg = f'Column list construction failed: {e}'
             raise RuntimeError(msg) from e
 
         self._format(records, columns)

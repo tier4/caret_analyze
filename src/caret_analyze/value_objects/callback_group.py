@@ -34,8 +34,9 @@ class CallbackGroupType(ValueObject):
 
     MUTUALLY_EXCLUSIVE: CallbackGroupType
     REENTRANT: CallbackGroupType
-    # TODO: rename UNDEFIND
-    # The CallbackGroup type marked as UNDEFINED here indicates that it is not connected to an Executor.
+    # TODO: rename UNDEFINED
+    # The CallbackGroup type marked as UNDEFINED here indicates that
+    # it is not connected to an Executor.
     UNDEFINED: CallbackGroupType
 
     def __init__(self, name: str) -> None:

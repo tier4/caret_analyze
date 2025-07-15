@@ -22,8 +22,7 @@ from .subscription import Subscription
 from ..common import Summarizable, Summary
 from ..infra import RecordsProvider, RuntimeDataProvider
 from ..record import RecordsInterface
-from ..value_objects import CommunicationStructValue, CallbackGroupType
-
+from ..value_objects import CallbackGroupType, CommunicationStructValue
 
 
 class Communication(PathBase, Summarizable):
@@ -296,7 +295,6 @@ class Communication(PathBase, Summarizable):
         records = self._records_provider.communication_records(self._val)
 
         return records
-
 
     def to_take_records(self) -> RecordsInterface:
         """

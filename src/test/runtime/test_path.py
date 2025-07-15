@@ -859,7 +859,8 @@ class TestRecordsMerged:
             mock_column_names = [str(c) for c in columns_list_from_records_cpp_impl_constructor]
             mock_columns_instance.column_names = mock_column_names
             return mock_columns_instance
-        mocker.patch('caret_analyze.record.column.Columns', side_effect=create_mock_columns_instance)
+        mocker.patch('caret_analyze.record.column.Columns',
+                     side_effect=create_mock_columns_instance)
 
         comm_path1 = mocker.Mock(spec=Communication)
         mocker.patch.object(comm_path1, 'use_take_manually', return_value=False)
@@ -914,7 +915,7 @@ class TestRecordsMerged:
                     RecordCppImpl({
                         f'{topic1}/rclcpp_publish_timestamp': 130,
                         f'{topic1}/dds_write_timestamp': 140,
-                        f'{last_node}/callback_start_timestamp': 145, # to_records の場合は callback_start_timestamp
+                        f'{last_node}/callback_start_timestamp': 145,
                     }),
                 ],
                 [
@@ -931,7 +932,7 @@ class TestRecordsMerged:
                     RecordCppImpl({
                         f'{topic1}/rclcpp_publish_timestamp': 130,
                         f'{topic1}/dds_write_timestamp': 140,
-                        f'{topic1}/rmw_take_timestamp': 150, # to_take_records の場合は rmw_take_timestamp
+                        f'{topic1}/rmw_take_timestamp': 150,
                     }),
                 ],
                 [
@@ -944,7 +945,7 @@ class TestRecordsMerged:
 
         merger_mock = mocker.Mock(spec=ColumnMerger)
         mocker.patch('caret_analyze.runtime.path.ColumnMerger',
-                    return_value=merger_mock)
+                     return_value=merger_mock)
 
         first_merge_rule = {
             f'{topic0}/rclcpp_publish_timestamp': f'{topic0}/rclcpp_publish_timestamp/0',
@@ -975,10 +976,12 @@ class TestRecordsMerged:
         from unittest.mock import MagicMock
         mocker.patch(
             'caret_analyze.record.Columns.from_str',
-            side_effect=lambda column_names_list: MagicMock(column_names=list(dict.fromkeys(column_names_list)))
+            side_effect=lambda column_names_list: \
+                MagicMock(column_names=list(dict.fromkeys(column_names_list)))
         )
 
-        merged = RecordsMerged([comm_path1, node_path, comm_path2], include_first_callback=False, include_last_callback=False)
+        merged = RecordsMerged([comm_path1, node_path, comm_path2], include_first_callback=False,
+                               include_last_callback=False)
         records = merged.data
 
         expected = RecordsCppImpl(
@@ -992,7 +995,7 @@ class TestRecordsMerged:
                     f'{last_node}/rmw_take_timestamp/2': 150,
                 }),
             ],
-                [
+            [
                 ColumnValue(f'{topic0}/rclcpp_publish_timestamp/0'),
                 ColumnValue(f'{topic0}/dds_write_timestamp/0'),
                 ColumnValue(f'{first_node}/callback_start_timestamp/0'),
