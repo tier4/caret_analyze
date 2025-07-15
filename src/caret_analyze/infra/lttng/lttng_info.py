@@ -857,7 +857,7 @@ class LttngInfo:
                 continue
             if row['callback_id'] is pd.NA:
                 continue
-            
+
             times_info.append(
                 TimerValue(
                     node_name=row['node_name'],
