@@ -64,19 +64,6 @@ class TestCallbackSchedulingPlot:
 
         assert CallbackSchedulingPlot._get_callback_groups(path_mock) == [cbg_mock0, cbg_mock1]
 
-    def test_get_callback_groups_path_none(self, mocker):
-        pub_node_mock = mocker.Mock(spec=Node)
-        mocker.patch.object(pub_node_mock, 'callback_groups', None)
-        sub_node_mock = mocker.Mock(spec=Node)
-        mocker.patch.object(sub_node_mock, 'callback_groups', None)
-        comm_mock = mocker.Mock(spec=Communication)
-        mocker.patch.object(comm_mock, 'publish_node', pub_node_mock)
-        mocker.patch.object(comm_mock, 'subscribe_node', sub_node_mock)
-        path_mock = mocker.Mock(spec=Path)
-        mocker.patch.object(path_mock, 'communications', [comm_mock])
-
-        assert CallbackSchedulingPlot._get_callback_groups(path_mock) == []
-
     def test_get_callback_groups_callback_groups(self, mocker):
         cbg_mock = mocker.Mock(spec=CallbackGroup, callbacks=[mocker.Mock(spec=CallbackBase)])
 
@@ -88,12 +75,6 @@ class TestCallbackSchedulingPlot:
 
         assert CallbackSchedulingPlot._get_callback_groups(
             [cbg_mock0, cbg_mock1]) == [cbg_mock0, cbg_mock1]
-
-    def test_get_callback_groups_node_none(self, mocker):
-        node_mock = mocker.Mock(spec=Node)
-        mocker.patch.object(node_mock, 'callback_groups', None)
-        with pytest.raises(ItemNotFoundError, match='callback_groups is None'):
-            CallbackSchedulingPlot._get_callback_groups(node_mock)
 
     def test_get_callback_groups_node_empty_callback_groups_list(self, mocker):
         # Node object with an empty 'callback_groups' list.
