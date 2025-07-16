@@ -46,8 +46,9 @@ class TestCallbackSchedulingPlot:
     def test_get_callback_groups_node_none(self, mocker):
         node_mock = mocker.Mock(spec=Node)
         mocker.patch.object(node_mock, 'callback_groups', None)
-
-        assert CallbackSchedulingPlot._get_callback_groups(node_mock) == []
+        
+        with pytest.raises(ItemNotFoundError, match='target.callback_groups is None'):
+            CallbackSchedulingPlot._get_callback_groups(node_mock)
 
     def test_get_callback_groups_path(self, mocker):
         pub_node_mock = mocker.Mock(spec=Node)
