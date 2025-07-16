@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections.abc import Sequence
 from logging import WARNING
 
 from caret_analyze.exceptions import InvalidArgumentError
@@ -601,7 +602,6 @@ class TestRecordsMerged:
                     ColumnValue(f'{topic0}/rcl_publish_timestamp'),
                     ColumnValue(f'{topic0}/dds_write_timestamp'),
                     ColumnValue(f'{topic0}/source_timestamp'),
-                    # ColumnValue(f'{topic0}/callback_start_timestamp'),
                 ]
             )
         )
@@ -973,13 +973,11 @@ class TestRecordsMerged:
             side_effect=rules_to_return_sequentially
         )
 
-        from unittest.mock import MagicMock
-        mocker.patch(
-            'caret_analyze.record.Columns.from_str',
-            side_effect=lambda column_names_list: MagicMock(
-                column_names=list(dict.fromkeys(column_names_list))
-            )
-        )
+        def mock_from_str(column_names: Sequence[str]) -> Columns:
+            unique_column_names = list(dict.fromkeys(column_names))
+            return Columns([ColumnValue(c) for c in unique_column_names])
+
+        mocker.patch('caret_analyze.record.Columns.from_str', side_effect=mock_from_str)
 
         merged = RecordsMerged([comm_path1, node_path, comm_path2], include_first_callback=False,
                                include_last_callback=False)
