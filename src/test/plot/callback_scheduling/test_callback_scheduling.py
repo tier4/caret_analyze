@@ -46,7 +46,7 @@ class TestCallbackSchedulingPlot:
     def test_get_callback_groups_node_none(self, mocker):
         node_mock = mocker.Mock(spec=Node)
         mocker.patch.object(node_mock, 'callback_groups', None)
-        
+
         with pytest.raises(ItemNotFoundError, match='target.callback_groups is None'):
             CallbackSchedulingPlot._get_callback_groups(node_mock)
 
