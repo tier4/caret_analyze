@@ -95,6 +95,18 @@ class RecordsProvider(metaclass=ABCMeta):
     ) -> RecordsInterface:
         pass
 
+    # rclcpp_publish_timestamp
+    # rcl_publish_timestamp (Optional)
+    # dds_write_timestamp (Optional)
+    # source_timestamp
+    # rmw_take_timestamp
+    @abstractmethod
+    def communication_take_records(
+        self,
+        communication_info: CommunicationStructValue
+    ) -> RecordsInterface:
+        pass
+
     @abstractmethod
     def subscribe_records(
         self,
