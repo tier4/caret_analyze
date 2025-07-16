@@ -26,7 +26,6 @@ import pandas as pd
 from .util import (apply_x_axis_offset, ColorSelectorFactory, get_callback_param_desc,
                    HoverKeysFactory, HoverSource, init_figure, LegendManager, RectValues)
 from ....common import ClockConverter, Util
-from ....exceptions import ItemNotFoundError
 from ....record import Clip, Range
 from ....runtime import CallbackBase, CallbackGroup, TimerCallback
 
@@ -69,8 +68,6 @@ class BokehCallbackSched:
         # Apply xaxis offset
         callbacks: list[CallbackBase] = Util.flatten(
             cbg.callbacks for cbg in self._callback_groups if len(cbg.callbacks) > 0)
-        if len(callbacks) == 0:
-            raise ItemNotFoundError('Not found callbacks')
         records_range = Range([cb.to_records() for cb in callbacks])
         range_min, range_max = records_range.get_range()
         clip_min = int(range_min + self._lstrip_s*1.0e9)

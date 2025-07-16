@@ -24,9 +24,9 @@ import pandas as pd
 
 from ..plot_base import PlotBase
 from ..visualize_lib import VisualizeLibInterface
-from ...common import UniqueList
-from ...exceptions import UnsupportedTypeError
-from ...runtime import Application, CallbackGroup, Executor, Node, Path
+from ...common import UniqueList, Util
+from ...exceptions import ItemNotFoundError, UnsupportedTypeError
+from ...runtime import Application, CallbackBase, CallbackGroup, Executor, Node, Path
 
 CallbackGroupTypes = (Application | Executor | Path | Node |
                       CallbackGroup | Sequence[CallbackGroup])
@@ -188,33 +188,48 @@ class CallbackSchedulingPlot(PlotBase):
 
     @staticmethod
     def _get_callback_groups(target_objects: CallbackGroupTypes) -> list[CallbackGroup]:
+        no_callback_groups = True
         callback_groups: list[CallbackGroup]
 
         if isinstance(target_objects, (Application, Executor, Node)):
             if target_objects.callback_groups is None:
-                logger.warning('target.callback_groups is None')
                 callback_groups = []
             else:
+                no_callback_groups = False
                 callback_groups = target_objects.callback_groups
 
         elif isinstance(target_objects, Path):
             _callback_groups = UniqueList()
-            for comm in target_objects.communications:
-                for cbg in comm.publish_node.callback_groups or []:
+            if len(target_objects.communications) > 0:
+                for comm in target_objects.communications:
+                    for cbg in comm.publish_node.callback_groups or []:
+                        _callback_groups.append(cbg)
+                for cbg in target_objects.communications[-1].subscribe_node.callback_groups or []:
                     _callback_groups.append(cbg)
-            for cbg in target_objects.communications[-1].subscribe_node.callback_groups or []:
-                _callback_groups.append(cbg)
             if len(_callback_groups) == 0:
-                logger.warning('target.callback_groups is None')
                 callback_groups = []
             else:
+                no_callback_groups = False
                 callback_groups = _callback_groups.as_list()
 
         elif isinstance(target_objects, CallbackGroup):
             callback_groups = [target_objects]
+            no_callback_groups = False if len(callback_groups) else True
 
         else:  # Sequence[CallbackGroup]
             callback_groups = list(target_objects)
+            no_callback_groups = False if len(callback_groups) else True
+
+        if no_callback_groups:
+            logger.warning('target.callback_groups is None')
+            callback_groups = []
+            raise ItemNotFoundError('target.callback_groups is None')
+        else:
+            callbacks: list[CallbackBase] = Util.flatten(
+                cbg.callbacks for cbg in callback_groups if len(cbg.callbacks) > 0)
+            if len(callbacks) == 0:
+                logger.warning('callback_groups has no callback')
+                raise ItemNotFoundError('callback_groups has no callback')
 
         return callback_groups
 
