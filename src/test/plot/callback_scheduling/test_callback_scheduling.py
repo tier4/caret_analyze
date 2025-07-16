@@ -100,7 +100,7 @@ class TestCallbackSchedulingPlot:
         Node object with an empty 'callback_groups' list.
         """
         node_mock = mocker.Mock(spec=Node)
-        mocker.patch.object(node_mock, 'callback_groups', []) 
+        mocker.patch.object(node_mock, 'callback_groups', [])
         with pytest.raises(ItemNotFoundError, match='callback_groups has no callback'):
             CallbackSchedulingPlot._get_callback_groups(node_mock)
 
@@ -108,7 +108,7 @@ class TestCallbackSchedulingPlot:
         """
         CallbackGroup object with an empty 'callbacks' list.
         """
-        cbg_mock = mocker.Mock(spec=CallbackGroup, callbacks=[]) 
+        cbg_mock = mocker.Mock(spec=CallbackGroup, callbacks=[])
         with pytest.raises(ItemNotFoundError, match='callback_groups has no callback'):
             CallbackSchedulingPlot._get_callback_groups(cbg_mock)
 
@@ -118,7 +118,7 @@ class TestCallbackSchedulingPlot:
         """
         cbg_mock_with_empty_callbacks_1 = mocker.Mock(spec=CallbackGroup, callbacks=[])
         cbg_mock_with_empty_callbacks_2 = mocker.Mock(spec=CallbackGroup, callbacks=[])
-        
+
         with pytest.raises(ItemNotFoundError, match='callback_groups has no callback'):
             CallbackSchedulingPlot._get_callback_groups([cbg_mock_with_empty_callbacks_1, cbg_mock_with_empty_callbacks_2])
 
@@ -126,8 +126,8 @@ class TestCallbackSchedulingPlot:
         """
         Path where nodes have None callback_groups.
         """
-        pub_node_mock = mocker.Mock(spec=Node, callback_groups=None) 
-        sub_node_mock = mocker.Mock(spec=Node, callback_groups=None) 
+        pub_node_mock = mocker.Mock(spec=Node, callback_groups=None)
+        sub_node_mock = mocker.Mock(spec=Node, callback_groups=None)
         comm_mock = mocker.Mock(spec=Communication, publish_node=pub_node_mock, subscribe_node=sub_node_mock)
         path_mock = mocker.Mock(spec=Path, communications=[comm_mock])
         with pytest.raises(ItemNotFoundError, match='callback_groups is None'):
@@ -140,7 +140,7 @@ class TestCallbackSchedulingPlot:
         cbg_empty_callbacks_pub_0 = mocker.Mock(spec=CallbackGroup, callbacks=[])
         cbg_empty_callbacks_sub_0 = mocker.Mock(spec=CallbackGroup, callbacks=[])
         cbg_empty_callbacks_pub_1 = mocker.Mock(spec=CallbackGroup, callbacks=[])
-        cbg_empty_callbacks_sub_1 = mocker.Mock(spec=CallbackGroup, callbacks=[]) 
+        cbg_empty_callbacks_sub_1 = mocker.Mock(spec=CallbackGroup, callbacks=[])
 
         pub_node_mock_0 = mocker.Mock(spec=Node, callback_groups=[cbg_empty_callbacks_pub_0])
         sub_node_mock_0 = mocker.Mock(spec=Node, callback_groups=[cbg_empty_callbacks_sub_0])
