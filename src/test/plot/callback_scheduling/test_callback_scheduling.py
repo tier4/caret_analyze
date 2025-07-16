@@ -104,7 +104,7 @@ class TestCallbackSchedulingPlot:
 
     def test_get_callback_groups_callback_group_no_callbacks(self, mocker):
         # CallbackGroup object with an empty 'callbacks' list.
-        cbg_mock = mocker.Mock(spec=CallbackGroup, callbacks=[]) 
+        cbg_mock = mocker.Mock(spec=CallbackGroup, callbacks=[])
         with pytest.raises(ItemNotFoundError, match='callback_groups has no callback'):
             CallbackSchedulingPlot._get_callback_groups(cbg_mock)
 
@@ -119,8 +119,8 @@ class TestCallbackSchedulingPlot:
 
     def test_get_callback_groups_path_none(self, mocker):
         # Path where nodes have None callback_groups.
-        pub_node_mock = mocker.Mock(spec=Node, callback_groups=None) 
-        sub_node_mock = mocker.Mock(spec=Node, callback_groups=None) 
+        pub_node_mock = mocker.Mock(spec=Node, callback_groups=None)
+        sub_node_mock = mocker.Mock(spec=Node, callback_groups=None)
         comm_mock = mocker.Mock(spec=Communication,
                                 publish_node=pub_node_mock, subscribe_node=sub_node_mock)
         path_mock = mocker.Mock(spec=Path, communications=[comm_mock])
