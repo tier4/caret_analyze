@@ -854,14 +854,6 @@ class TestRecordsMerged:
         first_node = 'first_node'
         last_node = 'last_node'
 
-        def create_mock_columns_instance(columns_list_from_records_cpp_impl_constructor):
-            mock_columns_instance = mocker.Mock(spec=Columns)
-            mock_column_names = [str(c) for c in columns_list_from_records_cpp_impl_constructor]
-            mock_columns_instance.column_names = mock_column_names
-            return mock_columns_instance
-        mocker.patch('caret_analyze.record.column.Columns',
-                     side_effect=create_mock_columns_instance)
-
         comm_path1 = mocker.Mock(spec=Communication)
         mocker.patch.object(comm_path1, 'use_take_manually', return_value=False)
         mocker.patch.object(
@@ -932,13 +924,13 @@ class TestRecordsMerged:
                     RecordCppImpl({
                         f'{topic1}/rclcpp_publish_timestamp': 130,
                         f'{topic1}/dds_write_timestamp': 140,
-                        f'{topic1}/rmw_take_timestamp': 150,
+                        f'{last_node}/rmw_take_timestamp': 150,
                     }),
                 ],
                 [
                     ColumnValue(f'{topic1}/rclcpp_publish_timestamp'),
                     ColumnValue(f'{topic1}/dds_write_timestamp'),
-                    ColumnValue(f'{topic1}/rmw_take_timestamp'),
+                    ColumnValue(f'{last_node}/rmw_take_timestamp'),
                 ]
             )
         )
@@ -959,7 +951,7 @@ class TestRecordsMerged:
         third_merge_rule = {
             f'{topic1}/rclcpp_publish_timestamp': f'{topic1}/rclcpp_publish_timestamp/1',
             f'{topic1}/dds_write_timestamp': f'{topic1}/dds_write_timestamp/1',
-            f'{topic1}/rmw_take_timestamp': f'{topic1}/rmw_take_timestamp/2',
+            f'{last_node}/rmw_take_timestamp': f'{last_node}/rmw_take_timestamp/2',
         }
 
         rules_to_return_sequentially = [
