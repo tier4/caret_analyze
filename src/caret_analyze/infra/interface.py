@@ -109,7 +109,7 @@ class RecordsProvider(metaclass=ABCMeta):
                 communication structured value object.
 
         Returns
-        ----------
+        -------
         RecordsInterface
             Columns
 
