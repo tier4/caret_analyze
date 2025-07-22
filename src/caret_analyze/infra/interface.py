@@ -103,16 +103,22 @@ class RecordsProvider(metaclass=ABCMeta):
         """
         Create a Communication record when the take method is used.
 
-        Args:
-            communication_info (CommunicationStructValue): A structured value object
+        Parameters
+        ----------
+            communication_info: CommunicationStructValue)
+                communication structured value object
+        Returns
+        ----------
+        RecordsInterface
+            Columns
 
-        Returns:
-            RecordsInterface: An object representing the stored records of the communication.
-                - rclcpp_publish_timestamp
-                - rcl_publish_timestamp (Optional)
-                - dds_write_timestamp (Optional)
-                - source_timestamp
-                - rmw_take_timestamp
+            communication record when the take method is used
+
+            - [topic_name]/rclcpp_publish_timestamp
+            - [topic_name]/rcl_publish_timestamp (Optional)
+            - [topic_name]/dds_write_timestamp (Optional)
+            - [topic_name]/source_timestamp
+            - [node_name]/rmw_take_timestamp
 
         """
         pass

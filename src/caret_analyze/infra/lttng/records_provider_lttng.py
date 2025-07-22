@@ -131,7 +131,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/rcl_publish_timestamp (Optional)
             - [topic_name]/dds_write_timestamp (Optional)
             - [topic_name]/source_timestamp
-            - [callback_name_name]/callback_start_timestamp
+            - [node_name]/rmw_take_timestamp
 
         """
         assert comm_val.subscribe_callback_name is not None
