@@ -220,7 +220,6 @@ class RecordsMerged:
                 if not targets:  # Check if targets list became empty after removal
                     msg = (
                         'Targets list became empty after filtering out first element. '
-                        'Returning empty records.'
                     )
                     raise InvalidRecordsError(msg)
             first_element = targets[0].to_records()
@@ -285,7 +284,7 @@ class RecordsMerged:
 
             if left_records.columns[-1] != right_records.columns[0]:
                 raise InvalidRecordsError(
-                    f'{left_records.columns[-1]=} != {right_records.columns[0]=}'
+                    f'left: {left_records.columns[-1]} != right: {right_records.columns[0]}'
                 )
 
             left_stamp_key = left_records.columns[-1]
@@ -340,7 +339,7 @@ class RecordsMerged:
 
                 if left_records.columns[-1] != right_records.columns[0]:
                     raise InvalidRecordsError(
-                        f'{left_records.columns[-1]=} != {right_records.columns[0]=}'
+                        f'left: {left_records.columns[-1]} != right: {right_records.columns[0]}'
                     )
                 else:
                     if len(right_records.data) != 0:
@@ -382,43 +381,6 @@ class RecordsMerged:
         else:
             drop_rmw_cols = rmw_cols
         left_records.drop_columns(drop_rmw_cols)
-
-        # rename rmw_take_timestamp columns to /node_name/rmw_take_timestamp/n
-        if take_records_applied_for_last_communication:
-            extracted_node_name = ''
-            for col_name in reversed(last_communication_record.column_names):
-                # ex. "/planning/planning_validator/callback_6/callback_start_timestamp"
-                # match.group(1): "/planning/planning_validator" (node name)
-                match = re.match(
-                    r'(.+?)'
-                    r'(?:/callback_\d+)?'
-                    r'/callback_start_timestamp'
-                    r'(?:/\d+)?',
-                    col_name
-                )
-                if match:
-                    extracted_node_name = match.group(1)
-                    break
-
-            column_to_rename = None
-            new_column_name = None
-            for col_name in reversed(left_records.columns):
-                # ex.
-                # "/planning/scenario_planning/velocity_smoother/trajectory/rmw_take_timestamp/0"
-                # match.group(1): "/0" (suffix)
-                match = re.match(r'(?:.*)/rmw_take_timestamp(?:/(\d+))?', col_name)
-                if match:
-                    column_to_rename = col_name
-                    rmw_suffix = match.group(1) if match.group(1) else None
-                    # new format node_name::topic_name/rmw_take_timestamp/n
-                    new_rmw_column_name_base = f'{extracted_node_name}/rmw_take_timestamp'
-                    if rmw_suffix:
-                        new_column_name = f'{new_rmw_column_name_base}/{rmw_suffix}'
-                    else:
-                        new_column_name = new_rmw_column_name_base
-                    break
-            if column_to_rename and new_column_name:
-                left_records.rename_columns({column_to_rename: new_column_name})
 
         return left_records
 

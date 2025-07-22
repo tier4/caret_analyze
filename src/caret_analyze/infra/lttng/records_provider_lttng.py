@@ -135,10 +135,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         """
         assert comm_val.subscribe_callback_name is not None
-
-        if self.is_intra_process_communication(comm_val):
-            return self._compose_intra_proc_comm_records(comm_val)
-
         return self._compose_inter_proc_take_comm_records(comm_val)
 
     def node_records(
@@ -1068,7 +1064,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/rcl_publish_timestamp (Optional)
             - [topic_name]/dds_write_timestamp (Optional)
             - [topic_name]/source_timestamp
-            - [callback_name_name]/callback_start_timestamp
+            - [callback_name]/callback_start_timestamp
 
         """
         publisher = comm_value.publisher
@@ -1089,10 +1085,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
         columns += [
             COLUMN_NAME.SOURCE_TIMESTAMP,
-        ]
-        if COLUMN_NAME.RMW_TAKE_TIMESTAMP in records.columns:
-            columns.append(COLUMN_NAME.RMW_TAKE_TIMESTAMP)
-        columns += [
             COLUMN_NAME.CALLBACK_START_TIMESTAMP,
         ]
 
@@ -1124,7 +1116,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/rcl_publish_timestamp (Optional)
             - [topic_name]/dds_write_timestamp (Optional)
             - [topic_name]/source_timestamp
-            - [topic_name]/rmw_take_timestamp
+            - [node_name]/rmw_take_timestamp
 
         """
         publisher = comm_value.publisher
@@ -1154,23 +1146,19 @@ class RecordsProviderLttng(RuntimeDataProvider):
             )
 
         columns = [COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP]
-        try:
-            if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in records.columns:
-                columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
-            if COLUMN_NAME.DDS_WRITE_TIMESTAMP in records.columns:
-                columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
-            columns += [
-                COLUMN_NAME.SOURCE_TIMESTAMP,
-                COLUMN_NAME.RMW_TAKE_TIMESTAMP,
-            ]
-        except Exception as e:
-            msg = f'Column list construction failed: {e}'
-            raise RuntimeError(msg) from e
+        if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in records.columns:
+            columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
+        if COLUMN_NAME.DDS_WRITE_TIMESTAMP in records.columns:
+            columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
+        columns += [
+            COLUMN_NAME.SOURCE_TIMESTAMP,
+            COLUMN_NAME.RMW_TAKE_TIMESTAMP,
+        ]
 
         self._format(records, columns)
 
         self._rename_column(records, comm_value.subscribe_callback_name,
-                            comm_value.topic_name, None)
+                            comm_value.topic_name, comm_value.subscribe_node_name)
         return records
 
     @staticmethod
@@ -1225,8 +1213,12 @@ class RecordsProviderLttng(RuntimeDataProvider):
                 f'{topic_name}/{COLUMN_NAME.SOURCE_TIMESTAMP}'
 
         if COLUMN_NAME.RMW_TAKE_TIMESTAMP in records.columns:
-            rename_dict[COLUMN_NAME.RMW_TAKE_TIMESTAMP] =\
-                f'{topic_name}/{COLUMN_NAME.RMW_TAKE_TIMESTAMP}'
+            if node_name:
+                rename_dict[COLUMN_NAME.RMW_TAKE_TIMESTAMP] =\
+                    f'{node_name}/{COLUMN_NAME.RMW_TAKE_TIMESTAMP}'
+            else:
+                rename_dict[COLUMN_NAME.RMW_TAKE_TIMESTAMP] =\
+                    f'{topic_name}/{COLUMN_NAME.RMW_TAKE_TIMESTAMP}'
 
         if COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP in records.columns:
             rename_dict[COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP] = \
@@ -2147,7 +2139,6 @@ class FilteredRecordsSource:
         columns = [
             COLUMN_NAME.PUBLISHER_HANDLE,
             COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.RMW_TAKE_TIMESTAMP,
         ]
         if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in merged.columns:
             columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
@@ -2155,7 +2146,8 @@ class FilteredRecordsSource:
             columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
         columns += [
             COLUMN_NAME.MESSAGE_TIMESTAMP,
-            COLUMN_NAME.SOURCE_TIMESTAMP
+            COLUMN_NAME.SOURCE_TIMESTAMP,
+            COLUMN_NAME.RMW_TAKE_TIMESTAMP,
         ]
         drop = list(set(merged.columns) - set(columns))
         merged.drop_columns(drop)
