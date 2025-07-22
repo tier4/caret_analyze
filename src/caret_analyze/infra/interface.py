@@ -107,6 +107,7 @@ class RecordsProvider(metaclass=ABCMeta):
         ----------
             communication_info: CommunicationStructValue
                 communication structured value object.
+
         Returns
         ----------
         RecordsInterface
