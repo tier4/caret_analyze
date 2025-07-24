@@ -691,9 +691,30 @@ class TestRecordsMerged:
         )
 
         comm_path = mocker.Mock(spec=Communication)
-        mocker.patch.object(comm_path, 'use_take_manually', return_value=False)
+        mocker.patch.object(comm_path, 'use_take_manually', return_value=True)
         mocker.patch.object(
             comm_path, 'to_records',
+            return_value=RecordsCppImpl(
+                [
+                    RecordCppImpl({
+                        f'{topic0}/rclcpp_publish_timestamp': 1,
+                        f'{topic0}/rcl_publish_timestamp': 2,
+                        f'{topic0}/dds_write_timestamp': 3,
+                        f'{topic0}/source_timestamp': 4,
+                        f'{topic1}/callback_start_timestamp': 5
+                    }),
+                ],
+                [
+                    ColumnValue(f'{topic0}/rclcpp_publish_timestamp'),
+                    ColumnValue(f'{topic0}/rcl_publish_timestamp'),
+                    ColumnValue(f'{topic0}/dds_write_timestamp'),
+                    ColumnValue(f'{topic0}/source_timestamp'),
+                    ColumnValue(f'{topic1}/callback_start_timestamp'),
+                ]
+            )
+        )
+        mocker.patch.object(
+            comm_path, 'to_take_records',
             return_value=RecordsCppImpl(
                 [
                     RecordCppImpl({
@@ -907,7 +928,7 @@ class TestRecordsMerged:
                     RecordCppImpl({
                         f'{topic1}/rclcpp_publish_timestamp': 130,
                         f'{topic1}/dds_write_timestamp': 140,
-                        f'{last_node}/callback_start_timestamp': 145,
+                        f'{last_node}/callback_start_timestamp': 0,
                     }),
                 ],
                 [
