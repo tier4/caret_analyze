@@ -16,6 +16,8 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
+from logging import WARNING
+
 from caret_analyze.exceptions import UnsupportedNodeRecordsError
 from caret_analyze.infra.lttng import Lttng, RecordsProviderLttng
 from caret_analyze.infra.lttng.bridge import LttngBridge
@@ -1463,7 +1465,6 @@ class TestCommunicationRecords:
                     f'{communication.topic_name}/rclcpp_publish_timestamp': 1,
                     f'{communication.topic_name}/rcl_publish_timestamp': 2,
                     f'{communication.topic_name}/dds_write_timestamp': 3,
-                    # f'{communication.topic_name}/message_timestamp': message_stamp,
                     f'{communication.topic_name}/source_timestamp': 9,
                     f'{callback.callback_name}/callback_start_timestamp': 16,
                 }
@@ -1472,7 +1473,6 @@ class TestCommunicationRecords:
                 f'{communication.topic_name}/rclcpp_publish_timestamp',
                 f'{communication.topic_name}/rcl_publish_timestamp',
                 f'{communication.topic_name}/dds_write_timestamp',
-                # f'{communication.topic_name}/message_timestamp',
                 f'{communication.topic_name}/source_timestamp',
                 f'{callback.callback_name}/callback_start_timestamp',
             ],
@@ -1610,6 +1610,7 @@ class TestCommunicationRecords:
                 {
                     f'{communication.topic_name}/rclcpp_publish_timestamp': 17,
                     f'{communication.topic_name}/source_timestamp': 109,
+                    f'{callback.callback_name}/callback_start_timestamp': pd.NA,
                 },
                 {
                     f'{communication.topic_name}/rclcpp_publish_timestamp': 19,
@@ -2065,4 +2066,5 @@ class TestSimTimeConverter:
 
         assert (s100 == d100)
         assert (s300 == d300)
-        assert 'Out-of-range time is used to convert sim_time' in caplog.messages[0]
+        assert 'Out-of-range time is used to convert sim_time' in caplog.text
+        assert caplog.records[0].levelno == WARNING
