@@ -693,9 +693,12 @@ class TestRecordsMerged:
         node0 = 'node_0'
         node1 = 'node_1'
 
-        node_path, node_path_rename_rule = self.create_mocker_node_path(mocker, node0, topic0, 100)
-        comm_path, comm_path_rename_rule = self.create_mocker_communication_path(mocker, node0, topic0, 102)
-        take_rename_rule = self.create_mocker_add_to_take_record(mocker, comm_path, node1, topic0, 102)
+        node_path, node_path_rename_rule = \
+            self.create_mocker_node_path(mocker, node0, topic0, 100)
+        comm_path, comm_path_rename_rule = \
+            self.create_mocker_communication_path(mocker, node0, topic0, 102)
+        take_rename_rule = \
+            self.create_mocker_add_to_take_record(mocker, comm_path, node1, topic0, 102)
 
         merger_mock = mocker.Mock(spec=ColumnMerger)
         mocker.patch('caret_analyze.runtime.path.ColumnMerger',
@@ -736,10 +739,13 @@ class TestRecordsMerged:
         node0 = 'node_0'
         node1 = 'node_1'
 
-        node_path, node_path_rename_rule = self.create_mocker_node_path(mocker, node0, topic0, 100)
+        node_path, node_path_rename_rule = \
+            self.create_mocker_node_path(mocker, node0, topic0, 100)
         self.create_mocker_add_to_path_beginning_records(mocker, node_path, node0, topic0, 100)
-        comm_path, comm_path_rename_rule = self.create_mocker_communication_path(mocker, node0, topic0, 102)
-        take_rename_rule = self.create_mocker_add_to_take_record(mocker, comm_path, node1, topic0, 102)
+        comm_path, comm_path_rename_rule = \
+            self.create_mocker_communication_path(mocker, node0, topic0, 102)
+        take_rename_rule = \
+            self.create_mocker_add_to_take_record(mocker, comm_path, node1, topic0, 102)
 
         merger_mock = mocker.Mock(spec=ColumnMerger)
         mocker.patch('caret_analyze.runtime.path.ColumnMerger',
@@ -780,9 +786,12 @@ class TestRecordsMerged:
         node0 = 'node_0'
         node1 = 'node_1'
 
-        node_path, node_path_rename_rule = self.create_mocker_node_path(mocker, node0, topic0, 100)
-        comm_path, comm_path_rename_rule = self.create_mocker_communication_path(mocker, node1, topic0, 102)
-        node_path2, node_path_rename_rule2 = self.create_mocker_node_path(mocker, node1, topic0, 104)
+        node_path, node_path_rename_rule = \
+            self.create_mocker_node_path(mocker, node0, topic0, 100)
+        comm_path, comm_path_rename_rule = \
+            self.create_mocker_communication_path(mocker, node1, topic0, 102)
+        node_path2, node_path_rename_rule2 = \
+            self.create_mocker_node_path(mocker, node1, topic0, 104)
 
         merger_mock = mocker.Mock(spec=ColumnMerger)
         mocker.patch('caret_analyze.runtime.path.ColumnMerger',
