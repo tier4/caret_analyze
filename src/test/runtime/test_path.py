@@ -611,7 +611,7 @@ class TestRecordsMerged:
         )
 
         mocker.patch.object(comm_path, 'use_take_manually', return_value=False)
-        
+
         return comm_path, rename_rule
 
     def create_mocker_add_to_take_record(self, mocker, comm_path, node, topic, ts):
@@ -639,7 +639,7 @@ class TestRecordsMerged:
             f'{topic}/source_timestamp': f'{topic}/source_timestamp/0',
             f'{node}/rmw_take_timestamp': f'{node}/rmw_take_timestamp/0',
         }
-        
+
         return rename_rule
 
     def create_mocker_node_path(self, mocker, node, topic, ts):
@@ -744,7 +744,7 @@ class TestRecordsMerged:
         self.create_mocker_add_to_path_beginning_records(mocker, node_path, node0, topic0, 100)
         comm_path, comm_path_rename_rule = self.create_mocker_communication_path(mocker, node0, topic0, 102)
         take_rename_rule = self.create_mocker_add_to_take_record(mocker, comm_path, node1, topic0, 102)
-        
+
         merger_mock = mocker.Mock(spec=ColumnMerger)
         mocker.patch('caret_analyze.runtime.path.ColumnMerger',
                      return_value=merger_mock)
@@ -787,7 +787,7 @@ class TestRecordsMerged:
         node_path, node_path_rename_rule = self.create_mocker_node_path(mocker, node0, topic0, 100)
         comm_path, comm_path_rename_rule = self.create_mocker_communication_path(mocker, node1, topic0, 102)
         node_path2, node_path_rename_rule2 = self.create_mocker_node_path(mocker, node1, topic0, 104)
-        
+
         merger_mock = mocker.Mock(spec=ColumnMerger)
         mocker.patch('caret_analyze.runtime.path.ColumnMerger',
                      return_value=merger_mock)
