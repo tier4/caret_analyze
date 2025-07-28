@@ -583,7 +583,7 @@ class TestRecordsMerged:
         assert records.equals(expected)
 
     def create_mocker_communication_path(self, mocker, node, topic, ts):
-        """Helper function to create a mock Communication path."""
+        """Create mocker for Communication path."""
         records_data = [
             RecordCppImpl({
                 f'{topic}/rclcpp_publish_timestamp': ts,
@@ -615,7 +615,7 @@ class TestRecordsMerged:
         return comm_path, rename_rule
 
     def create_mocker_add_to_take_record(self, mocker, comm_path, node, topic, ts):
-        """Helper function to create a mock Communication path for take."""
+        """Add to_take_records to Communication mocker."""
         mocker.patch.object(comm_path, 'use_take_manually', return_value=True)
         mocker.patch.object(
             comm_path, 'to_take_records',
@@ -643,7 +643,7 @@ class TestRecordsMerged:
         return rename_rule
 
     def create_mocker_node_path(self, mocker, node, topic, ts):
-        """Helper function to create a mock NodePath."""
+        """Create mocker for NodePath."""
         record_data_dict = {
             f'{node}/callback_start_timestamp': ts,
             f'{topic}/rclcpp_publish_timestamp': ts + 2,
@@ -673,7 +673,7 @@ class TestRecordsMerged:
         return node_path, rename_rule
 
     def create_mocker_add_to_path_beginning_records(self, mocker, node_path, node, topic, ts):
-        """Helper function to create a mock begining path record"""
+        """Add to_path_biginning_records to NodePath mocker."""
         mocker.patch.object(
             node_path, 'to_path_beginning_records',
             return_value=RecordsCppImpl(

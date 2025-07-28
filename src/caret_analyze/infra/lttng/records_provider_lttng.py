@@ -275,7 +275,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             Columns
 
             - [topic_name]/source_timestamp
-            - [topic_name]/rmw_take_timestamp
+            - [node_name]/rmw_take_timestamp
 
         Raises
         ------
