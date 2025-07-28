@@ -230,13 +230,13 @@ class RecordsMerged:
         # Handle case where first_element might have no columns
         first_column = left_records.columns[0] if left_records.columns else None
 
-        last_communication_record = None
+        last_communication = None
         for item in reversed(targets):
             if isinstance(item, Communication):
-                last_communication_record = item
+                last_communication = item
                 break
 
-        if not last_communication_record:
+        if not last_communication:
             raise InvalidRecordsError('Communication record does not exist')
 
         take_records_applied_for_last_communication: bool = False
@@ -256,7 +256,7 @@ class RecordsMerged:
                 break
             should_drop_last_column = False
             if isinstance(target, Communication) and target.use_take_manually():
-                if target == last_communication_record:
+                if target == last_communication:
                     try:
                         right_records = target.to_take_records()
                         take_records_applied_for_last_communication = True
@@ -269,14 +269,7 @@ class RecordsMerged:
 
             if should_drop_last_column:
                 if len(right_records.columns) > 0:
-                    columns_to_remove = [right_records.columns[-1]]
-                    # For take records in the middle of a path,
-                    # delete both callback_start_timestamp and rmw_take_timestamp
-                    # and make source_timestamp the final column
-                    if (len(right_records.columns) >= 2 and
-                            'rmw_take_timestamp' in right_records.columns[-2]):
-                        columns_to_remove.append(right_records.columns[-2])
-                    right_records.drop_columns(columns_to_remove)
+                    right_records.drop_columns([right_records.columns[-1]])
 
             rename_rule = column_merger.append_columns_and_return_rename_rule(right_records)
             right_records.rename_columns(rename_rule)

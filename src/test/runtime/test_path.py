@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from collections.abc import Sequence
-from logging import WARNING
+from logging import INFO
 
 from caret_analyze.exceptions import InvalidArgumentError
 from caret_analyze.infra import RecordsProvider
@@ -26,6 +26,7 @@ from caret_analyze.runtime.node_path import NodePath
 from caret_analyze.runtime.path import ColumnMerger, Path, RecordsMerged
 from caret_analyze.value_objects import NodePathStructValue, PathStructValue
 
+import pandas as pd
 import pytest
 
 
@@ -581,159 +582,124 @@ class TestRecordsMerged:
         )
         assert records.equals(expected)
 
-    def test_take_impl_case(self, mocker):
-        comm_path = mocker.Mock(spec=Communication)
-        mocker.patch.object(comm_path, 'use_take_manually', return_value=True)
-        topic0 = 'topic_0'
-        topic1 = 'topic_1'
-        mocker.patch.object(
-            comm_path, 'to_records',
-            return_value=RecordsCppImpl(
-                [
-                    RecordCppImpl({
-                        f'{topic0}/rclcpp_publish_timestamp': 0,
-                        f'{topic0}/rcl_publish_timestamp': 1,
-                        f'{topic0}/dds_write_timestamp': 2,
-                        f'{topic0}/source_timestamp': 3,
-                    }),
-                ],
-                [
-                    ColumnValue(f'{topic0}/rclcpp_publish_timestamp'),
-                    ColumnValue(f'{topic0}/rcl_publish_timestamp'),
-                    ColumnValue(f'{topic0}/dds_write_timestamp'),
-                    ColumnValue(f'{topic0}/source_timestamp'),
-                ]
-            )
-        )
+    def create_mocker_communication_path(self, mocker, node, topic, ts):
+        """Helper function to create a mock Communication path."""
+        records_data = [
+            RecordCppImpl({
+                f'{topic}/rclcpp_publish_timestamp': ts,
+                f'{topic}/source_timestamp': ts + 1,
+                f'{node}/callback_start_timestamp': ts + 2,
+            }),
+        ]
 
-        node_path = mocker.Mock(spec=NodePath)
-        mocker.patch.object(
-            node_path, 'to_records',
-            return_value=RecordsCppImpl(
-                [
-                    RecordCppImpl({
-                        f'{topic0}/source_timestamp': 3,
-                        f'{topic1}/rclcpp_publish_timestamp': 4,
-                    }),
-                ],
-                [
-                    ColumnValue(f'{topic0}/source_timestamp'),
-                    ColumnValue(f'{topic1}/rclcpp_publish_timestamp'),
-                ]
-            )
-        )
+        columns = [
+            ColumnValue(f'{topic}/rclcpp_publish_timestamp'),
+            ColumnValue(f'{topic}/source_timestamp'),
+            ColumnValue(f'{node}/callback_start_timestamp'),
+        ]
 
-        merger_mock = mocker.Mock(spec=ColumnMerger)
-        mocker.patch('caret_analyze.runtime.path.ColumnMerger',
-                     return_value=merger_mock)
-
-        def append_columns_and_return_rename_rule(records):
-            if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
-                return {
-                    f'{topic0}/rclcpp_publish_timestamp': f'{topic0}/rclcpp_publish_timestamp/0',
-                    f'{topic0}/rcl_publish_timestamp': f'{topic0}/rcl_publish_timestamp/0',
-                    f'{topic0}/dds_write_timestamp': f'{topic0}/dds_write_timestamp/0',
-                    f'{topic0}/source_timestamp': f'{topic0}/source_timestamp/0',
-                }
-            if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
-                return {
-                    f'{topic0}/source_timestamp': f'{topic0}/source_timestamp/0',
-                    f'{topic1}/rclcpp_publish_timestamp': f'{topic1}/rclcpp_publish_timestamp/0',
-                }
-        mocker.patch.object(
-            merger_mock, 'append_columns_and_return_rename_rule',
-            side_effect=append_columns_and_return_rename_rule)
-
-        merged = RecordsMerged([comm_path, node_path])
-        records = merged.data
-
-        expected = RecordsCppImpl(
-            [
-                RecordCppImpl({
-                    f'{topic0}/rclcpp_publish_timestamp/0': 0,
-                    f'{topic0}/rcl_publish_timestamp/0': 1,
-                    f'{topic0}/dds_write_timestamp/0': 2,
-                    f'{topic1}/rclcpp_publish_timestamp/0': 4,
-                }),
-            ],
-            [
-                ColumnValue(f'{topic0}/rclcpp_publish_timestamp/0'),
-                ColumnValue(f'{topic0}/rcl_publish_timestamp/0'),
-                ColumnValue(f'{topic0}/dds_write_timestamp/0'),
-                ColumnValue(f'{topic1}/rclcpp_publish_timestamp/0'),
-            ]
-        )
-
-        assert records.equals(expected)
-
-    def test_take_impl_case_include_first_callback(self, mocker):
-        topic0 = 'topic_0'
-        topic1 = 'topic_1'
-        node_path = mocker.Mock(spec=NodePath)
-        mocker.patch.object(
-            node_path, 'to_records',
-            return_value=RecordsCppImpl()
-        )
-        mocker.patch.object(
-            node_path, 'to_path_beginning_records',
-            return_value=RecordsCppImpl(
-                [
-                    RecordCppImpl({
-                        f'{topic0}/callback_start_timestamp': 0,
-                        f'{topic0}/rclcpp_publish_timestamp': 1,
-                    }),
-                ],
-                [
-                    ColumnValue(f'{topic0}/callback_start_timestamp'),
-                    ColumnValue(f'{topic0}/rclcpp_publish_timestamp'),
-                ]
-            )
-        )
+        rename_rule = {
+            f'{topic}/rclcpp_publish_timestamp': f'{topic}/rclcpp_publish_timestamp/0',
+            f'{topic}/source_timestamp': f'{topic}/source_timestamp/0',
+            f'{node}/callback_start_timestamp' : f'{node}/callback_start_timestamp/0'
+        }
 
         comm_path = mocker.Mock(spec=Communication)
-        mocker.patch.object(comm_path, 'use_take_manually', return_value=True)
         mocker.patch.object(
             comm_path, 'to_records',
-            return_value=RecordsCppImpl(
-                [
-                    RecordCppImpl({
-                        f'{topic0}/rclcpp_publish_timestamp': 1,
-                        f'{topic0}/rcl_publish_timestamp': 2,
-                        f'{topic0}/dds_write_timestamp': 3,
-                        f'{topic0}/source_timestamp': 4,
-                        f'{topic1}/callback_start_timestamp': 5
-                    }),
-                ],
-                [
-                    ColumnValue(f'{topic0}/rclcpp_publish_timestamp'),
-                    ColumnValue(f'{topic0}/rcl_publish_timestamp'),
-                    ColumnValue(f'{topic0}/dds_write_timestamp'),
-                    ColumnValue(f'{topic0}/source_timestamp'),
-                    ColumnValue(f'{topic1}/callback_start_timestamp'),
-                ]
-            )
+            return_value=RecordsCppImpl(records_data, columns)
         )
+
+        mocker.patch.object(comm_path, 'use_take_manually', return_value=False)
+        
+        return comm_path, rename_rule
+
+    def create_mocker_add_to_take_record(self, mocker, comm_path, node, topic, ts):
+        """Helper function to create a mock Communication path for take."""
+        mocker.patch.object(comm_path, 'use_take_manually', return_value=True)
         mocker.patch.object(
             comm_path, 'to_take_records',
             return_value=RecordsCppImpl(
                 [
                     RecordCppImpl({
-                        f'{topic0}/rclcpp_publish_timestamp': 1,
-                        f'{topic0}/rcl_publish_timestamp': 2,
-                        f'{topic0}/dds_write_timestamp': 3,
-                        f'{topic0}/source_timestamp': 4,
-                        f'{topic1}/callback_start_timestamp': 5
+                        f'{topic}/rclcpp_publish_timestamp': ts,
+                        f'{topic}/source_timestamp': ts + 1,
+                        f'{node}/rmw_take_timestamp': ts + 2,
                     }),
                 ],
                 [
-                    ColumnValue(f'{topic0}/rclcpp_publish_timestamp'),
-                    ColumnValue(f'{topic0}/rcl_publish_timestamp'),
-                    ColumnValue(f'{topic0}/dds_write_timestamp'),
-                    ColumnValue(f'{topic0}/source_timestamp'),
-                    ColumnValue(f'{topic1}/callback_start_timestamp'),
+                    ColumnValue(f'{topic}/rclcpp_publish_timestamp'),
+                    ColumnValue(f'{topic}/source_timestamp'),
+                    ColumnValue(f'{node}/rmw_take_timestamp'),
                 ]
             )
         )
+        rename_rule = {
+            f'{topic}/rclcpp_publish_timestamp': f'{topic}/rclcpp_publish_timestamp/0',
+            f'{topic}/source_timestamp': f'{topic}/source_timestamp/0',
+            f'{node}/rmw_take_timestamp': f'{node}/rmw_take_timestamp/0',
+        }
+        
+        return rename_rule
+
+    def create_mocker_node_path(self, mocker, node, topic, ts):
+        """Helper function to create a mock NodePath."""
+        record_data_dict = {
+            f'{node}/callback_start_timestamp': ts,
+            f'{topic}/rclcpp_publish_timestamp': ts + 2,
+            f'{topic}/source_timestamp': ts + 1,
+        }
+
+        records_data = [RecordCppImpl(record_data_dict)]
+
+        columns = [
+            ColumnValue(f'{node}/callback_start_timestamp'),
+            ColumnValue(f'{topic}/source_timestamp'),
+            ColumnValue(f'{topic}/rclcpp_publish_timestamp'),
+        ]
+
+        rename_rule = {
+            f'{node}/callback_start_timestamp': f'{node}/callback_start_timestamp/0',
+            f'{topic}/source_timestamp': f'{topic}/source_timestamp/0',
+            f'{topic}/rclcpp_publish_timestamp': f'{topic}/rclcpp_publish_timestamp/0',
+        }
+
+        node_path = mocker.Mock(spec=NodePath)
+        mocker.patch.object(
+            node_path, 'to_records',
+            return_value=RecordsCppImpl(records_data, columns)
+        )
+
+        return node_path, rename_rule
+
+    def create_mocker_add_to_path_beginning_records(self, mocker, node_path, node, topic, ts):
+        """Helper function to create a mock begining path record"""
+        mocker.patch.object(
+            node_path, 'to_path_beginning_records',
+            return_value=RecordsCppImpl(
+                [
+                    RecordCppImpl({
+                        f'{node}/callback_start_timestamp': ts,
+                        f'{topic}/source_timestamp': ts + 1,
+                        f'{topic}/rclcpp_publish_timestamp': ts + 2,
+                    }),
+                ],
+                [
+                    ColumnValue(f'{node}/callback_start_timestamp'),
+                    ColumnValue(f'{topic}/source_timestamp'),
+                    ColumnValue(f'{topic}/rclcpp_publish_timestamp'),
+                ]
+            )
+        )
+
+    def test_take_impl_of_path(self, mocker):
+        topic0 = 'topic_0'
+        node0 = 'node_0'
+        node1 = 'node_1'
+
+        node_path, node_path_rename_rule = self.create_mocker_node_path(mocker, node0, topic0, 100)
+        comm_path, comm_path_rename_rule = self.create_mocker_communication_path(mocker, node0, topic0, 102)
+        take_rename_rule = self.create_mocker_add_to_take_record(mocker, comm_path, node1, topic0, 102)
 
         merger_mock = mocker.Mock(spec=ColumnMerger)
         mocker.patch('caret_analyze.runtime.path.ColumnMerger',
@@ -741,279 +707,118 @@ class TestRecordsMerged:
 
         def append_columns_and_return_rename_rule(records):
             if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
-                return {
-                    f'{topic0}/callback_start_timestamp': f'{topic0}/callback_start_timestamp/0',
-                    f'{topic0}/rclcpp_publish_timestamp': f'{topic0}/rclcpp_publish_timestamp/0',
-                }
+                return node_path_rename_rule
             if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
-                return {
-                    f'{topic0}/rclcpp_publish_timestamp': f'{topic0}/rclcpp_publish_timestamp/0',
-                    f'{topic0}/rcl_publish_timestamp': f'{topic0}/rcl_publish_timestamp/0',
-                    f'{topic0}/dds_write_timestamp': f'{topic0}/dds_write_timestamp/0',
-                    f'{topic0}/source_timestamp': f'{topic0}/source_timestamp/0',
-                    f'{topic1}/callback_start_timestamp': f'{topic1}/callback_start_timestamp/0',
-                }
+                return take_rename_rule
         mocker.patch.object(
             merger_mock, 'append_columns_and_return_rename_rule',
             side_effect=append_columns_and_return_rename_rule)
 
-        merged = RecordsMerged([node_path, comm_path], include_first_callback=True)
-        records = merged.data
-
-        expected = RecordsCppImpl(
-            [
-                RecordCppImpl({
-                    f'{topic0}/callback_start_timestamp/0': 0,
-                    f'{topic0}/rclcpp_publish_timestamp/0': 1,
-                    f'{topic0}/rcl_publish_timestamp/0': 2,
-                    f'{topic0}/dds_write_timestamp/0': 3,
-                    f'{topic1}/callback_start_timestamp/0': 5,
-
-                }),
-            ],
-            [
-                ColumnValue(f'{topic0}/callback_start_timestamp/0'),
-                ColumnValue(f'{topic0}/rclcpp_publish_timestamp/0'),
-                ColumnValue(f'{topic0}/rcl_publish_timestamp/0'),
-                ColumnValue(f'{topic0}/dds_write_timestamp/0'),
-                ColumnValue(f'{topic1}/callback_start_timestamp/0'),
-            ]
-        )
-
-        assert records.equals(expected)
-
-    def test_take_impl_case_include_last_callback(self, mocker, caplog):
-        topic0 = 'topic_0'
-        topic1 = 'topic_1'
-        comm_path = mocker.Mock(spec=Communication)
-        mocker.patch.object(comm_path, 'use_take_manually', return_value=True)
-        mocker.patch.object(
-            comm_path, 'to_records',
-            return_value=RecordsCppImpl(
-                [
-                    RecordCppImpl({
-                        f'{topic0}/rclcpp_publish_timestamp': 1,
-                        f'{topic0}/rcl_publish_timestamp': 2,
-                        f'{topic0}/dds_write_timestamp': 3,
-                        f'{topic0}/source_timestamp': 4,
-                    }),
-                ],
-                [
-                    ColumnValue(f'{topic0}/rclcpp_publish_timestamp'),
-                    ColumnValue(f'{topic0}/rcl_publish_timestamp'),
-                    ColumnValue(f'{topic0}/dds_write_timestamp'),
-                    ColumnValue(f'{topic0}/source_timestamp'),
-                ]
-            )
-        )
-
-        node_path = mocker.Mock(spec=NodePath)
-        mocker.patch.object(
-            node_path, 'to_records',
-            return_value=RecordsCppImpl()
-        )
-        mocker.patch.object(
-            node_path, 'to_path_end_records',
-            return_value=RecordsCppImpl(
-                [],
-                [
-                    ColumnValue(f'{topic1}/callback_start_timestamp'),
-                    ColumnValue(f'{topic1}/callback_end_timestamp'),
-                ]
-            )
-        )
-
-        merger_mock = mocker.Mock(spec=ColumnMerger)
-        mocker.patch('caret_analyze.runtime.path.ColumnMerger',
-                     return_value=merger_mock)
-
-        def append_columns_and_return_rename_rule(records):
-            if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
-                return {
-                    f'{topic0}/rclcpp_publish_timestamp': f'{topic0}/rclcpp_publish_timestamp/0',
-                    f'{topic0}/rcl_publish_timestamp': f'{topic0}/rcl_publish_timestamp/0',
-                    f'{topic0}/dds_write_timestamp': f'{topic0}/dds_write_timestamp/0',
-                    f'{topic0}/source_timestamp': f'{topic0}/source_timestamp/0',
-                }
-            if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
-                return {
-                    f'{topic1}/callback_start_timestamp': f'{topic1}/callback_start_timestamp/0',
-                    f'{topic1}/callback_end_timestamp': f'{topic1}/callback_end_timestamp/0',
-                }
-        mocker.patch.object(
-            merger_mock, 'append_columns_and_return_rename_rule',
-            side_effect=append_columns_and_return_rename_rule)
-
-        merged = RecordsMerged([comm_path, node_path], include_last_callback=True)
-        records = merged.data
-
-        expected = RecordsCppImpl(
-            [
-                RecordCppImpl({
-                    f'{topic0}/rclcpp_publish_timestamp/0': 1,
-                    f'{topic0}/rcl_publish_timestamp/0': 2,
-                    f'{topic0}/dds_write_timestamp/0': 3,
-                }),
-            ],
-            [
-                ColumnValue(f'{topic0}/rclcpp_publish_timestamp/0'),
-                ColumnValue(f'{topic0}/rcl_publish_timestamp/0'),
-                ColumnValue(f'{topic0}/dds_write_timestamp/0'),
-            ]
-        )
-
-        assert records.equals(expected)
-
-        caplog.set_level(WARNING)
-        expect = 'Since the path cannot be extended, '
-        expect += 'the merge process for the last callback record is skipped.'
-        assert expect in caplog.text
-
-    def test_take_impl_of_path_last(self, mocker):
-        topic0 = 'topic_0'
-        topic1 = 'topic_1'
-        first_node = 'first_node'
-        last_node = 'last_node'
-
-        comm_path1 = mocker.Mock(spec=Communication)
-        mocker.patch.object(comm_path1, 'use_take_manually', return_value=False)
-        mocker.patch.object(
-            comm_path1, 'to_records',
-            return_value=RecordsCppImpl(
-                [
-                    RecordCppImpl({
-                        f'{topic0}/rclcpp_publish_timestamp': 100,
-                        f'{topic0}/dds_write_timestamp': 110,
-                        f'{first_node}/callback_start_timestamp': 120
-                    }),
-                ],
-                [
-                    ColumnValue(f'{topic0}/rclcpp_publish_timestamp'),
-                    ColumnValue(f'{topic0}/dds_write_timestamp'),
-                    ColumnValue(f'{first_node}/callback_start_timestamp'),
-                ]
-            )
-        )
-
-        node_path = mocker.Mock(spec=NodePath)
-        mocker.patch.object(
-            node_path, 'to_records',
-            return_value=RecordsCppImpl(
-                [
-                    RecordCppImpl({
-                        f'{first_node}/callback_start_timestamp': 120,
-                        f'{topic1}/rclcpp_publish_timestamp': 130
-                    }),
-                ],
-                [
-                    ColumnValue(f'{first_node}/callback_start_timestamp'),
-                    ColumnValue(f'{topic1}/rclcpp_publish_timestamp'),
-                ]
-            )
-        )
-
-        comm_path2 = mocker.Mock(spec=Communication)
-        mocker.patch.object(comm_path2, 'use_take_manually', return_value=True)
-
-        comm_path2.column_names = [
-            f'{topic1}/rclcpp_publish_timestamp',
-            f'{topic1}/dds_write_timestamp',
-            f'{last_node}/callback_start_timestamp',
-        ]
-
-        mocker.patch.object(
-            comm_path2, 'to_records',
-            return_value=RecordsCppImpl(
-                [
-                    RecordCppImpl({
-                        f'{topic1}/rclcpp_publish_timestamp': 130,
-                        f'{topic1}/dds_write_timestamp': 140,
-                        f'{last_node}/callback_start_timestamp': 0,
-                    }),
-                ],
-                [
-                    ColumnValue(f'{topic1}/rclcpp_publish_timestamp'),
-                    ColumnValue(f'{topic1}/dds_write_timestamp'),
-                    ColumnValue(f'{last_node}/callback_start_timestamp'),
-                ]
-            )
-        )
-        mocker.patch.object(
-            comm_path2, 'to_take_records',
-            return_value=RecordsCppImpl(
-                [
-                    RecordCppImpl({
-                        f'{topic1}/rclcpp_publish_timestamp': 130,
-                        f'{topic1}/dds_write_timestamp': 140,
-                        f'{last_node}/rmw_take_timestamp': 150,
-                    }),
-                ],
-                [
-                    ColumnValue(f'{topic1}/rclcpp_publish_timestamp'),
-                    ColumnValue(f'{topic1}/dds_write_timestamp'),
-                    ColumnValue(f'{last_node}/rmw_take_timestamp'),
-                ]
-            )
-        )
-
-        merger_mock = mocker.Mock(spec=ColumnMerger)
-        mocker.patch('caret_analyze.runtime.path.ColumnMerger',
-                     return_value=merger_mock)
-
-        first_merge_rule = {
-            f'{topic0}/rclcpp_publish_timestamp': f'{topic0}/rclcpp_publish_timestamp/0',
-            f'{topic0}/dds_write_timestamp': f'{topic0}/dds_write_timestamp/0',
-            f'{first_node}/callback_start_timestamp': f'{first_node}/callback_start_timestamp/0',
-        }
-        second_merge_rule = {
-            f'{first_node}/callback_start_timestamp': f'{first_node}/callback_start_timestamp/0',
-            f'{topic1}/rclcpp_publish_timestamp': f'{topic1}/rclcpp_publish_timestamp/1',
-        }
-        third_merge_rule = {
-            f'{topic1}/rclcpp_publish_timestamp': f'{topic1}/rclcpp_publish_timestamp/1',
-            f'{topic1}/dds_write_timestamp': f'{topic1}/dds_write_timestamp/1',
-            f'{last_node}/rmw_take_timestamp': f'{last_node}/rmw_take_timestamp/2',
-        }
-
-        rules_to_return_sequentially = [
-            first_merge_rule,
-            second_merge_rule,
-            third_merge_rule
-        ]
-
-        mocker.patch.object(
-            merger_mock, 'append_columns_and_return_rename_rule',
-            side_effect=rules_to_return_sequentially
-        )
-
-        def mock_from_str(column_names: Sequence[str]) -> Columns:
-            unique_column_names = list(dict.fromkeys(column_names))
-            return Columns([ColumnValue(c) for c in unique_column_names])
-
-        mocker.patch('caret_analyze.record.Columns.from_str', side_effect=mock_from_str)
-
-        merged = RecordsMerged([comm_path1, node_path, comm_path2], include_first_callback=False,
+        merged = RecordsMerged([node_path, comm_path], include_first_callback=False,
                                include_last_callback=False)
         records = merged.data
 
         expected = RecordsCppImpl(
             [
                 RecordCppImpl({
-                    f'{topic0}/rclcpp_publish_timestamp/0': 100,
-                    f'{topic0}/dds_write_timestamp/0': 110,
-                    f'{first_node}/callback_start_timestamp/0': 120,
-                    f'{topic1}/rclcpp_publish_timestamp/1': 130,
-                    f'{topic1}/dds_write_timestamp/1': 140,
-                    f'{last_node}/rmw_take_timestamp/2': 150,
+                    f'{node0}/callback_start_timestamp/0': 100,
+                    f'{topic0}/rclcpp_publish_timestamp/0': 102,
+                    f'{node1}/rmw_take_timestamp/0': 104,
                 }),
             ],
             [
+                ColumnValue(f'{node0}/callback_start_timestamp/0'),
                 ColumnValue(f'{topic0}/rclcpp_publish_timestamp/0'),
-                ColumnValue(f'{topic0}/dds_write_timestamp/0'),
-                ColumnValue(f'{first_node}/callback_start_timestamp/0'),
-                ColumnValue(f'{topic1}/rclcpp_publish_timestamp/1'),
-                ColumnValue(f'{topic1}/dds_write_timestamp/1'),
-                ColumnValue(f'{last_node}/rmw_take_timestamp/2'),
+                ColumnValue(f'{node1}/rmw_take_timestamp/0'),
+            ]
+        )
+
+        assert records.equals(expected)
+
+    def test_take_impl_of_path_last_include_first_callback(self, mocker):
+        topic0 = 'topic_0'
+        node0 = 'node_0'
+        node1 = 'node_1'
+
+        node_path, node_path_rename_rule = self.create_mocker_node_path(mocker, node0, topic0, 100)
+        self.create_mocker_add_to_path_beginning_records(mocker, node_path, node0, topic0, 100)
+        comm_path, comm_path_rename_rule = self.create_mocker_communication_path(mocker, node0, topic0, 102)
+        take_rename_rule = self.create_mocker_add_to_take_record(mocker, comm_path, node1, topic0, 102)
+        
+        merger_mock = mocker.Mock(spec=ColumnMerger)
+        mocker.patch('caret_analyze.runtime.path.ColumnMerger',
+                     return_value=merger_mock)
+
+        def append_columns_and_return_rename_rule(records):
+            if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
+                return node_path_rename_rule
+            if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
+                return take_rename_rule
+        mocker.patch.object(
+            merger_mock, 'append_columns_and_return_rename_rule',
+            side_effect=append_columns_and_return_rename_rule)
+
+        merged = RecordsMerged([node_path, comm_path], include_first_callback=True,
+                               include_last_callback=False)
+        records = merged.data
+
+        expected = RecordsCppImpl(
+            [
+                RecordCppImpl({
+                    f'{node0}/callback_start_timestamp/0': 100,
+                    f'{topic0}/rclcpp_publish_timestamp/0': 102,
+                    f'{node1}/rmw_take_timestamp/0': 104,
+                }),
+            ],
+            [
+                ColumnValue(f'{node0}/callback_start_timestamp/0'),
+                ColumnValue(f'{topic0}/rclcpp_publish_timestamp/0'),
+                ColumnValue(f'{node1}/rmw_take_timestamp/0'),
+            ]
+        )
+
+        assert records.equals(expected)
+
+    def test_take_impl_of_path_partial(self, mocker):
+        topic0 = 'topic_0'
+        node0 = 'node_0'
+        node1 = 'node_1'
+
+        node_path, node_path_rename_rule = self.create_mocker_node_path(mocker, node0, topic0, 100)
+        comm_path, comm_path_rename_rule = self.create_mocker_communication_path(mocker, node1, topic0, 102)
+        node_path2, node_path_rename_rule2 = self.create_mocker_node_path(mocker, node1, topic0, 104)
+        
+        merger_mock = mocker.Mock(spec=ColumnMerger)
+        mocker.patch('caret_analyze.runtime.path.ColumnMerger',
+                     return_value=merger_mock)
+
+        def append_columns_and_return_rename_rule(records):
+            if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
+                return node_path_rename_rule
+            if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
+                return comm_path_rename_rule
+            if merger_mock.append_columns_and_return_rename_rule.call_count == 3:
+                return node_path_rename_rule2
+        mocker.patch.object(
+            merger_mock, 'append_columns_and_return_rename_rule',
+            side_effect=append_columns_and_return_rename_rule)
+
+        merged = RecordsMerged([node_path, comm_path, node_path2], include_first_callback=False,
+                               include_last_callback=False)
+        records = merged.data
+
+        expected = RecordsCppImpl(
+            [
+                RecordCppImpl({
+                    f'{node0}/callback_start_timestamp/0': 100,
+                    f'{topic0}/rclcpp_publish_timestamp/0': 102,
+                    f'{node1}/callback_start_timestamp/0': 104,
+                }),
+            ],
+            [
+                ColumnValue(f'{node0}/callback_start_timestamp/0'),
+                ColumnValue(f'{topic0}/rclcpp_publish_timestamp/0'),
+                ColumnValue(f'{node1}/callback_start_timestamp/0'),
             ]
         )
 

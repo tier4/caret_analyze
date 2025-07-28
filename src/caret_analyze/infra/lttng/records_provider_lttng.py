@@ -2113,11 +2113,11 @@ class FilteredRecordsSource:
 
             - publisher_handle
             - rclcpp_publish_timestamp
-            - rmw_take_timestamp
             - rcl_publish_timestamp (Optional)
             - dds_write_timestamp (Optional)
             - message_timestamp
             - source_timestamp
+            - rmw_take_timestamp
 
         """
         pub_records = self.publish_records(publisher_handles)
