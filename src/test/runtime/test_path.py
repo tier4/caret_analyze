@@ -12,12 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Sequence
-from logging import INFO
-
 from caret_analyze.exceptions import InvalidArgumentError
 from caret_analyze.infra import RecordsProvider
-from caret_analyze.record.column import Columns, ColumnValue
+from caret_analyze.record.column import ColumnValue
 from caret_analyze.record.interface import RecordsInterface
 from caret_analyze.record.record_cpp_impl import RecordCppImpl, RecordsCppImpl
 from caret_analyze.runtime.callback import CallbackBase
@@ -26,7 +23,6 @@ from caret_analyze.runtime.node_path import NodePath
 from caret_analyze.runtime.path import ColumnMerger, Path, RecordsMerged
 from caret_analyze.value_objects import NodePathStructValue, PathStructValue
 
-import pandas as pd
 import pytest
 
 
@@ -601,7 +597,7 @@ class TestRecordsMerged:
         rename_rule = {
             f'{topic}/rclcpp_publish_timestamp': f'{topic}/rclcpp_publish_timestamp/0',
             f'{topic}/source_timestamp': f'{topic}/source_timestamp/0',
-            f'{node}/callback_start_timestamp' : f'{node}/callback_start_timestamp/0'
+            f'{node}/callback_start_timestamp': f'{node}/callback_start_timestamp/0'
         }
 
         comm_path = mocker.Mock(spec=Communication)
@@ -673,7 +669,7 @@ class TestRecordsMerged:
         return node_path, rename_rule
 
     def create_mocker_add_to_path_beginning_records(self, mocker, node_path, node, topic, ts):
-        """Add to_path_biginning_records to NodePath mocker."""
+        """Add to_path_beginning_records to NodePath mocker."""
         mocker.patch.object(
             node_path, 'to_path_beginning_records',
             return_value=RecordsCppImpl(
