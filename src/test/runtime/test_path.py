@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from logging import INFO
-
 from caret_analyze.exceptions import InvalidArgumentError
 from caret_analyze.infra import RecordsProvider
 from caret_analyze.record.column import ColumnValue
@@ -834,4 +832,3 @@ class TestRecordsMerged:
         )
 
         assert records.equals(expected)
-
