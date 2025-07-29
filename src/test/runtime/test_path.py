@@ -730,7 +730,8 @@ class TestRecordsMerged:
             merger_mock, 'append_columns_and_return_rename_rule',
             side_effect=append_columns_and_return_rename_rule)
 
-        merged = RecordsMerged([node_path, comm_path, empty_node_path], include_first_callback=False,
+        merged = RecordsMerged([node_path, comm_path, empty_node_path],
+                               include_first_callback=False,
                                include_last_callback=False)
         records = merged.data
 
@@ -782,7 +783,8 @@ class TestRecordsMerged:
             merger_mock, 'append_columns_and_return_rename_rule',
             side_effect=append_columns_and_return_rename_rule)
 
-        merged = RecordsMerged([node_path, comm_path, empty_node_path], include_first_callback=True,
+        merged = RecordsMerged([node_path, comm_path, empty_node_path],
+                               include_first_callback=True,
                                include_last_callback=False)
         records = merged.data
 
@@ -833,7 +835,8 @@ class TestRecordsMerged:
             merger_mock, 'append_columns_and_return_rename_rule',
             side_effect=append_columns_and_return_rename_rule)
 
-        merged = RecordsMerged([node_path, comm_path, empty_node_path], include_first_callback=False,
+        merged = RecordsMerged([node_path, comm_path, empty_node_path],
+                               include_first_callback=False,
                                include_last_callback=True)
         records = merged.data
 
