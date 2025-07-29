@@ -834,4 +834,4 @@ class TestRecordsMerged:
         )
 
         assert records.equals(expected)
-        
+
