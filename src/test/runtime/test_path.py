@@ -766,7 +766,7 @@ class TestRecordsMerged:
             self.create_mocker_add_to_take_record(mocker, comm_path, node1, topic1, 102)
         empty_node_path, empty_rename_rule = \
             self.create_mocker_empty_node_path(mocker)
-        
+
         merger_mock = mocker.Mock(spec=ColumnMerger)
         mocker.patch('caret_analyze.runtime.path.ColumnMerger',
                      return_value=merger_mock)
@@ -853,7 +853,7 @@ class TestRecordsMerged:
         )
 
         assert records.equals(expected)
-        
+
         caplog.set_level(INFO)
         expect = 'Since the path cannot be extended, '
         expect += 'the merge process for the last callback record is skipped.'
