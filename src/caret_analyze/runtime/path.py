@@ -241,8 +241,14 @@ class RecordsMerged:
 
         take_records_applied_for_last_communication: bool = False
 
+        import pandas as pd
+        pd.set_option('display.max_columns', None)  # Show all columns in DataFrame output
+        pd.set_option('display.width', None)  # Prevent line wrapping in DataFrame output
+        i = 0
         for target_, target in zip(targets[:-1], targets[1:]):
             right_records: RecordsInterface = target.to_records()
+            i = i + 1
+            print(f"\n\n--- {i} ---\nleft: {left_records.to_dataframe()}\nright: {right_records.to_dataframe()}")
 
             is_dummy_records = len(right_records.columns) == 0
 
@@ -319,13 +325,19 @@ class RecordsMerged:
                     how='left'
                 )
 
-        if (not take_records_applied_for_last_communication and
-                include_last_callback and
-                targets and
-                isinstance(targets[-1], NodePath)):
-            if not is_match_column(left_records.columns[-1], 'source_timestamp'):
-                right_records = targets[-1].to_path_end_records()
+        if include_last_callback and isinstance(targets[-1], NodePath):
+            output_log = False
+            if take_records_applied_for_last_communication:
+                output_log = True
+            elif is_match_column(left_records.columns[-1], 'source_timestamp'):
+                output_log = True
 
+            if output_log:
+                msg = 'Since the path cannot be extended, '
+                msg += 'the merge process for the last callback record is skipped.'
+                logger.info(msg)
+            else:
+                right_records = targets[-1].to_path_end_records()
                 rename_rule = column_merger.append_columns_and_return_rename_rule(right_records)
                 right_records.rename_columns(rename_rule)
 
@@ -348,10 +360,6 @@ class RecordsMerged:
                     else:
                         msg = 'Empty records are not merged.'
                         logger.warning(msg)
-            else:
-                msg = 'Since the path cannot be extended, '
-                msg += 'the merge process for the last callback record is skipped.'
-                logger.info(msg)
 
         logger.info('Finished merging path records.')
         if first_column is not None:

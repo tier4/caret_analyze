@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import INFO
+
 from caret_analyze.exceptions import InvalidArgumentError
 from caret_analyze.infra import RecordsProvider
 from caret_analyze.record.column import ColumnValue
@@ -643,7 +645,6 @@ class TestRecordsMerged:
         topic2 = topic[:-1] + str(int(topic[-1]) + 1)
         record_data_dict = {
             f'{node}/callback_start_timestamp': ts,
-            f'{topic}/source_timestamp': ts + 1,
             f'{topic2}/rclcpp_publish_timestamp': ts + 2,
         }
 
@@ -651,13 +652,11 @@ class TestRecordsMerged:
 
         columns = [
             ColumnValue(f'{node}/callback_start_timestamp'),
-            ColumnValue(f'{topic}/source_timestamp'),
             ColumnValue(f'{topic2}/rclcpp_publish_timestamp'),
         ]
 
         rename_rule = {
             f'{node}/callback_start_timestamp': f'{node}/callback_start_timestamp/0',
-            f'{topic}/source_timestamp': f'{topic}/source_timestamp/0',
             f'{topic2}/rclcpp_publish_timestamp': f'{topic2}/rclcpp_publish_timestamp/0',
         }
 
@@ -669,6 +668,19 @@ class TestRecordsMerged:
 
         return node_path, rename_rule
 
+    def create_mocker_empty_node_path(self, mocker):
+        """Create mocker for empty NodePath."""
+        node_path = mocker.Mock(spec=NodePath)
+
+        mocker.patch.object(
+            node_path, 'to_records',
+            return_value=RecordsCppImpl([], [])
+        )
+
+        empty_rename_rule = {}
+
+        return node_path, empty_rename_rule
+
     def create_mocker_add_to_path_beginning_records(self, mocker, node_path, node, topic, ts):
         """Add to_path_beginning_records to NodePath mocker."""
         topic2 = topic[:-1] + str(int(topic[-1]) + 1)
@@ -678,13 +690,11 @@ class TestRecordsMerged:
                 [
                     RecordCppImpl({
                         f'{node}/callback_start_timestamp': ts,
-                        f'{topic}/source_timestamp': ts + 1,
                         f'{topic2}/rclcpp_publish_timestamp': ts + 2,
                     }),
                 ],
                 [
                     ColumnValue(f'{node}/callback_start_timestamp'),
-                    ColumnValue(f'{topic}/source_timestamp'),
                     ColumnValue(f'{topic2}/rclcpp_publish_timestamp'),
                 ]
             )
@@ -702,6 +712,8 @@ class TestRecordsMerged:
             self.create_mocker_communication_path(mocker, node1, topic1, 102)
         take_rename_rule = \
             self.create_mocker_add_to_take_record(mocker, comm_path, node1, topic1, 102)
+        empty_node_path, empty_rename_rule = \
+            self.create_mocker_empty_node_path(mocker)
 
         merger_mock = mocker.Mock(spec=ColumnMerger)
         mocker.patch('caret_analyze.runtime.path.ColumnMerger',
@@ -712,11 +724,13 @@ class TestRecordsMerged:
                 return node_path_rename_rule
             if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
                 return take_rename_rule
+            if merger_mock.append_columns_and_return_rename_rule.call_count == 3:
+                return empty_rename_rule
         mocker.patch.object(
             merger_mock, 'append_columns_and_return_rename_rule',
             side_effect=append_columns_and_return_rename_rule)
 
-        merged = RecordsMerged([node_path, comm_path], include_first_callback=False,
+        merged = RecordsMerged([node_path, comm_path, empty_node_path], include_first_callback=False,
                                include_last_callback=False)
         records = merged.data
 
@@ -750,7 +764,9 @@ class TestRecordsMerged:
             self.create_mocker_communication_path(mocker, node1, topic1, 102)
         take_rename_rule = \
             self.create_mocker_add_to_take_record(mocker, comm_path, node1, topic1, 102)
-
+        empty_node_path, empty_rename_rule = \
+            self.create_mocker_empty_node_path(mocker)
+        
         merger_mock = mocker.Mock(spec=ColumnMerger)
         mocker.patch('caret_analyze.runtime.path.ColumnMerger',
                      return_value=merger_mock)
@@ -760,11 +776,13 @@ class TestRecordsMerged:
                 return node_path_rename_rule
             if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
                 return take_rename_rule
+            if merger_mock.append_columns_and_return_rename_rule.call_count == 3:
+                return empty_rename_rule
         mocker.patch.object(
             merger_mock, 'append_columns_and_return_rename_rule',
             side_effect=append_columns_and_return_rename_rule)
 
-        merged = RecordsMerged([node_path, comm_path], include_first_callback=True,
+        merged = RecordsMerged([node_path, comm_path, empty_node_path], include_first_callback=True,
                                include_last_callback=False)
         records = merged.data
 
@@ -793,11 +811,12 @@ class TestRecordsMerged:
 
         node_path, node_path_rename_rule = \
             self.create_mocker_node_path(mocker, node0, topic0, 100)
-        self.create_mocker_add_to_path_beginning_records(mocker, node_path, node0, topic0, 100)
         comm_path, comm_path_rename_rule = \
             self.create_mocker_communication_path(mocker, node1, topic1, 102)
         take_rename_rule = \
             self.create_mocker_add_to_take_record(mocker, comm_path, node1, topic1, 102)
+        empty_node_path, empty_rename_rule = \
+            self.create_mocker_empty_node_path(mocker)
 
         merger_mock = mocker.Mock(spec=ColumnMerger)
         mocker.patch('caret_analyze.runtime.path.ColumnMerger',
@@ -808,11 +827,13 @@ class TestRecordsMerged:
                 return node_path_rename_rule
             if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
                 return take_rename_rule
+            if merger_mock.append_columns_and_return_rename_rule.call_count == 3:
+                return empty_rename_rule
         mocker.patch.object(
             merger_mock, 'append_columns_and_return_rename_rule',
             side_effect=append_columns_and_return_rename_rule)
 
-        merged = RecordsMerged([node_path, comm_path], include_first_callback=False,
+        merged = RecordsMerged([node_path, comm_path, empty_node_path], include_first_callback=False,
                                include_last_callback=True)
         records = merged.data
 
@@ -832,3 +853,8 @@ class TestRecordsMerged:
         )
 
         assert records.equals(expected)
+        
+        caplog.set_level(INFO)
+        expect = 'Since the path cannot be extended, '
+        expect += 'the merge process for the last callback record is skipped.'
+        assert expect in caplog.text
