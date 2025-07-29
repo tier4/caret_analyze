@@ -240,15 +240,8 @@ class RecordsMerged:
             raise InvalidRecordsError('Communication record does not exist')
 
         take_records_applied_for_last_communication: bool = False
-
-        import pandas as pd
-        pd.set_option('display.max_columns', None)  # Show all columns in DataFrame output
-        pd.set_option('display.width', None)  # Prevent line wrapping in DataFrame output
-        i = 0
         for target_, target in zip(targets[:-1], targets[1:]):
             right_records: RecordsInterface = target.to_records()
-            i = i + 1
-            print(f"\n\n--- {i} ---\nleft: {left_records.to_dataframe()}\nright: {right_records.to_dataframe()}")
 
             is_dummy_records = len(right_records.columns) == 0
 
