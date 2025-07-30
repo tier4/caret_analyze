@@ -645,6 +645,7 @@ class TestRecordsMerged:
         topic2 = topic[:-1] + str(int(topic[-1]) + 1)
         record_data_dict = {
             f'{node}/callback_start_timestamp': ts,
+            f'{topic}/source_timestamp': ts + 1,
             f'{topic2}/rclcpp_publish_timestamp': ts + 2,
         }
 
@@ -652,11 +653,13 @@ class TestRecordsMerged:
 
         columns = [
             ColumnValue(f'{node}/callback_start_timestamp'),
+            ColumnValue(f'{topic}/source_timestamp'),
             ColumnValue(f'{topic2}/rclcpp_publish_timestamp'),
         ]
 
         rename_rule = {
             f'{node}/callback_start_timestamp': f'{node}/callback_start_timestamp/0',
+            f'{topic}/source_timestamp': f'{topic}/source_timestamp/0',
             f'{topic2}/rclcpp_publish_timestamp': f'{topic2}/rclcpp_publish_timestamp/0',
         }
 
@@ -771,6 +774,9 @@ class TestRecordsMerged:
         merger_mock = mocker.Mock(spec=ColumnMerger)
         mocker.patch('caret_analyze.runtime.path.ColumnMerger',
                      return_value=merger_mock)
+
+        node_path_rename_rule = \
+            {k: v for k, v in node_path_rename_rule.items() if 'source_timestamp' not in k}
 
         def append_columns_and_return_rename_rule(records):
             if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
