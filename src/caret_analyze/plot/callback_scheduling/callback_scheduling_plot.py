@@ -200,7 +200,7 @@ class CallbackSchedulingPlot(PlotBase):
             msg = 'callback_groups has no callback.'
             logger.warning(msg)
             raise ItemNotFoundError(msg)
-        
+
     @staticmethod
     def _get_callback_groups(target_objects: CallbackGroupTypes) -> list[CallbackGroup]:
         callback_groups: list[CallbackGroup]
