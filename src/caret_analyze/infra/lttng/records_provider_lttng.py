@@ -108,6 +108,35 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         return self._compose_inter_proc_comm_records(comm_val)
 
+    def communication_take_records(
+        self,
+        comm_val: CommunicationStructValue
+    ) -> RecordsInterface:
+        """
+        Provide communication take records.
+
+        Parameters
+        ----------
+        comm_val : CommunicationStructValue
+            communication value.
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+
+            inter-proc communication only
+
+            - [topic_name]/rclcpp_publish_timestamp
+            - [topic_name]/rcl_publish_timestamp (Optional)
+            - [topic_name]/dds_write_timestamp (Optional)
+            - [topic_name]/source_timestamp
+            - [node_name]/rmw_take_timestamp
+
+        """
+        assert comm_val.subscribe_callback_name is not None
+        return self._compose_inter_proc_take_comm_records(comm_val)
+
     def node_records(
         self,
         node_path_val: NodePathStructValue,
@@ -246,7 +275,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             Columns
 
             - [topic_name]/source_timestamp
-            - rmw_take_timestamp
+            - [node_name]/rmw_take_timestamp
 
         Raises
         ------
@@ -1035,7 +1064,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/rcl_publish_timestamp (Optional)
             - [topic_name]/dds_write_timestamp (Optional)
             - [topic_name]/source_timestamp
-            - [callback_name_name]/callback_start_timestamp
+            - [callback_name]/callback_start_timestamp
 
         """
         publisher = comm_value.publisher
@@ -1064,6 +1093,72 @@ class RecordsProviderLttng(RuntimeDataProvider):
         self._rename_column(records, comm_value.subscribe_callback_name,
                             comm_value.topic_name, None)
 
+        return records
+
+    def _compose_inter_proc_take_comm_records(
+        self,
+        comm_value: CommunicationStructValue
+    ) -> RecordsInterface:
+        """
+        Composer inter process communication records.
+
+        Parameters
+        ----------
+        comm_value : CommunicationStructValue
+            Target communication value.
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+
+            - [topic_name]/rclcpp_publish_timestamp
+            - [topic_name]/rcl_publish_timestamp (Optional)
+            - [topic_name]/dds_write_timestamp (Optional)
+            - [topic_name]/source_timestamp
+            - [node_name]/rmw_take_timestamp
+
+        """
+        publisher = comm_value.publisher
+        subscription_cb = comm_value.subscribe_callback
+
+        assert subscription_cb is not None
+        assert isinstance(subscription_cb, SubscriptionCallbackStructValue)
+
+        publisher_handles = self._helper.get_publisher_handles(publisher)
+
+        callback = comm_value.subscription.callback
+        rmw_handle = None
+        if callback is not None:
+            callback_objects = self._helper.get_subscription_callback_objects(callback)
+
+            rmw_handle =\
+                self._srv.get_rmw_subscription_handle_from_callback_object(callback_objects[0])
+        else:
+            raise InvalidArgumentError('comm_value subscription has no callbacks')
+
+        if rmw_handle is not None:
+            records = self._source.inter_take_comm_records(publisher_handles, rmw_handle)
+        else:
+            raise InvalidArgumentError(
+                'Failed to get rmw subscription handle from callback object.'
+                f'callback_object: {callback_objects[0]}'
+            )
+
+        columns = [COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP]
+        if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in records.columns:
+            columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
+        if COLUMN_NAME.DDS_WRITE_TIMESTAMP in records.columns:
+            columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
+        columns += [
+            COLUMN_NAME.SOURCE_TIMESTAMP,
+            COLUMN_NAME.RMW_TAKE_TIMESTAMP,
+        ]
+
+        self._format(records, columns)
+
+        self._rename_column(records, comm_value.subscribe_callback_name,
+                            comm_value.topic_name, comm_value.subscribe_node_name)
         return records
 
     @staticmethod
@@ -1118,8 +1213,12 @@ class RecordsProviderLttng(RuntimeDataProvider):
                 f'{topic_name}/{COLUMN_NAME.SOURCE_TIMESTAMP}'
 
         if COLUMN_NAME.RMW_TAKE_TIMESTAMP in records.columns:
-            rename_dict[COLUMN_NAME.RMW_TAKE_TIMESTAMP] =\
-                f'{topic_name}/{COLUMN_NAME.RMW_TAKE_TIMESTAMP}'
+            if node_name:
+                rename_dict[COLUMN_NAME.RMW_TAKE_TIMESTAMP] =\
+                    f'{node_name}/{COLUMN_NAME.RMW_TAKE_TIMESTAMP}'
+            else:
+                rename_dict[COLUMN_NAME.RMW_TAKE_TIMESTAMP] =\
+                    f'{topic_name}/{COLUMN_NAME.RMW_TAKE_TIMESTAMP}'
 
         if COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP in records.columns:
             rename_dict[COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP] = \
@@ -1949,6 +2048,7 @@ class FilteredRecordsSource:
             - dds_write_timestamp (Optional)
             - message_timestamp
             - source_timestamp
+            - rmw_take_timestamp (Optional)
 
         """
         pub_records = self.publish_records(publisher_handles)
@@ -1978,6 +2078,76 @@ class FilteredRecordsSource:
         columns += [
             COLUMN_NAME.MESSAGE_TIMESTAMP,
             COLUMN_NAME.SOURCE_TIMESTAMP
+        ]
+        if COLUMN_NAME.RMW_TAKE_TIMESTAMP in merged.columns:
+            columns.append(COLUMN_NAME.RMW_TAKE_TIMESTAMP)
+        drop = list(set(merged.columns) - set(columns))
+        merged.drop_columns(drop)
+        merged.reindex(columns)
+
+        # NOTE: After merge, the dropped data are aligned at the end
+        # regardless of the time of publish.
+        merged.sort(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
+
+        return merged
+
+    def inter_take_comm_records(
+        self,
+        publisher_handles: list[int],
+        rmw_handle: int
+    ) -> RecordsInterface:
+        """
+        Compose filtered inter communication records.
+
+        Parameters
+        ----------
+        publisher_handles : list[int]
+            publisher handles
+        rmw_handle : int
+            rmw_take subscription handle
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+
+            - publisher_handle
+            - rclcpp_publish_timestamp
+            - rcl_publish_timestamp (Optional)
+            - dds_write_timestamp (Optional)
+            - message_timestamp
+            - source_timestamp
+            - rmw_take_timestamp
+
+        """
+        pub_records = self.publish_records(publisher_handles)
+        rmw_records = self._grouped_rmw_take_records[rmw_handle].clone()
+        rmw_records.drop_columns([
+            'rmw_subscription_handle'])
+
+        merged = merge(
+            left_records=pub_records,
+            right_records=rmw_records,
+            join_left_key=COLUMN_NAME.SOURCE_TIMESTAMP,
+            join_right_key=COLUMN_NAME.SOURCE_TIMESTAMP,
+            columns=Columns.from_str(
+                pub_records.columns + rmw_records.columns
+            ).column_names,
+            how='left'
+        )
+
+        columns = [
+            COLUMN_NAME.PUBLISHER_HANDLE,
+            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
+        ]
+        if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in merged.columns:
+            columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
+        if COLUMN_NAME.DDS_WRITE_TIMESTAMP in merged.columns:
+            columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
+        columns += [
+            COLUMN_NAME.MESSAGE_TIMESTAMP,
+            COLUMN_NAME.SOURCE_TIMESTAMP,
+            COLUMN_NAME.RMW_TAKE_TIMESTAMP,
         ]
         drop = list(set(merged.columns) - set(columns))
         merged.drop_columns(drop)

@@ -398,10 +398,8 @@ class RecordsSource():
         )
         rmw_sub_records.drop_columns(
             [
-                COLUMN_NAME.RMW_TAKE_TIMESTAMP,
                 COLUMN_NAME.TID,
                 COLUMN_NAME.MESSAGE,
-                COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE,
             ]
         )
 
@@ -412,6 +410,7 @@ class RecordsSource():
                 ColumnValue(COLUMN_NAME.CALLBACK_OBJECT),
                 ColumnValue(COLUMN_NAME.IS_INTRA_PROCESS),
                 ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.RMW_TAKE_TIMESTAMP),
             ]
         )
         inter_proc_subscribe.concat(dispatch_sub_records)
