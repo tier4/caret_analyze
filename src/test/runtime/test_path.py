@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from logging import INFO
+from logging import WARNING
 
 from caret_analyze.exceptions import InvalidArgumentError
 from caret_analyze.infra import RecordsProvider
@@ -863,7 +863,7 @@ class TestRecordsMerged:
 
         assert records.equals(expected)
 
-        caplog.set_level(INFO)
+        caplog.set_level(WARNING)
         expect = 'Since the path cannot be extended, '
         expect += 'the merge process for the last callback record is skipped.'
         assert expect in caplog.text

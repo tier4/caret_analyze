@@ -328,7 +328,7 @@ class RecordsMerged:
             if output_log:
                 msg = 'Since the path cannot be extended, '
                 msg += 'the merge process for the last callback record is skipped.'
-                logger.info(msg)
+                logger.warning(msg)
             else:
                 right_records = targets[-1].to_path_end_records()
                 rename_rule = column_merger.append_columns_and_return_rename_rule(right_records)
