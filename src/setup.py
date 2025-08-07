@@ -17,7 +17,11 @@ setup(
     maintainer_email='yamasaki@isp.co.jp, uetsuki@isp.co.jp',
     description="CARET\'s tools for analyzing trace results",
     license='Apache License 2.0',
-    tests_require=['pytest'],
+    extras_require={
+        'test': [
+            'pytest',
+        ],
+    },
     entry_points={
     },
 )
