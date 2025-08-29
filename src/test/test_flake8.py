@@ -21,9 +21,11 @@ import pytest
 def test_flake8():
     rc, errors = main_with_errors()
 
+    ignored_rules = ['A005', 'I300']
+
     filtered_errors = []
     for error in errors:
-        if 'A005' not in error and 'I300' not in error:
+        if not any(rule in error for rule in ignored_rules):
             filtered_errors.append(error)
 
     assert len(filtered_errors) == 0, 'Found %d code style errors / warnings:\n' % len(
