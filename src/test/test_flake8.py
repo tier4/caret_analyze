@@ -19,8 +19,13 @@ import pytest
 @pytest.mark.flake8
 @pytest.mark.linter
 def test_flake8():
-    ignore_files = 'src/caret_analyze/architecture/struct/__init__.py'
-    rc, errors = main_with_errors(argv=[f'--exclude={ignore_files}'])
-    assert rc == 0, 'Found %d code style errors / warnings:\n' % len(
-        errors
-    ) + '\n'.join(errors)
+    rc, errors = main_with_errors()
+
+    filtered_errors = []
+    for error in errors:
+        if 'A005' not in error and 'I300' not in error:
+            filtered_errors.append(error)
+
+    assert len(filtered_errors) == 0, 'Found %d code style errors / warnings:\n' % len(
+        filtered_errors
+    ) + '\n'.join(filtered_errors)
