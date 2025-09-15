@@ -102,6 +102,8 @@ class Ros2DataModel():
             ['state_machine_handle', 'start_label', 'goal_label', 'timestamp'])
 
         # For Agnocast (initialization)
+        self._agnocast_publishers = TracePointIntermediateData(
+            ['publisher_handle', 'timestamp', 'node_handle', 'topic_name', 'depth'])
         self._agnocast_subscriptions = TracePointIntermediateData(
             ['subscription_handle', 'timestamp', 'node_handle', 'callback_object',
              'callback_group_addr', 'symbol', 'topic_name', 'depth', 'pid_ciid'])
@@ -723,7 +725,18 @@ class Ros2DataModel():
         self.dispatch_intra_process_subscription_callback_instances.append(
             record)
 
-    # For Agnocast
+    def add_agnocast_publisher(
+        self, handle, timestamp, node_handle, topic_name, depth
+    ) -> None:
+        record = {
+            'publisher_handle': handle,
+            'timestamp': timestamp,
+            'node_handle': node_handle,
+            'topic_name': topic_name,
+            'depth': depth
+        }
+        self._agnocast_publishers.append(record)
+
     def add_agnocast_subscription(
         self, handle, timestamp, node_handle, callback_object, callback_group_addr, symbol,
         topic_name, depth, pid_ciid
@@ -1070,7 +1083,9 @@ class Ros2DataModel():
         self.rmw_impl = self._rmw_impl.get_finalized()
         del self._rmw_impl
 
-        # For Agnocast
+        self.agnocast_publishers = self._agnocast_publishers.get_finalized('publisher_handle')
+        del self._agnocast_publishers
+
         self.agnocast_subscriptions = self._agnocast_subscriptions.get_finalized(
             'subscription_handle')
         del self._agnocast_subscriptions

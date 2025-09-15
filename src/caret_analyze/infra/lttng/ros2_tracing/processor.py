@@ -1280,10 +1280,7 @@ class Ros2Handler():
             event)
         node_handle = self._remapper.node_handle_remapper.get_nearest_object_id(node_handle, event)
 
-        # HACK: add to existing data
-        rmw_handle = 0  # This is not used for analysis.
-        self.data.add_publisher(publisher_handle, timestamp, node_handle,
-                                rmw_handle, topic_name, depth)
+        self.data.add_agnocast_publisher(publisher_handle, timestamp, node_handle, topic_name, depth)
 
     def _handle_agnocast_construct_executor(
         self,

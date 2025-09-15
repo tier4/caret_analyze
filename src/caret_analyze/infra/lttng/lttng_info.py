@@ -1200,6 +1200,15 @@ class DataFrameFormatted:
         publishers = data.publishers.clone()
         publishers.reset_index()
 
+        # Concatenate Agnocast data
+        if len(data.agnocast_publishers) > 0:
+            agnocast_publishers = data.agnocast_publishers.clone()
+            agnocast_publishers.reset_index()
+            publishers = TracePointData.concat(
+                [publishers, agnocast_publishers],
+                ['publisher_handle', 'timestamp', 'node_handle', 'topic_name', 'depth']
+            )
+
         DataFrameFormatted._add_construction_order_publisher_or_subscription(
             publishers, 'construction_order', 'timestamp', 'node_handle', 'topic_name')
 
