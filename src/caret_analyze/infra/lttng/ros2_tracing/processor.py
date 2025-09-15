@@ -1301,8 +1301,7 @@ class Ros2Handler():
             executor_addr = self._remapper.executor_addr_remapper.register_and_get_object_id(
                 executor_addr, event)
 
-        # HACK: add to existing data
-        self.data.add_executor(executor_addr, timestamp, executor_type_name)
+        self.data.add_agnocast_executor(executor_addr, timestamp, executor_type_name)
 
     def _handle_agnocast_publish(
         self,

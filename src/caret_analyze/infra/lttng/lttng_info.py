@@ -1324,6 +1324,14 @@ class DataFrameFormatted:
             columns_ = columns[1:]  # ignore executor_id
             executors = TracePointData.concat(
                 [executors, executors_static], columns_)
+        
+        # Concatenate Agnocast data
+        agnocast_executors = data.agnocast_executors.clone()
+        agnocast_executors.reset_index()
+        if len(agnocast_executors) > 0:
+            columns_ = columns[1:]  # ignore executor_id
+            executors = TracePointData.concat(
+                [executors, agnocast_executors], columns_)
 
         def to_executor_id(row: pd.Series) -> str:
             addr = row['executor_addr']

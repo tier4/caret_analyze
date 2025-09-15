@@ -105,6 +105,8 @@ class Ros2DataModel():
         self._agnocast_subscriptions = TracePointIntermediateData(
             ['subscription_handle', 'timestamp', 'node_handle', 'callback_object',
              'callback_group_addr', 'symbol', 'topic_name', 'depth', 'pid_ciid'])
+        self._agnocast_executors = TracePointIntermediateData(
+            ['timestamp', 'executor_addr', 'executor_type_name'])
 
         # Events (multiple instances, may not have a meaningful index)
         self.callback_start_instances = RecordsFactory.create_instance(
@@ -739,6 +741,19 @@ class Ros2DataModel():
         }
         self._agnocast_subscriptions.append(record)
 
+    def add_agnocast_executor(
+        self,
+        executor_addr: int,
+        timestamp: int,
+        executor_type_name: str
+    ) -> None:
+        record = {
+            'timestamp': timestamp,
+            'executor_addr': executor_addr,
+            'executor_type_name': executor_type_name,
+        }
+        self._agnocast_executors.append(record)
+
     def add_agnocast_create_callable_instance(
         self,
         timestamp: int,
@@ -1059,6 +1074,9 @@ class Ros2DataModel():
         self.agnocast_subscriptions = self._agnocast_subscriptions.get_finalized(
             'subscription_handle')
         del self._agnocast_subscriptions
+
+        self.agnocast_executors = self._agnocast_executors.get_finalized('executor_addr')
+        del self._agnocast_executors
 
     def merge_agnocast_data(self):
         id_2_callback_records = RecordsFactory.create_instance(
