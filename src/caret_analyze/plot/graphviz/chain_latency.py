@@ -128,11 +128,14 @@ def to_label(latency: np.ndarray) -> str:
 
     """
     latency = latency[[not pd.isnull(_) for _ in latency]]
-    label = (
-        'min: {:.2f} ms\n'.format(np.min(latency * 1.0e-6))
-        + 'avg: {:.2f} ms\n'.format(np.average(latency * 1.0e-6))
-        + 'max: {:.2f} ms'.format(np.max(latency * 1.0e-6))
-    )
+    if len(latency) > 0:
+        label = (
+            'min: {:.2f} ms\n'.format(float(np.min(latency * 1.0e-6)))
+            + 'avg: {:.2f} ms\n'.format(float(np.average(latency * 1.0e-6)))
+            + 'max: {:.2f} ms'.format(float(np.max(latency * 1.0e-6)))
+        )
+    else:
+        label = 'Latency cannot be calculated'
     return label
 
 

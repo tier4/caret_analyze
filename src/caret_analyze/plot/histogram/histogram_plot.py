@@ -152,7 +152,7 @@ class HistogramPlot(PlotBase):
             else:
                 return metrics.to_records(converter=converter)
 
-        data_list: list[list[int]] = [
+        data_list: list[list[int | float]] = [
             [
                 _ for _ in to_records(m, converter).get_column_series(self._metrics_name)
                 if _ is not None

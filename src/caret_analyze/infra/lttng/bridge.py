@@ -44,16 +44,17 @@ class LttngBridge:
         - node name
         - callback type
         - period_ns
-        - publish topic names
+        - symbol
+        - construction order
 
         Parameters
         ----------
-        callback :TimerCallbackStructValueTimerCallbackStructValue
+        callback :TimerCallbackStructValue
             Callback value to be searched.
 
         Returns
         -------
-        [TimerCallbackValueLttng]
+        TimerCallbackValueLttng
             Timer callback value, including runtime information.
 
         Raises
@@ -90,8 +91,9 @@ class LttngBridge:
         used conditions:
         - node name
         - callback type
-        - subscription topic name
-        - publish topic names
+        - symbol
+        - subscribe topic name
+        - construction order
 
         Parameters
         ----------
@@ -134,6 +136,11 @@ class LttngBridge:
         """
         Get publisher handles.
 
+        used conditions:
+        - node name
+        - topic name
+        - construction order
+
         Parameters
         ----------
         publisher_value : PublisherStructValue
@@ -143,6 +150,11 @@ class LttngBridge:
         -------
         list[PublisherValueLttng]
             publisher values that match the condition
+
+        Raises
+        ------
+        ItemNotFoundError
+            No value matching the search condition is found.
 
         """
         try:
@@ -166,7 +178,8 @@ class TimerCallbackBindCondition:
     - node name
     - callback type
     - period_ns
-    - publish topic names
+    - symbol
+    - construction order
 
     """
 
@@ -212,8 +225,9 @@ class SubscriptionCallbackBindCondition:
     used conditions:
     - node name
     - callback type
-    - subscription topic name
-    - publish topic names
+    - symbol
+    - subscribe topic name
+    - construction order
 
     """
 
@@ -265,6 +279,7 @@ class PublisherBindCondition:
     used conditions:
     - node name
     - topic name
+    - construction order
 
     """
 

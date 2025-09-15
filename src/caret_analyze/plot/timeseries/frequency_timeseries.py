@@ -20,11 +20,54 @@ import pandas as pd
 
 from ..metrics_base import MetricsBase
 from ..util import get_clock_converter
-from ...common import ClockConverter, Util
+from ...common import Util
 from ...record import Frequency, RecordsInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
+
+
+def _get_frequency_computing_timestamp_offset_ns(timeseries_record: RecordsInterface) -> int:
+    """
+    Calculate the offset time for frequency calculation.
+
+    Parameters
+    ----------
+    timeseries_record : RecordsInterface
+        Timeseries record.
+
+    Returns
+    -------
+    int
+        Offset in nanoseconds. The offset is half the interval time.
+        For example, if the frequency is 1Hz, the interval is 500ms.
+
+    Notes
+    -----
+    If the data frequency is 1Hz and calculated without an offset,
+    the output may become unstable. For instance, if the interval is 999ms,
+    no data is included, resulting in 0Hz. Conversely, if the interval is 1001ms,
+    two data points are included, resulting in 2Hz.
+    Using an offset ensures stable calculations.
+
+    """
+    if len(timeseries_record) == 0:
+        return 0
+
+    # Get timestamp array
+    timestamp_column_name = timeseries_record.columns[0]
+    timestamp_list = timeseries_record.get_column_series(timestamp_column_name)
+    if len(timestamp_list) < 2:
+        return 0
+    if timestamp_list[0] is None or timestamp_list[1] is None:
+        return 0
+
+    # Calculate timestamp offset
+    # Approximate period estimation using the first two timestamps.
+    # Accuracy is not critical, as the offset only needs to prevent boundary collisions.
+    timestamp_diff = int(timestamp_list[1]) - int(timestamp_list[0])
+    timestamp_offset_ns = int(timestamp_diff / 2)
+    return timestamp_offset_ns
 
 
 class FrequencyTimeSeries(MetricsBase):
@@ -111,26 +154,39 @@ class FrequencyTimeSeries(MetricsBase):
                     return False
 
         timeseries_records_list: list[RecordsInterface] = [
-            _.to_records() for _ in self._target_objects
+            obj.to_records() for obj in self._target_objects
         ]
 
-        converter: ClockConverter | None = None
         if xaxis_type == 'sim_time':
             converter = get_clock_converter(self._target_objects)
+        else:
+            converter = None
 
         min_time, max_time = self._get_timestamp_range(timeseries_records_list)
 
         frequency_timeseries_list: list[RecordsInterface] = []
         for records in timeseries_records_list:
+            # Calculate the start time to shift calculation period from event period.
+            offset_ns = _get_frequency_computing_timestamp_offset_ns(records)
+            start_ns = min_time + offset_ns
+
+            # Calculate the end time to exclude periods with insufficient data.
+            INTERVAL_NS = 1000000000  # 1 second. Default value to calculate frequency.
+            sample_num = (max_time - start_ns) // INTERVAL_NS
+            end_ns = start_ns + sample_num*INTERVAL_NS - 1
+
             frequency = Frequency(
                 records,
                 row_filter=row_filter_communication
                 if isinstance(records, Communication) else None
             )
-            frequency_timeseries_list.append(frequency.to_records(
-                base_timestamp=min_time, until_timestamp=max_time,
+            frequency_record = frequency.to_records(
+                interval_ns=INTERVAL_NS,
+                base_timestamp=start_ns,
+                until_timestamp=end_ns,
                 converter=converter
-            ))
+            )
+            frequency_timeseries_list.append(frequency_record)
 
         return frequency_timeseries_list
 

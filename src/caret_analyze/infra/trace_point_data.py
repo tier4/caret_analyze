@@ -300,6 +300,15 @@ class TracePointData:
 
     @singledispatchmethod
     def merge(self, arg) -> None:
+        """
+        Merge data.
+
+        Raises
+        ------
+        NotImplementedError
+            This module is not implemented.
+
+        """
         raise NotImplementedError('')
 
     @merge.register

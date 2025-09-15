@@ -66,6 +66,7 @@ class RecordsSource():
         -------
         RecordsInterface
             Columns
+
             - publisher_handle
             - rclcpp_publish_timestamp
             - rcl_publish_timestamp (Optional)
@@ -199,6 +200,7 @@ class RecordsSource():
         Returns
         -------
         EventsFactory
+            Created timer events factory.
 
         """
         class TimerEventsFactory(EventsFactory):
@@ -243,6 +245,7 @@ class RecordsSource():
         -------
         RecordsInterface
             columns:
+
             - tilde_publish_timestamp
             - tilde_publisher
             - tilde_message_id
@@ -270,6 +273,7 @@ class RecordsSource():
         -------
         RecordsInterface
             columns:
+
             - tilde_subscribe_timestamp
             - tilde_subscription
             - tilde_message_id
@@ -281,6 +285,19 @@ class RecordsSource():
 
     @cached_property
     def intra_callback_records(self) -> RecordsInterface:
+        """
+        Compose intra callback records.
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+
+            - callback_start_timestamp
+            - callback_object
+            - is_intra_process
+
+        """
         intra_proc_subscribe = RecordsFactory.create_instance(
             None,
             columns=[
@@ -297,6 +314,20 @@ class RecordsSource():
 
     @cached_property
     def inter_callback_records(self) -> RecordsInterface:
+        """
+        Compose inter callback records.
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+
+            - tid
+            - callback_start_timestamp
+            - callback_object
+            - is_intra_process
+
+        """
         inter_proc_subscribe = RecordsFactory.create_instance(
             None,
             columns=[
@@ -320,6 +351,7 @@ class RecordsSource():
         -------
         RecordsInterface
             columns:
+
             - callback_start_timestamp
             - callback_object
             - is_intra_process
@@ -366,10 +398,8 @@ class RecordsSource():
         )
         rmw_sub_records.drop_columns(
             [
-                COLUMN_NAME.RMW_TAKE_TIMESTAMP,
                 COLUMN_NAME.TID,
                 COLUMN_NAME.MESSAGE,
-                COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE,
             ]
         )
 
@@ -380,6 +410,7 @@ class RecordsSource():
                 ColumnValue(COLUMN_NAME.CALLBACK_OBJECT),
                 ColumnValue(COLUMN_NAME.IS_INTRA_PROCESS),
                 ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.RMW_TAKE_TIMESTAMP),
             ]
         )
         inter_proc_subscribe.concat(dispatch_sub_records)
@@ -411,6 +442,7 @@ class RecordsSource():
         -------
         RecordsInterface
             columns:
+
             - tid
             - rmw_take_timestamp
             - rmw_subscription_handle
@@ -435,13 +467,28 @@ class RecordsSource():
         Returns
         -------
         RecordsInterface
+
+            (in the case of humble)
+
             columns:
+
             - tid
-            - callback_object
-            - callback_start_timestamp
             - publisher_handle
+            - callback_object
             - rclcpp_publish_timestamp
             - message_timestamp
+            - callback_start_timestamp
+
+
+            (in the case of iron and after)
+
+            columns:
+
+            - tid
+            - publisher_handle
+            - callback_object
+            - rclcpp_publish_timestamp
+            - callback_start_timestamp
 
         """
         if self._info.get_distribution()[0] >= 'i':
@@ -538,6 +585,7 @@ class RecordsSource():
         -------
         RecordsInterface
             columns:
+
             - tid
             - callback_object
             - callback_start_timestamp
@@ -655,6 +703,7 @@ class RecordsSource():
         -------
         RecordsInterface
             columns:
+
             - callback_start_timestamp
             - callback_end_timestamp
             - callback_object

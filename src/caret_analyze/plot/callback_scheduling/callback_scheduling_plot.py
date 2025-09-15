@@ -24,9 +24,9 @@ import pandas as pd
 
 from ..plot_base import PlotBase
 from ..visualize_lib import VisualizeLibInterface
-from ...common import UniqueList
-from ...exceptions import UnsupportedTypeError
-from ...runtime import Application, CallbackGroup, Executor, Node, Path
+from ...common import UniqueList, Util
+from ...exceptions import ItemNotFoundError, UnsupportedTypeError
+from ...runtime import Application, CallbackBase, CallbackGroup, Executor, Node, Path
 
 CallbackGroupTypes = (Application | Executor | Path | Node |
                       CallbackGroup | Sequence[CallbackGroup])
@@ -187,34 +187,44 @@ class CallbackSchedulingPlot(PlotBase):
         save(p, export_path, title=title, resources=CDN)
 
     @staticmethod
+    def _validate_exist_callbacks(callback_groups: list[CallbackGroup]) -> None:
+        if not callback_groups:
+            msg = 'callback_groups is empty.'
+            logger.warning(msg)
+            raise ItemNotFoundError(msg)
+
+        callbacks: list['CallbackBase'] = Util.flatten(
+            cbg.callbacks for cbg in callback_groups if cbg and len(cbg.callbacks) > 0
+        )
+        if len(callbacks) == 0:
+            msg = 'callback_groups has no callback.'
+            logger.warning(msg)
+            raise ItemNotFoundError(msg)
+
+    @staticmethod
     def _get_callback_groups(target_objects: CallbackGroupTypes) -> list[CallbackGroup]:
         callback_groups: list[CallbackGroup]
 
         if isinstance(target_objects, (Application, Executor, Node)):
-            if target_objects.callback_groups is None:
-                logger.warning('target.callback_groups is None')
-                callback_groups = []
-            else:
-                callback_groups = target_objects.callback_groups
+            callback_groups = target_objects.callback_groups or []
 
         elif isinstance(target_objects, Path):
             _callback_groups = UniqueList()
-            for comm in target_objects.communications:
-                for cbg in comm.publish_node.callback_groups or []:
+            if len(target_objects.communications) > 0:
+                for comm in target_objects.communications:
+                    for cbg in comm.publish_node.callback_groups or []:
+                        _callback_groups.append(cbg)
+                for cbg in target_objects.communications[-1].subscribe_node.callback_groups or []:
                     _callback_groups.append(cbg)
-            for cbg in target_objects.communications[-1].subscribe_node.callback_groups or []:
-                _callback_groups.append(cbg)
-            if len(_callback_groups) == 0:
-                logger.warning('target.callback_groups is None')
-                callback_groups = []
-            else:
-                callback_groups = _callback_groups.as_list()
+            callback_groups = _callback_groups.as_list()
 
         elif isinstance(target_objects, CallbackGroup):
             callback_groups = [target_objects]
 
         else:  # Sequence[CallbackGroup]
             callback_groups = list(target_objects)
+
+        CallbackSchedulingPlot._validate_exist_callbacks(callback_groups)
 
         return callback_groups
 
