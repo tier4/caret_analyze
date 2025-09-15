@@ -411,10 +411,9 @@ class Lttng(InfraBase):
         'ros2:rclcpp_buffer_to_ipb',
         'ros2_caret:rclcpp_ipb_to_subscription',
         'ros2:rclcpp_ipb_to_subscription',
-        # For Agnocast
-        'ros2:agnocast_subscription_init',
-        'ros2:agnocast_publisher_init',
-        'ros2:agnocast_construct_executor',
+        'ros2_caret:agnocast_subscription_init',
+        'ros2_caret:agnocast_publisher_init',
+        'ros2_caret:agnocast_construct_executor',
     ]
 
     def __init__(

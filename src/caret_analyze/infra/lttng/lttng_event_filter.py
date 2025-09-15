@@ -172,10 +172,9 @@ class InitEventPassFilter(LttngEventFilter):
             'ros2_caret:tilde_subscription_init',
             'ros2_caret:tilde_publisher_init',
             'ros2_caret:tilde_subscribe_added',
-            # For Agnocast
-            'ros2:agnocast_subscription_init',
-            'ros2:agnocast_publisher_init',
-            'ros2:agnocast_construct_executor',
+            'ros2_caret:agnocast_subscription_init',
+            'ros2_caret:agnocast_publisher_init',
+            'ros2_caret:agnocast_construct_executor',
         }
 
         return event[self.NAME] in init_events
