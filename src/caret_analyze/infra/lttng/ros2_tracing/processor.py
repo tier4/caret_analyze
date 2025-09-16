@@ -1313,11 +1313,8 @@ class Ros2Handler():
         publisher_handle = self._remapper.publisher_handle_remapper.get_latest_object_id(
             publisher_handle, event)
 
-        # HACK: add to existing data
-        self.data.add_rclcpp_publish_instance(tid, timestamp, publisher_handle, message, 0)
-        self.data.add_rcl_publish_instance(tid, timestamp, publisher_handle, message)
-        self.data.add_dds_write_instance(tid, timestamp, message)
-        self.data.add_dds_bind_addr_to_stamp(tid, timestamp, 0, entry_id)
+        self.data.add_agnocast_publish_instance(
+            tid, timestamp, publisher_handle, message, entry_id)
 
     def _handle_agnocast_create_callable(
         self,

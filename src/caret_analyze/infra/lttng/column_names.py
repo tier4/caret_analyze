@@ -70,5 +70,8 @@ class ColumnName(NamedTuple):
     TILDE_SUBSCRIBE_TIMESTAMP: str = 'tilde_subscribe_timestamp'
     TILDE_MESSAGE_ID: str = 'tilde_message_id'
 
+    AGNOCAST_PUBLISH_TIMESTAMP: str = 'agnocast_publish_timestamp'
+    AGNOCAST_ENTRY_ID: str = 'agnocast_entry_id'
+
 
 COLUMN_NAME = ColumnName()

@@ -280,6 +280,16 @@ class Ros2DataModel():
         )
 
         # For Agnocast (runtime)
+        self.agnocast_publish_instances = RecordsFactory.create_instance(
+            None,
+            columns=[
+                ColumnValue('tid'),
+                ColumnValue('agnocast_publish_timestamp'),
+                ColumnValue('publisher_handle'),
+                ColumnValue('message'),
+                ColumnValue('agnocast_entry_id'),
+            ]
+        )
         self.agnocast_create_callable_instances = RecordsFactory.create_instance(
             None,
             columns=[
@@ -766,6 +776,23 @@ class Ros2DataModel():
             'executor_type_name': executor_type_name,
         }
         self._agnocast_executors.append(record)
+
+    def add_agnocast_publish_instance(
+        self,
+        tid: int,
+        timestamp: int,
+        publisher_handle: int,
+        message: int,
+        entry_id: int,
+    ) -> None:
+        record = {
+            'tid': tid,
+            'rclcpp_publish_timestamp': timestamp,
+            'publisher_handle': publisher_handle,
+            'message': message,
+            'agnocast_entry_id': entry_id,
+        }
+        self.agnocast_publish_instances.append(record)
 
     def add_agnocast_create_callable_instance(
         self,

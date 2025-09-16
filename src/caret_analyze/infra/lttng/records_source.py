@@ -284,6 +284,23 @@ class RecordsSource():
         return records
 
     @cached_property
+    def agnocast_publish_records(self) -> RecordsInterface:
+        """
+        Compose Agnocast publish records.
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+            - agnocast_publish_timestamp
+            - publisher_handle
+            - agnocast_entry_id
+
+        """
+        records = self._data.agnocast_publish_instances.clone()
+        return records
+
+    @cached_property
     def intra_callback_records(self) -> RecordsInterface:
         """
         Compose intra callback records.

@@ -525,7 +525,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/tilde_publish_timestamp
             - [topic_name]/tilde_message_id
 
-            (for cases other than tilde publisher)
+            (in the case of agnocast publisher)
+
+            Columns
+
+            - [topic_name]/agnocast_publish_timestamp
+            - [topic_name]/agnocast_entry_id
+
+            (for other cases)
 
             Columns
 
@@ -536,6 +543,9 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/source_timestamp
 
         """
+        if publisher.is_agnocast_publisher:
+            return self._agnocast_publish_records(publisher)
+
         tilde_publishers = self._helper.get_tilde_publishers(publisher)
         if len(tilde_publishers) == 0:
             return self._publish_records(publisher)
@@ -599,6 +609,40 @@ class RecordsProviderLttng(RuntimeDataProvider):
         columns.append(COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP)
         columns.append(COLUMN_NAME.TILDE_MESSAGE_ID)
 
+        self._format(pub_records, columns)
+        self._rename_column(pub_records, None, publisher.topic_name, None)
+
+        return pub_records
+
+    def _agnocast_publish_records(
+        self,
+        publisher: PublisherStructValue
+    ) -> RecordsInterface:
+        """
+        Return Agnocast publish records.
+
+        Parameters
+        ----------
+        publisher : PublisherStructValue
+            Target publisher.
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+
+            - [topic_name]/agnocast_publish_timestamp
+            - [topic_name]/agnocast_entry_id
+
+        """
+
+        publisher_handles = self._helper.get_publisher_handles(publisher)
+        pub_records = self._source.agnocast_publish_records(publisher_handles)
+
+        columns = [
+            COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP,
+            COLUMN_NAME.AGNOCAST_ENTRY_ID
+        ]
         self._format(pub_records, columns)
         self._rename_column(pub_records, None, publisher.topic_name, None)
 
@@ -1232,6 +1276,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
             rename_dict[COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP] = \
                 f'{topic_name}/{COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP}'
 
+        if COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP in records.columns:
+            rename_dict[COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP] = \
+                f'{topic_name}/{COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP}'
+        
+        if COLUMN_NAME.AGNOCAST_ENTRY_ID in records.columns:
+            rename_dict[COLUMN_NAME.AGNOCAST_ENTRY_ID] = \
+                f'{topic_name}/{COLUMN_NAME.AGNOCAST_ENTRY_ID}'
+
         records.rename_columns(rename_dict)
 
     @staticmethod
@@ -1763,14 +1815,19 @@ class NodeRecordsUseLatestMessage:
             sub_records = fill_source_timestamp_with_latest_timestamp(sub_records)
         pub_records = self._provider.publish_records(self._node_path.publisher)
 
-        columns = [
-            *sub_records.columns,
-            f'{self._node_path.publish_topic_name}/rclcpp_publish_timestamp',
-        ]
-        left_key = sub_records.columns[0]
+        columns = sub_records.columns
+        if self._node_path.publisher.is_agnocast_publisher:
+            columns += [
+                f'{self._node_path.publish_topic_name}/{COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP}',
+            ]
+        else:
+            columns += [
+                f'{self._node_path.publish_topic_name}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}',
+            ]
 
         # Set left_key to rmw_take timestamp
         # if sub_records are obtained by RecordsProviderLttng.subscription_take_records()
+        left_key = sub_records.columns[0]
         if is_take_node:
             for column in sub_records.columns:
                 if column.endswith(COLUMN_NAME.RMW_TAKE_TIMESTAMP):
@@ -2334,6 +2391,50 @@ class FilteredRecordsSource:
         tilde_records.drop_columns([COLUMN_NAME.TILDE_PUBLISHER])
         return tilde_records
 
+    def agnocast_publish_records(
+        self,
+        publisher_handles: Sequence[int],
+    ) -> RecordsInterface:
+        """
+        Compose agnocast publish records.
+
+        Parameters
+        ----------
+        publisher_handles : Sequence[int]
+            Publisher handles
+
+        Returns
+        -------
+        RecordsInterface
+            Equivalent to the following process.
+            records = lttng.compose_agnocast_publish_records()
+            records.filter_if(
+                lambda x: x.get('publisher_handle') in publisher_handles
+            )
+
+        """
+        grouped_records = self._grouped_agnocast_publish_records
+        if len(grouped_records) == 0:
+            return RecordsFactory.create_instance(
+                None,
+                columns=[
+                    ColumnValue(COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.PUBLISHER_HANDLE),
+                    ColumnValue(COLUMN_NAME.AGNOCAST_ENTRY_ID),
+                ]
+            )
+        sample_records = list(grouped_records.values())[0]
+        column_values = Columns.from_str(sample_records.columns).to_value()
+        agnocast_publish_records = RecordsFactory.create_instance(None, columns=column_values)
+
+        for publisher_handle in publisher_handles:
+            if publisher_handle in grouped_records:
+                agnocast_publish_records_ = grouped_records[publisher_handle].clone()
+                agnocast_publish_records.concat(agnocast_publish_records_)
+
+        agnocast_publish_records.drop_columns([COLUMN_NAME.PUBLISHER_HANDLE])
+        return agnocast_publish_records
+
     def _expand_key_tuple(
         self,
         group: dict[tuple[int, ...], RecordsInterface]
@@ -2505,5 +2606,11 @@ class FilteredRecordsSource:
     @cached_property
     def _path_beginning_records(self) -> dict[int, RecordsInterface]:
         records = self._lttng.compose_path_beginning_records()
+        group = records.groupby([COLUMN_NAME.PUBLISHER_HANDLE])
+        return self._expand_key_tuple(group)
+
+    @cached_property
+    def _grouped_agnocast_publish_records(self) -> dict[int, RecordsInterface]:
+        records = self._lttng.compose_agnocast_publish_records()
         group = records.groupby([COLUMN_NAME.PUBLISHER_HANDLE])
         return self._expand_key_tuple(group)

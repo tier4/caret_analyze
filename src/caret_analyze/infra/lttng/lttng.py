@@ -1196,6 +1196,11 @@ class Lttng(InfraBase):
         """
         return self._source.tilde_subscribe_records.clone()
 
+    def compose_agnocast_publish_records(
+        self,
+    ) -> RecordsInterface:
+        return self._source.agnocast_publish_records.clone()
+
     def compose_path_beginning_records(
         self
     ) -> RecordsInterface:
