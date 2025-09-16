@@ -837,5 +837,45 @@ class RecordsSource():
         return records_inter
 
     @cached_property
+    def agnocast_path_beginning_records(self) -> RecordsInterface:
+        """
+        Compose Agnocast callback records.
+
+        Used to evaluate the beginning node of a path.
+
+        Used tracepoints
+        - callback_start
+        - agnocast_publish
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+
+            - callback_start_timestamp
+            - agnocast_publish_timestamp
+            - callback_object
+            - publisher_handle
+
+        """
+        records: RecordsInterface
+        records = merge_sequential(
+            left_records=self._data.callback_start_instances,
+            right_records=self._data.agnocast_publish_instances,
+            left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP,
+            join_left_key=COLUMN_NAME.TID,
+            join_right_key=COLUMN_NAME.TID,
+            columns=[
+                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+                COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP,
+                COLUMN_NAME.CALLBACK_OBJECT,
+                COLUMN_NAME.PUBLISHER_HANDLE
+            ],
+            how='left_use_latest',
+        )
+        return records
+
+    @cached_property
     def system_and_sim_times(self) -> RecordsInterface:
         return self._data.sim_time

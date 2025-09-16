@@ -1201,6 +1201,11 @@ class Lttng(InfraBase):
     ) -> RecordsInterface:
         return self._source.agnocast_publish_records.clone()
 
+    def compose_agnocast_path_beginning_records(
+        self
+    ) -> RecordsInterface:
+        return self._source.agnocast_path_beginning_records.clone()
+
     def compose_path_beginning_records(
         self
     ) -> RecordsInterface:
