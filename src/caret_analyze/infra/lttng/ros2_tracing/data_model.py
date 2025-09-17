@@ -1120,7 +1120,10 @@ class Ros2DataModel():
         self.agnocast_executors = self._agnocast_executors.get_finalized('executor_addr')
         del self._agnocast_executors
 
-    def merge_agnocast_data(self):
+    def merge_agnocast_data(self) -> None:
+        if len(self.agnocast_subscriptions) == 0:
+            return
+
         id_2_callback_records = RecordsFactory.create_instance(
             None,
             columns=[
@@ -1163,6 +1166,7 @@ class Ros2DataModel():
         agnocast_callback_start_records.drop_columns(
             ['callable_object']
         )
+        # HACK: agnocast callback is assumed to be intra-process
         agnocast_callback_start_records.append_column(
             ColumnValue('is_intra_process'),
             [0] * len(agnocast_callback_start_records))
@@ -1192,7 +1196,7 @@ class Ros2DataModel():
         self.callback_end_instances.concat(agnocast_callback_end_records)
         self.callback_end_instances.sort('callback_end_timestamp')
 
-        # Merge to dispatch_subscription_callback_instances
+        # FIXME: Merge to dispatch_subscription_callback_instances
         modified_agnocast_create_callable_records = merge(
             left_records=self.agnocast_create_callable_instances,
             right_records=callable_2_callback_records,
