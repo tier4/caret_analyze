@@ -106,7 +106,7 @@ class Ros2DataModel():
             ['publisher_handle', 'timestamp', 'node_handle', 'topic_name', 'depth'])
         self._agnocast_subscriptions = TracePointIntermediateData(
             ['subscription_handle', 'timestamp', 'node_handle', 'callback_object',
-             'callback_group_addr', 'symbol', 'topic_name', 'depth', 'pid_ciid'])
+             'callback_group_addr', 'symbol', 'topic_name', 'depth', 'agnocast_pid_ciid'])
         self._agnocast_executors = TracePointIntermediateData(
             ['timestamp', 'executor_addr', 'executor_type_name'])
 
@@ -293,11 +293,11 @@ class Ros2DataModel():
         self.agnocast_create_callable_instances = RecordsFactory.create_instance(
             None,
             columns=[
-                ColumnValue('create_callable_timestamp'),
-                ColumnValue('callable_object'),
+                ColumnValue('agnocast_create_callable_timestamp'),
+                ColumnValue('agnocast_callable_object'),
                 ColumnValue('message'),
-                ColumnValue('entry_id'),
-                ColumnValue('pid_ciid'),
+                ColumnValue('agnocast_entry_id'),
+                ColumnValue('agnocast_pid_ciid'),
             ]
         )
         self.agnocast_callable_start_instances = RecordsFactory.create_instance(
@@ -305,7 +305,7 @@ class Ros2DataModel():
             columns=[
                 ColumnValue('tid'),
                 ColumnValue('callable_start_timestamp'),
-                ColumnValue('callable_object'),
+                ColumnValue('agnocast_callable_object'),
             ]
         )
         self.agnocast_callable_end_instances = RecordsFactory.create_instance(
@@ -313,7 +313,7 @@ class Ros2DataModel():
             columns=[
                 ColumnValue('tid'),
                 ColumnValue('callable_end_timestamp'),
-                ColumnValue('callable_object'),
+                ColumnValue('agnocast_callable_object'),
             ]
         )
 
@@ -760,7 +760,7 @@ class Ros2DataModel():
             'symbol': symbol,
             'topic_name': topic_name,
             'depth': depth,
-            'pid_ciid': pid_ciid,
+            'agnocast_pid_ciid': pid_ciid,
         }
         self._agnocast_subscriptions.append(record)
 
@@ -803,11 +803,11 @@ class Ros2DataModel():
         pid_ciid: int
     ) -> None:
         record = {
-            'create_callable_timestamp': timestamp,
-            'callable_object': callable_object,
+            'agnocast_create_callable_timestamp': timestamp,
+            'agnocast_callable_object': callable_object,
             'message': message,
-            'entry_id': entry_id,
-            'pid_ciid': pid_ciid,
+            'agnocast_entry_id': entry_id,
+            'agnocast_pid_ciid': pid_ciid,
         }
         self.agnocast_create_callable_instances.append(record)
 
@@ -817,7 +817,7 @@ class Ros2DataModel():
         record = {
             'tid': tid,
             'callable_start_timestamp': timestamp,
-            'callable_object': callable,
+            'agnocast_callable_object': callable,
         }
         self.agnocast_callable_start_instances.append(record)
 
@@ -825,7 +825,7 @@ class Ros2DataModel():
         record = {
             'tid': tid,
             'callable_end_timestamp': timestamp,
-            'callable_object': callable
+            'agnocast_callable_object': callable
         }
         self.agnocast_callable_end_instances.append(record)
 
@@ -1127,13 +1127,13 @@ class Ros2DataModel():
         id_2_callback_records = RecordsFactory.create_instance(
             None,
             columns=[
-                ColumnValue('pid_ciid'),
+                ColumnValue('agnocast_pid_ciid'),
                 ColumnValue('callback_object'),
             ]
         )
-        id_2_callback_df = self.agnocast_subscriptions.df[['pid_ciid', 'callback_object']]
+        id_2_callback_df = self.agnocast_subscriptions.df[['agnocast_pid_ciid', 'callback_object']]
         # remove take subscription row
-        id_2_callback_df = id_2_callback_df[id_2_callback_df["pid_ciid"] != 0]
+        id_2_callback_df = id_2_callback_df[id_2_callback_df["agnocast_pid_ciid"] != 0]
 
         for _, row in id_2_callback_df.iterrows():
             id_2_callback_records.append(row.to_dict())
@@ -1141,30 +1141,30 @@ class Ros2DataModel():
         callable_2_callback_records = merge(
             left_records=self.agnocast_create_callable_instances,
             right_records=id_2_callback_records,
-            join_left_key='pid_ciid',
-            join_right_key='pid_ciid',
+            join_left_key='agnocast_pid_ciid',
+            join_right_key='agnocast_pid_ciid',
             columns=Columns.from_str(
                 self.agnocast_create_callable_instances.columns + id_2_callback_records.columns
             ).column_names,
             how='left'
         )
         callable_2_callback_records.drop_columns(
-            ['create_callable_timestamp', 'message', 'entry_id', 'pid_ciid']
+            ['agnocast_create_callable_timestamp', 'message', 'agnocast_entry_id', 'agnocast_pid_ciid']
         )
 
         # Merge to callback_start_instances
         agnocast_callback_start_records = merge(
             left_records=self.agnocast_callable_start_instances,
             right_records=callable_2_callback_records,
-            join_left_key='callable_object',
-            join_right_key='callable_object',
+            join_left_key='agnocast_callable_object',
+            join_right_key='agnocast_callable_object',
             columns=Columns.from_str(
                 self.agnocast_callable_start_instances.columns + callable_2_callback_records.columns
             ).column_names,
             how='left'
         )
         agnocast_callback_start_records.drop_columns(
-            ['callable_object']
+            ['agnocast_callable_object']
         )
         # HACK: agnocast callback is assumed to be intra-process
         agnocast_callback_start_records.append_column(
@@ -1180,15 +1180,15 @@ class Ros2DataModel():
         agnocast_callback_end_records = merge(
             left_records=self.agnocast_callable_end_instances,
             right_records=callable_2_callback_records,
-            join_left_key='callable_object',
-            join_right_key='callable_object',
+            join_left_key='agnocast_callable_object',
+            join_right_key='agnocast_callable_object',
             columns=Columns.from_str(
                 self.agnocast_callable_end_instances.columns + callable_2_callback_records.columns
             ).column_names,
             how='left'
         )
         agnocast_callback_end_records.drop_columns(
-            ['callable_object']
+            ['agnocast_callable_object']
         )
         agnocast_callback_end_records.rename_columns({
             'callable_end_timestamp': 'callback_end_timestamp'
@@ -1200,23 +1200,23 @@ class Ros2DataModel():
         modified_agnocast_create_callable_records = merge(
             left_records=self.agnocast_create_callable_instances,
             right_records=callable_2_callback_records,
-            join_left_key='callable_object',
-            join_right_key='callable_object',
+            join_left_key='agnocast_callable_object',
+            join_right_key='agnocast_callable_object',
             columns=Columns.from_str(
                 self.agnocast_create_callable_instances.columns + callable_2_callback_records.columns
             ).column_names,
             how='left'
         )
         modified_agnocast_create_callable_records.drop_columns(
-            ['callable_object', 'pid_ciid']
+            ['agnocast_callable_object', 'agnocast_pid_ciid']
         )
         modified_agnocast_create_callable_records.rename_columns(
-            {'create_callable_timestamp': 'dispatch_subscription_callback_timestamp'})
-        # HACK: entry_id is addressed as source_timestamp
+            {'agnocast_create_callable_timestamp': 'dispatch_subscription_callback_timestamp'})
+        # FIXME: agnocast_entry_id is addressed as source_timestamp
         modified_agnocast_create_callable_records.append_column(
             ColumnValue('source_timestamp'),
-            modified_agnocast_create_callable_records.get_column_series('entry_id'))
-        modified_agnocast_create_callable_records.drop_columns(['entry_id'])
+            modified_agnocast_create_callable_records.get_column_series('agnocast_entry_id'))
+        modified_agnocast_create_callable_records.drop_columns(['agnocast_entry_id'])
         modified_agnocast_create_callable_records.append_column(
             ColumnValue('message_timestamp'),
             [0] * len(modified_agnocast_create_callable_records))
