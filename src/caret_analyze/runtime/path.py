@@ -322,7 +322,7 @@ class RecordsMerged:
             output_log = False
             if take_records_applied_for_last_communication:
                 output_log = True
-            elif is_match_column(left_records.columns[-1], 'source_timestamp'):
+            elif is_match_column(left_records.columns[-1], 'source_timestamp') or is_match_column(left_records.columns[-1], 'agnocast_entry_id'):
                 output_log = True
 
             if output_log:
@@ -360,12 +360,12 @@ class RecordsMerged:
         else:
             raise InvalidRecordsError('first column not in columns')
 
-        # remove source_timestamp columns
-        source_columns = [
+        # remove source_timestamp and agnocast_entry_id columns
+        unnecessary_columns = [
             column for column in left_records.columns
-            if is_match_column(column, 'source_timestamp')
+            if is_match_column(column, 'source_timestamp') or is_match_column(column, 'agnocast_entry_id')
         ]
-        left_records.drop_columns(source_columns)
+        left_records.drop_columns(unnecessary_columns)
 
         # remove rmw_take columns except for the last one
         rmw_cols = [col for col in left_records.columns if ('rmw_take' in col)]
