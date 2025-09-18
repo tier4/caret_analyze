@@ -100,6 +100,12 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/rclcpp_publish_timestamp
             - [callback_name]/callback_start_timestamp
 
+            If agnocast communication
+
+            - [topic_name]/agnocast_publish_timestamp
+            - [topic_name]/agnocast_entry_id
+            - [callback_name]/callback_start_timestamp
+
         """
         assert comm_val.subscribe_callback_name is not None
 
@@ -2461,8 +2467,8 @@ class FilteredRecordsSource:
             return RecordsFactory.create_instance(
                 None,
                 columns=[
-                    ColumnValue(COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP),
                     ColumnValue(COLUMN_NAME.PUBLISHER_HANDLE),
+                    ColumnValue(COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP),
                     ColumnValue(COLUMN_NAME.AGNOCAST_ENTRY_ID),
                 ]
             )
@@ -2475,7 +2481,8 @@ class FilteredRecordsSource:
                 agnocast_publish_records_ = grouped_records[publisher_handle].clone()
                 agnocast_publish_records.concat(agnocast_publish_records_)
 
-        agnocast_publish_records.drop_columns([COLUMN_NAME.PUBLISHER_HANDLE])
+        agnocast_publish_records.sort(COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP)
+
         return agnocast_publish_records
 
     def _expand_key_tuple(
