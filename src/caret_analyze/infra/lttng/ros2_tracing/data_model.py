@@ -787,7 +787,7 @@ class Ros2DataModel():
     ) -> None:
         record = {
             'tid': tid,
-            'rclcpp_publish_timestamp': timestamp,
+            'agnocast_publish_timestamp': timestamp,
             'publisher_handle': publisher_handle,
             'message': message,
             'agnocast_entry_id': entry_id,
