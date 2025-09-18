@@ -277,3 +277,16 @@ class SubscriptionStructValue(ValueObject, Summarizable):
 
         """
         return self._construction_order
+
+    @property
+    def is_agnocast_subscription(self) -> bool:
+        """
+        Check if the subscription is an agnocast subscription.
+
+        Returns
+        -------
+        bool
+            True if the subscription is an agnocast subscription.
+
+        """
+        return self.topic_name.endswith('_agnocast')

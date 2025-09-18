@@ -1196,6 +1196,18 @@ class Ros2DataModel():
         self.callback_end_instances.concat(agnocast_callback_end_records)
         self.callback_end_instances.sort('callback_end_timestamp')
 
+        # Add 'callback_object' column into 'self.agnocast_create_callable_instances'
+        self.agnocast_create_callable_instances = merge(
+            left_records=self.agnocast_create_callable_instances,
+            right_records=callable_2_callback_records,
+            join_left_key='agnocast_callable_object',
+            join_right_key='agnocast_callable_object',
+            columns=Columns.from_str(
+                self.agnocast_create_callable_instances.columns + callable_2_callback_records.columns
+            ).column_names,
+            how='left'
+        )
+
         # FIXME: Merge to dispatch_subscription_callback_instances
         modified_agnocast_create_callable_records = merge(
             left_records=self.agnocast_create_callable_instances,

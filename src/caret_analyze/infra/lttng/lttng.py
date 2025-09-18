@@ -1119,6 +1119,24 @@ class Lttng(InfraBase):
         """
         return self._source.subscribe_records.clone()
 
+    def compose_agnocast_subscribe_records(
+        self,
+    ) -> RecordsInterface:
+        """
+        Compose agnocast subscribe records of all communications in one records.
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+
+            - callback_start_timestamp
+            - callback_object
+            - agnocast_entry_id
+
+        """
+        return self._source.agnocast_subscribe_records.clone()
+
     def compose_rmw_take_records(
         self,
     ) -> RecordsInterface:

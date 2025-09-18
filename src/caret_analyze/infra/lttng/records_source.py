@@ -451,6 +451,51 @@ class RecordsSource():
         return subscribe
 
     @cached_property
+    def agnocast_subscribe_records(self) -> RecordsInterface:
+        """
+        Compose agnocast subscribe records.
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+
+            - callback_start_timestamp
+            - callback_object
+            - agnocast_entry_id
+
+        """
+        callback_start_instances = self.inter_callback_records
+        create_callable_records = self._data.agnocast_create_callable_instances.clone()
+
+        create_callable_records = merge_sequential(
+            left_records=create_callable_records,
+            right_records=callback_start_instances,
+            left_stamp_key=COLUMN_NAME.AGNOCAST_CREATE_CALLABLE_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
+            join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
+            columns=Columns.from_str(
+                create_callable_records.columns + callback_start_instances.columns
+            ).column_names,
+            how='left',
+        )
+        create_callable_records.drop_columns(
+            [
+                COLUMN_NAME.AGNOCAST_CREATE_CALLABLE_TIMESTAMP,
+                COLUMN_NAME.TID,
+                COLUMN_NAME.MESSAGE,  # TODO(atsushi421): remove from origin
+                COLUMN_NAME.AGNOCAST_PID_CIID,
+                COLUMN_NAME.AGNOCAST_CALLABLE_OBJECT,
+                COLUMN_NAME.IS_INTRA_PROCESS,
+            ]
+        )
+
+        # TODO(atsushi421): consider agnocast take
+
+        return create_callable_records
+
+    @cached_property
     def rmw_take_records(self) -> RecordsInterface:
         """
         Compose rmw_take records.
