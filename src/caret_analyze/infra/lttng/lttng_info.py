@@ -1233,6 +1233,15 @@ class DataFrameFormatted:
         subscriptions = data.subscriptions.clone()
         subscriptions.reset_index()
 
+        # Concatenate Agnocast data
+        if len(data.agnocast_subscriptions) > 0:
+            agnocast_sub = data.agnocast_subscriptions.clone()
+            agnocast_sub.reset_index()
+            drop_columns = ['callback_object', 'callback_group_addr', 'symbol', 'pid_ciid']
+            for dc in drop_columns:
+                agnocast_sub.drop_column(dc)
+            subscriptions = TracePointData.concat([subscriptions, agnocast_sub], subscriptions.columns)
+
         DataFrameFormatted._add_construction_order_publisher_or_subscription(
             subscriptions, 'construction_order', 'timestamp', 'node_handle', 'topic_name')
 
@@ -1505,13 +1514,21 @@ class DataFrameFormatted:
         symbols.remove_column('timestamp')
         merge(subscriptions, symbols, 'callback_object', merge_drop_columns=merge_drop_columns)
 
+        callback_group_subscription = data.callback_group_subscription.clone()
+        callback_group_subscription.reset_index()
+        callback_group_subscription.remove_column('timestamp')
+        merge(subscriptions, callback_group_subscription, 'subscription_handle', merge_drop_columns=merge_drop_columns)
+
+        # Concatenate Agnocast data
+        if len(data.agnocast_subscriptions) > 0:
+            agnocast_subscriptions = data.agnocast_subscriptions.clone()
+            agnocast_subscriptions.reset_index()
+            agnocast_subscriptions.remove_column('pid_ciid')
+            subscriptions = TracePointData.concat([subscriptions, agnocast_subscriptions], subscriptions.columns)
+
         DataFrameFormatted._add_construction_order(
             subscriptions, 'construction_order', 'timestamp',
             'node_handle', 'topic_name', 'symbol')
-
-        callback_group_subscription = data.callback_group_subscription.clone()
-        callback_group_subscription.reset_index()
-        merge(subscriptions, callback_group_subscription, 'subscription_handle')
 
         subscriptions.add_column('callback_id', callback_id)
 
