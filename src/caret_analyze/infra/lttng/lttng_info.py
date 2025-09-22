@@ -1232,6 +1232,7 @@ class DataFrameFormatted:
         )
         subscriptions = data.subscriptions.clone()
         subscriptions.reset_index()
+        subscriptions.drop_column('rmw_handle')
 
         # Concatenate Agnocast data
         if len(data.agnocast_subscriptions) > 0:
@@ -1524,6 +1525,7 @@ class DataFrameFormatted:
             agnocast_subscriptions = data.agnocast_subscriptions.clone()
             agnocast_subscriptions.reset_index()
             agnocast_subscriptions.remove_column('agnocast_pid_ciid')
+            agnocast_subscriptions.add_column('callback_object_intra', lambda _: None)
             subscriptions = TracePointData.concat([subscriptions, agnocast_subscriptions], subscriptions.columns)
 
         DataFrameFormatted._add_construction_order(
