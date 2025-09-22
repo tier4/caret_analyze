@@ -254,7 +254,7 @@ class RecordsMerged:
                     logger.warning(msg)
                 break
 
-            if isinstance(target, Communication) and target.is_agnocast_take_comm:
+            if isinstance(target, Communication) and target.value.is_agnocast_take_comm:
                 right_records = target.to_take_records()
             else:
                 should_drop_last_column = False

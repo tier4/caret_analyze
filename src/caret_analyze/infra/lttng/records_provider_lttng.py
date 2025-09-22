@@ -106,11 +106,20 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/agnocast_entry_id
             - [callback_name]/callback_start_timestamp
 
+            If agnocast take communication
+
+            - [topic_name]/agnocast_publish_timestamp
+            - [topic_name]/agnocast_entry_id
+            - [topic_name]/agnocast_take_timestamp
+
         """
         assert comm_val.subscribe_callback_name is not None
 
         if self.is_intra_process_communication(comm_val):
             return self._compose_intra_proc_comm_records(comm_val)
+
+        if comm_val.is_agnocast_take_comm:
+            return self._compose_inter_proc_take_comm_records(comm_val)
 
         return self._compose_inter_proc_comm_records(comm_val)
 
@@ -260,13 +269,21 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [callback_name]/callback_start_timestamp
             - [topic_name]/agnocast_entry_id
 
+            (in the case of agnocast take subscription)
+
+            - [topic_name]/agnocast_take_timestamp
+            - [topic_name]/agnocast_entry_id
+            - [topic_name]/agnocast_take_empty
+
         Raises
         ------
         InvalidArgumentError
             Occurs when callback value were not exist.
 
         """
-        if subscription.is_agnocast_subscription:
+        if subscription.is_agnocast_take:
+            return self.subscription_take_records(subscription)
+        elif subscription.is_agnocast_subscription:
             return self._agnocast_subscribe_records(subscription)
 
         callback = subscription.callback
@@ -2062,18 +2079,19 @@ class NodeRecordsUseLatestMessage:
             )
             return new_records
 
-        is_take_node = len(sub_records) == 0
-        if is_take_node:
+        is_ros_take_node = len(sub_records) == 0
+        if is_ros_take_node:
             sub_records = self._provider.subscription_take_records(self._node_path.subscription)
             # source_timestamp of rmw_take is 0 when no message is taken.
             # We replace this 0 with the source_timestamp of preceding record because
             # typical node which 'take' messages (instead of using subscription callback)
             # use last message when no message is taken.
-            #
-            # (in the case of agnocast take)
+            sub_records = fill_take_empty_with_latest(sub_records, is_agnocast)
+        elif self._node_path.subscription.is_agnocast_take:
             # agnocast_take_empty of agnocast_take is True when no message is taken.
             # We replace the corresponding agnocast_entry_id with one of the preceding record for the same reason mentioned above.
             sub_records = fill_take_empty_with_latest(sub_records, is_agnocast)
+
         pub_records = self._provider.publish_records(self._node_path.publisher)
 
         columns = sub_records.columns
@@ -2087,22 +2105,21 @@ class NodeRecordsUseLatestMessage:
             ]
 
         left_key = sub_records.columns[0]
-        if is_take_node:
-            if is_agnocast:
-                # Set left_key to agnocast_take timestamp
-                for column in sub_records.columns:
-                    if column.endswith(COLUMN_NAME.AGNOCAST_TAKE_TIMESTAMP):
-                        # Preserve the agnocast_take_timestamp column instead of callback_start_timestamp in agnocast
-                        left_key = column
-                    if column.endswith(COLUMN_NAME.AGNOCAST_TAKE_EMPTY):
-                        columns.remove(column)  # drop
-            else:
-                # Set left_key to rmw_take timestamp
-                for column in sub_records.columns:
-                    if column.endswith(COLUMN_NAME.RMW_TAKE_TIMESTAMP):
-                        columns.remove(column)
-                        left_key = column
-                        break
+        if is_ros_take_node:
+            # Set left_key to rmw_take timestamp
+            for column in sub_records.columns:
+                if column.endswith(COLUMN_NAME.RMW_TAKE_TIMESTAMP):
+                    columns.remove(column)
+                    left_key = column
+                    break
+        elif self._node_path.subscription.is_agnocast_take:
+            # Set left_key to agnocast_take timestamp
+            for column in sub_records.columns:
+                if column.endswith(COLUMN_NAME.AGNOCAST_TAKE_TIMESTAMP):
+                    # Preserve the agnocast_take_timestamp column instead of callback_start_timestamp in agnocast
+                    left_key = column
+                if column.endswith(COLUMN_NAME.AGNOCAST_TAKE_EMPTY):
+                    columns.remove(column)  # drop
 
         pub_sub_records = merge_sequential(
             left_records=sub_records,

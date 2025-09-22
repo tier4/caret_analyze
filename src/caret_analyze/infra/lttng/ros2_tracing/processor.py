@@ -1244,26 +1244,6 @@ class Ros2Handler():
             pid_ciid
         )
 
-        # HACK: add to existing data
-        rmw_handle = self._remapper.rmw_subscription_handle_remapper.register_and_get_object_id(
-            handle,
-            event)
-        subscription_pointer = self._remapper.callback_holder_id_remapper.register_and_get_object_id(
-            handle, event)
-        self.data.callback_group_add_subscription(
-            callback_group_addr, timestamp, subscription_handle)
-        self.data.add_rcl_subscription(
-            subscription_handle,
-            timestamp,
-            node_handle,
-            rmw_handle,
-            topic_name,
-            depth,
-        )
-        self.data.add_rclcpp_subscription(subscription_pointer, timestamp, subscription_handle)
-        self.data.add_callback_object(subscription_pointer, timestamp, callback_object)
-        self.data.add_callback_symbol(callback_object, timestamp, symbol)
-
     def _handle_agnocast_publisher_init(
         self,
         event: dict,
