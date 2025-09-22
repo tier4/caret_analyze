@@ -224,7 +224,7 @@ class DataModelService:
         except KeyError:
             return None
 
-    def get_subscription_handle_from_callback_object(
+    def get_agnocast_subscription_handle_from_callback_object(
         self,
         cb_addr: int
     ) -> int | None:
@@ -244,25 +244,20 @@ class DataModelService:
         """
         try:
             sub_handle = None
-            sub = self._get_sub_from_callback_object(cb_addr)
-            if sub is not None:
-                sub_handle = self._get_sub_handle_from_sub(sub)
-
-            else:  # agnocast subscription callback
-                target_df = self._ensure_dataframe(
-                    self._data.agnocast_subscriptions.clone().df.reset_index()[
-                        ['subscription_handle', 'callback_object']
-                    ]
-                )
-                sub_handles = target_df[target_df['callback_object'] == cb_addr]['subscription_handle'].values
-                if len(sub_handles) == 1:
-                    sub_handle = sub_handles[0]
-                elif len(sub_handles) == 0:
-                    msg = f'There is no subscription_handle that corresponds to callback_object: {cb_addr}.'
-                    raise InvalidArgumentError(msg)
-                else:
-                    msg = f'Duplicated subscription_handle: [{sub_handles}] that corresponds to callback_object: {cb_addr}.'
-                    raise InvalidArgumentError(msg)
+            target_df = self._ensure_dataframe(
+                self._data.agnocast_subscriptions.clone().df.reset_index()[
+                    ['subscription_handle', 'callback_object']
+                ]
+            )
+            sub_handles = target_df[target_df['callback_object'] == cb_addr]['subscription_handle'].values
+            if len(sub_handles) == 1:
+                sub_handle = sub_handles[0]
+            elif len(sub_handles) == 0:
+                msg = f'There is no subscription_handle that corresponds to callback_object: {cb_addr}.'
+                raise InvalidArgumentError(msg)
+            else:
+                msg = f'Duplicated subscription_handle: [{sub_handles}] that corresponds to callback_object: {cb_addr}.'
+                raise InvalidArgumentError(msg)
 
             return sub_handle
         except KeyError:

@@ -323,7 +323,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
                 try:
                     sub_handle =\
-                        self._srv.get_subscription_handle_from_callback_object(callback_objects[0])
+                        self._srv.get_agnocast_subscription_handle_from_callback_object(callback_objects[0])
                 except InvalidArgumentError:
                     sub_handle = None
 
@@ -1388,7 +1388,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
                 callback_objects = self._helper.get_subscription_callback_objects(callback)
 
                 sub_handle =\
-                    self._srv.get_subscription_handle_from_callback_object(callback_objects[0])
+                    self._srv.get_agnocast_subscription_handle_from_callback_object(callback_objects[0])
             else:
                 raise InvalidArgumentError('comm_value subscription has no callbacks')
 
