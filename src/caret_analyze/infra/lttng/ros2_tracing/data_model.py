@@ -286,7 +286,6 @@ class Ros2DataModel():
                 ColumnValue('tid'),
                 ColumnValue('agnocast_publish_timestamp'),
                 ColumnValue('publisher_handle'),
-                ColumnValue('message'),
                 ColumnValue('agnocast_entry_id'),
             ]
         )
@@ -295,7 +294,6 @@ class Ros2DataModel():
             columns=[
                 ColumnValue('agnocast_create_callable_timestamp'),
                 ColumnValue('agnocast_callable_object'),
-                ColumnValue('message'),
                 ColumnValue('agnocast_entry_id'),
                 ColumnValue('agnocast_pid_ciid'),
             ]
@@ -809,14 +807,12 @@ class Ros2DataModel():
         tid: int,
         timestamp: int,
         publisher_handle: int,
-        message: int,
         entry_id: int,
     ) -> None:
         record = {
             'tid': tid,
             'agnocast_publish_timestamp': timestamp,
             'publisher_handle': publisher_handle,
-            'message': message,
             'agnocast_entry_id': entry_id,
         }
         self.agnocast_publish_instances.append(record)
@@ -825,14 +821,12 @@ class Ros2DataModel():
         self,
         timestamp: int,
         callable_object: int,
-        message: int,
         entry_id: int,
         pid_ciid: int
     ) -> None:
         record = {
             'agnocast_create_callable_timestamp': timestamp,
             'agnocast_callable_object': callable_object,
-            'message': message,
             'agnocast_entry_id': entry_id,
             'agnocast_pid_ciid': pid_ciid,
         }
@@ -1176,7 +1170,7 @@ class Ros2DataModel():
             how='left'
         )
         callable_2_callback_records.drop_columns(
-            ['agnocast_create_callable_timestamp', 'message', 'agnocast_entry_id', 'agnocast_pid_ciid']
+            ['agnocast_create_callable_timestamp', 'agnocast_entry_id', 'agnocast_pid_ciid']
         )
 
         # Merge to callback_start_instances

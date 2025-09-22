@@ -1283,7 +1283,6 @@ class Ros2Handler():
         event: dict,
     ) -> None:
         publisher_handle = get_field(event, 'publisher_handle')
-        message = get_field(event, 'message')
         entry_id = get_field(event, 'entry_id')
         timestamp = get_field(event, '_timestamp')
         tid = get_field(event, '_vtid')
@@ -1292,14 +1291,13 @@ class Ros2Handler():
             publisher_handle, event)
 
         self.data.add_agnocast_publish_instance(
-            tid, timestamp, publisher_handle, message, entry_id)
+            tid, timestamp, publisher_handle, entry_id)
 
     def _handle_agnocast_create_callable(
         self,
         event: dict,
     ) -> None:
         callable_object = get_field(event, 'callable')
-        message = get_field(event, 'message')
         entry_id = get_field(event, 'entry_id')
         pid_ciid = get_field(event, 'pid_ciid')
         timestamp = get_field(event, '_timestamp')
@@ -1309,7 +1307,7 @@ class Ros2Handler():
             event)
 
         self.data.add_agnocast_create_callable_instance(
-            timestamp, callable_object, message, entry_id, pid_ciid
+            timestamp, callable_object, entry_id, pid_ciid
         )
 
     def _handle_agnocast_callable_start(

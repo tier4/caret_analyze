@@ -298,6 +298,7 @@ class RecordsSource():
 
         """
         records = self._data.agnocast_publish_instances.clone()
+        records.drop_columns(['tid'])
         return records
 
     @cached_property
@@ -484,7 +485,6 @@ class RecordsSource():
             [
                 COLUMN_NAME.AGNOCAST_CREATE_CALLABLE_TIMESTAMP,
                 COLUMN_NAME.TID,
-                COLUMN_NAME.MESSAGE,  # TODO(atsushi421): remove from origin
                 COLUMN_NAME.AGNOCAST_PID_CIID,
                 COLUMN_NAME.AGNOCAST_CALLABLE_OBJECT,
                 COLUMN_NAME.IS_INTRA_PROCESS,
