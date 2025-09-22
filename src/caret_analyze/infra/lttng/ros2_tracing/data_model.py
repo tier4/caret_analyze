@@ -1193,10 +1193,11 @@ class Ros2DataModel():
         agnocast_callback_start_records.drop_columns(
             ['agnocast_callable_object']
         )
-        # HACK: agnocast callback is assumed to be intra-process
+        # agnocast callback is assumed to be intra-process
         agnocast_callback_start_records.append_column(
             ColumnValue('is_intra_process'),
-            [0] * len(agnocast_callback_start_records))
+            [0] * len(agnocast_callback_start_records)
+        )
         agnocast_callback_start_records.rename_columns({
             'callable_start_timestamp': 'callback_start_timestamp'
         })

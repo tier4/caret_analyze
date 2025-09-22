@@ -1222,8 +1222,7 @@ class Ros2Handler():
         depth = get_field(event, 'queue_depth')
         pid_ciid = get_field(event, 'pid_ciid')
         timestamp = get_field(event, '_timestamp')
-        # HACK: To avoid conflict with original
-        topic_name = get_field(event, 'topic_name') + '_agnocast'
+        topic_name = get_field(event, 'topic_name') + '_agnocast'  # To avoid conflict with ROS 2 publisher
 
         subscription_handle = \
             self._remapper.subscription_handle_remapper.register_and_get_object_id(handle, event)
@@ -1252,8 +1251,7 @@ class Ros2Handler():
         node_handle = get_field(event, 'node_handle')
         depth = get_field(event, 'queue_depth')
         timestamp = get_field(event, '_timestamp')
-        # HACK: To avoid conflict with original
-        topic_name = get_field(event, 'topic_name') + '_agnocast'
+        topic_name = get_field(event, 'topic_name') + '_agnocast'  # To avoid conflict with ROS 2 publisher
 
         publisher_handle = self._remapper.publisher_handle_remapper.register_and_get_object_id(
             handle,
