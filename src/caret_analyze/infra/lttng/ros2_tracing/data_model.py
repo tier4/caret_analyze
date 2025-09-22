@@ -316,6 +316,16 @@ class Ros2DataModel():
                 ColumnValue('agnocast_callable_object'),
             ]
         )
+        self.agnocast_take_instances = RecordsFactory.create_instance(
+            None,
+            columns=[
+                ColumnValue('tid'),
+                ColumnValue('agnocast_take_timestamp'),
+                ColumnValue('subscription_handle'),
+                ColumnValue('agnocast_take_empty'),
+                ColumnValue('agnocast_entry_id')
+            ]
+        )
 
     def add_context(self, pid, context_handle, timestamp) -> None:
         record = {
@@ -673,6 +683,23 @@ class Ros2DataModel():
             'source_timestamp': source_timestamp
         }
         self.rmw_take_instances.append(record)
+
+    def add_agnocast_take_instance(
+        self,
+        tid: int,
+        timestamp: int,
+        subscription_handle: int,
+        message: int,
+        entry_id: int
+    ) -> None:
+        record = {
+            'tid': tid,
+            'agnocast_take_timestamp': timestamp,
+            'subscription_handle': subscription_handle,
+            'agnocast_take_empty': True if message == 0 else False,
+            'agnocast_entry_id': entry_id
+        }
+        self.agnocast_take_instances.append(record)
 
     def add_sim_time(
         self,
@@ -1207,32 +1234,3 @@ class Ros2DataModel():
             ).column_names,
             how='left'
         )
-
-        # FIXME: Merge to dispatch_subscription_callback_instances
-        modified_agnocast_create_callable_records = merge(
-            left_records=self.agnocast_create_callable_instances,
-            right_records=callable_2_callback_records,
-            join_left_key='agnocast_callable_object',
-            join_right_key='agnocast_callable_object',
-            columns=Columns.from_str(
-                self.agnocast_create_callable_instances.columns + callable_2_callback_records.columns
-            ).column_names,
-            how='left'
-        )
-        modified_agnocast_create_callable_records.drop_columns(
-            ['agnocast_callable_object', 'agnocast_pid_ciid']
-        )
-        modified_agnocast_create_callable_records.rename_columns(
-            {'agnocast_create_callable_timestamp': 'dispatch_subscription_callback_timestamp'})
-        # FIXME: agnocast_entry_id is addressed as source_timestamp
-        modified_agnocast_create_callable_records.append_column(
-            ColumnValue('source_timestamp'),
-            modified_agnocast_create_callable_records.get_column_series('agnocast_entry_id'))
-        modified_agnocast_create_callable_records.drop_columns(['agnocast_entry_id'])
-        modified_agnocast_create_callable_records.append_column(
-            ColumnValue('message_timestamp'),
-            [0] * len(modified_agnocast_create_callable_records))
-        self.dispatch_subscription_callback_instances.concat(
-            modified_agnocast_create_callable_records)
-        self.dispatch_subscription_callback_instances.sort(
-            'dispatch_subscription_callback_timestamp')

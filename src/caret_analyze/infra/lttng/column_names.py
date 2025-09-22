@@ -75,6 +75,7 @@ class ColumnName(NamedTuple):
     AGNOCAST_CREATE_CALLABLE_TIMESTAMP: str = 'agnocast_create_callable_timestamp'
     AGNOCAST_PID_CIID: str = 'agnocast_pid_ciid'
     AGNOCAST_CALLABLE_OBJECT: str = 'agnocast_callable_object'
-
+    AGNOCAST_TAKE_TIMESTAMP: str = 'agnocast_take_timestamp'
+    AGNOCAST_TAKE_EMPTY: str = 'agnocast_take_empty'
 
 COLUMN_NAME = ColumnName()

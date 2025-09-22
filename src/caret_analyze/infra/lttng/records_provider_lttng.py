@@ -139,6 +139,15 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/source_timestamp
             - [node_name]/rmw_take_timestamp
 
+            (in the case of agnocast communication)
+
+            Columns
+
+            - [topic_name]/agnocast_publish_timestamp
+            - [topic_name]/agnocast_take_empty
+            - [topic_name]/agnocast_entry_id
+            - [topic_name]/agnocast_take_timestamp
+
         """
         assert comm_val.subscribe_callback_name is not None
         return self._compose_inter_proc_take_comm_records(comm_val)
@@ -293,57 +302,113 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/source_timestamp
             - [node_name]/rmw_take_timestamp
 
+            (in the case of agnocast subscription)
+
+            Columns
+
+            - [topic_name]/agnocast_take_timestamp
+            - [topic_name]/agnocast_entry_id
+            - [topic_name]/agnocast_take_empty
+
         Raises
         ------
         InvalidArgumentError
             Occurs when callback value were not exist.
 
         """
-        callback = subscription.callback
-        if callback is not None:
-            callback_objects = self._helper.get_subscription_callback_objects(callback)
+        if subscription.is_agnocast_subscription:
+            callback = subscription.callback
+            if callback is not None:
+                callback_objects = self._helper.get_subscription_callback_objects(callback)
 
-            try:
-                rmw_handle =\
-                    self._srv.get_rmw_subscription_handle_from_callback_object(callback_objects[0])
-            except InvalidArgumentError:
-                rmw_handle = None
+                try:
+                    sub_handle =\
+                        self._srv.get_subscription_handle_from_callback_object(callback_objects[0])
+                except InvalidArgumentError:
+                    sub_handle = None
 
-        # get rmw_records, which relates to callback_object
-        rmw_records: RecordsInterface
-        if rmw_handle is not None and rmw_handle in self._source._grouped_rmw_take_records:
-            rmw_records = self._source._grouped_rmw_take_records[rmw_handle].clone()
-        else:
-            rmw_records = RecordsFactory.create_instance(
-                None,
-                columns=[
-                    ColumnValue(COLUMN_NAME.TID),
-                    ColumnValue(COLUMN_NAME.RMW_TAKE_TIMESTAMP),
-                    ColumnValue(COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE),
-                    ColumnValue(COLUMN_NAME.MESSAGE),
-                    ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP)
+            # get agnocast_take_records, which relates to callback_object
+            agnocast_take_records: RecordsInterface
+            if sub_handle is not None and sub_handle in self._source._grouped_agnocast_take_records:
+                agnocast_take_records = self._source._grouped_agnocast_take_records[sub_handle].clone()
+            else:
+                agnocast_take_records = RecordsFactory.create_instance(
+                    None,
+                    columns=[
+                        ColumnValue(COLUMN_NAME.TID),
+                        ColumnValue(COLUMN_NAME.AGNOCAST_TAKE_TIMESTAMP),
+                        ColumnValue(COLUMN_NAME.SUBSCRIPTION_HANDLE),
+                        ColumnValue(COLUMN_NAME.AGNOCAST_TAKE_EMPTY),
+                        ColumnValue(COLUMN_NAME.AGNOCAST_ENTRY_ID)
                     ]
                 )
 
-        # drop columns
-        columns = rmw_records.columns
-        drop_columns = list(
-            set(columns) - {COLUMN_NAME.SOURCE_TIMESTAMP, COLUMN_NAME.RMW_TAKE_TIMESTAMP}
+            # drop columns
+            columns = agnocast_take_records.columns
+            drop_columns = list(
+                set(columns) - {COLUMN_NAME.AGNOCAST_TAKE_TIMESTAMP, COLUMN_NAME.AGNOCAST_ENTRY_ID, COLUMN_NAME.AGNOCAST_TAKE_EMPTY}
             )
-        rmw_records.drop_columns(drop_columns)
+            agnocast_take_records.drop_columns(drop_columns)
 
-        # reindex
-        rmw_records.reindex([COLUMN_NAME.SOURCE_TIMESTAMP, COLUMN_NAME.RMW_TAKE_TIMESTAMP])
+            # reindex
+            agnocast_take_records.reindex([COLUMN_NAME.AGNOCAST_TAKE_TIMESTAMP, COLUMN_NAME.AGNOCAST_ENTRY_ID, COLUMN_NAME.AGNOCAST_TAKE_EMPTY])
 
-        # add prefix to columns; e.g. [topic_name]/source_timestamp
-        self._rename_column(
-            rmw_records,
-            None if callback is None else callback.callback_name,
-            subscription.topic_name,
-            None
-        )
+            # add prefix to columns; e.g. [topic_name]/agnocast_entry_id
+            self._rename_column(
+                agnocast_take_records,
+                None if callback is None else callback.callback_name,
+                subscription.topic_name,
+                None
+            )
 
-        return rmw_records
+            return agnocast_take_records
+
+        else:
+            callback = subscription.callback
+            if callback is not None:
+                callback_objects = self._helper.get_subscription_callback_objects(callback)
+
+                try:
+                    rmw_handle =\
+                        self._srv.get_rmw_subscription_handle_from_callback_object(callback_objects[0])
+                except InvalidArgumentError:
+                    rmw_handle = None
+
+            # get rmw_records, which relates to callback_object
+            rmw_records: RecordsInterface
+            if rmw_handle is not None and rmw_handle in self._source._grouped_rmw_take_records:
+                rmw_records = self._source._grouped_rmw_take_records[rmw_handle].clone()
+            else:
+                rmw_records = RecordsFactory.create_instance(
+                    None,
+                    columns=[
+                        ColumnValue(COLUMN_NAME.TID),
+                        ColumnValue(COLUMN_NAME.RMW_TAKE_TIMESTAMP),
+                        ColumnValue(COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE),
+                        ColumnValue(COLUMN_NAME.MESSAGE),
+                        ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP)
+                        ]
+                    )
+
+            # drop columns
+            columns = rmw_records.columns
+            drop_columns = list(
+                set(columns) - {COLUMN_NAME.SOURCE_TIMESTAMP, COLUMN_NAME.RMW_TAKE_TIMESTAMP}
+                )
+            rmw_records.drop_columns(drop_columns)
+
+            # reindex
+            rmw_records.reindex([COLUMN_NAME.SOURCE_TIMESTAMP, COLUMN_NAME.RMW_TAKE_TIMESTAMP])
+
+            # add prefix to columns; e.g. [topic_name]/source_timestamp
+            self._rename_column(
+                rmw_records,
+                None if callback is None else callback.callback_name,
+                subscription.topic_name,
+                None
+            )
+
+            return rmw_records
 
     def _subscribe_records(
         self,
@@ -1297,6 +1362,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/source_timestamp
             - [node_name]/rmw_take_timestamp
 
+            (in the case of agnocast subscription)
+
+            Columns
+
+            - [topic_name]/agnocast_publish_timestamp
+            - [topic_name]/agnocast_entry_id
+            - [topic_name]/agnocast_take_timestamp
+
         """
         publisher = comm_value.publisher
         subscription_cb = comm_value.subscribe_callback
@@ -1307,38 +1380,70 @@ class RecordsProviderLttng(RuntimeDataProvider):
         publisher_handles = self._helper.get_publisher_handles(publisher)
 
         callback = comm_value.subscription.callback
-        rmw_handle = None
-        if callback is not None:
-            callback_objects = self._helper.get_subscription_callback_objects(callback)
 
-            rmw_handle =\
-                self._srv.get_rmw_subscription_handle_from_callback_object(callback_objects[0])
+        if comm_value.publisher.is_agnocast_publisher:
+            assert(comm_value.subscription.is_agnocast_subscription)
+            sub_handle = None
+            if callback is not None:
+                callback_objects = self._helper.get_subscription_callback_objects(callback)
+
+                sub_handle =\
+                    self._srv.get_subscription_handle_from_callback_object(callback_objects[0])
+            else:
+                raise InvalidArgumentError('comm_value subscription has no callbacks')
+
+            if sub_handle is not None:
+                records = self._source.agnocast_take_comm_records(publisher_handles, sub_handle)
+            else:
+                raise InvalidArgumentError(
+                    'Failed to get agnocast subscription handle from callback object.'
+                    f'callback_object: {callback_objects[0]}'
+                )
+        
+            columns = [
+                COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP,
+                COLUMN_NAME.AGNOCAST_ENTRY_ID,
+                COLUMN_NAME.AGNOCAST_TAKE_TIMESTAMP,
+            ]
+            self._format(records, columns)
+            self._rename_column(records, comm_value.subscribe_callback_name,
+                                comm_value.topic_name, comm_value.subscribe_node_name)
+            return records
+
         else:
-            raise InvalidArgumentError('comm_value subscription has no callbacks')
+            rmw_handle = None
+            if callback is not None:
+                callback_objects = self._helper.get_subscription_callback_objects(callback)
 
-        if rmw_handle is not None:
-            records = self._source.inter_take_comm_records(publisher_handles, rmw_handle)
-        else:
-            raise InvalidArgumentError(
-                'Failed to get rmw subscription handle from callback object.'
-                f'callback_object: {callback_objects[0]}'
-            )
+                rmw_handle =\
+                    self._srv.get_rmw_subscription_handle_from_callback_object(callback_objects[0])
+            else:
+                raise InvalidArgumentError('comm_value subscription has no callbacks')
 
-        columns = [COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP]
-        if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in records.columns:
-            columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
-        if COLUMN_NAME.DDS_WRITE_TIMESTAMP in records.columns:
-            columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
-        columns += [
-            COLUMN_NAME.SOURCE_TIMESTAMP,
-            COLUMN_NAME.RMW_TAKE_TIMESTAMP,
-        ]
+            if rmw_handle is not None:
+                records = self._source.inter_take_comm_records(publisher_handles, rmw_handle)
+            else:
+                raise InvalidArgumentError(
+                    'Failed to get rmw subscription handle from callback object.'
+                    f'callback_object: {callback_objects[0]}'
+                )
 
-        self._format(records, columns)
+            columns = [COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP]
+            if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in records.columns:
+                columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
+            if COLUMN_NAME.DDS_WRITE_TIMESTAMP in records.columns:
+                columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
+            columns += [
+                COLUMN_NAME.SOURCE_TIMESTAMP,
+                COLUMN_NAME.RMW_TAKE_TIMESTAMP,
+            ]
 
-        self._rename_column(records, comm_value.subscribe_callback_name,
-                            comm_value.topic_name, comm_value.subscribe_node_name)
-        return records
+            self._format(records, columns)
+
+            self._rename_column(records, comm_value.subscribe_callback_name,
+                                comm_value.topic_name, comm_value.subscribe_node_name)
+            
+            return records
 
     @staticmethod
     def _format(records: RecordsInterface, columns: list[str]):
@@ -1418,6 +1523,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
         if COLUMN_NAME.AGNOCAST_ENTRY_ID in records.columns:
             rename_dict[COLUMN_NAME.AGNOCAST_ENTRY_ID] = \
                 f'{topic_name}/{COLUMN_NAME.AGNOCAST_ENTRY_ID}'
+
+        if COLUMN_NAME.AGNOCAST_TAKE_TIMESTAMP in records.columns:
+            rename_dict[COLUMN_NAME.AGNOCAST_TAKE_TIMESTAMP] =\
+                f'{topic_name}/{COLUMN_NAME.AGNOCAST_TAKE_TIMESTAMP}'
+
+        if COLUMN_NAME.AGNOCAST_TAKE_EMPTY in records.columns:
+            rename_dict[COLUMN_NAME.AGNOCAST_TAKE_EMPTY] = \
+                f'{topic_name}/{COLUMN_NAME.AGNOCAST_TAKE_EMPTY}'
 
         records.rename_columns(rename_dict)
 
@@ -1909,38 +2022,45 @@ class NodeRecordsUseLatestMessage:
         assert self._node_path.subscription is not None and self._node_path.publisher is not None
 
         sub_records = self._provider.subscribe_records(self._node_path.subscription)
+        is_agnocast = self._node_path.subscription.is_agnocast_subscription
 
-        # If explicitly take message by user, there are cases that source_timestamp is 0.
-        def fill_source_timestamp_with_latest_timestamp(records):
-            source_columns = [s for s in records.columns if COLUMN_NAME.SOURCE_TIMESTAMP in s]
-            if len(source_columns) != 1:
-                return records
-            source_column = source_columns[0]
-
-            columns = []
-            for column in records.columns:
-                columns += [ColumnValue(column)]
-
+        # If explicitly take message by user, there are cases that source_timestamp is 0 or agnocast_take_empty is True.
+        def fill_take_empty_with_latest(records, is_agnocast):
+            target_columns = [s for s in records.columns if COLUMN_NAME.SOURCE_TIMESTAMP in s or COLUMN_NAME.AGNOCAST_TAKE_EMPTY in s]
+            assert(len(target_columns) == 1)
+            target_column = target_columns[0]
+            columns = [ColumnValue(c) for c in records.columns]
             records_data = []
-            latest_timestamp = 0
+            latest_value = 0
 
-            for record in records.data:
-                source_timestamp = record.data[source_column]
-                if source_timestamp == 0:
-                    record_dict = record.data
-                    record_dict[source_column] = latest_timestamp
-                    records_data.append(record_dict)
-                else:
-                    latest_timestamp = source_timestamp
-                    records_data.append(record.data)
+            if is_agnocast:
+                agnocast_entry_id_column = [s for s in records.columns if COLUMN_NAME.AGNOCAST_ENTRY_ID in s][0]
+                for record in records.data:
+                    is_empty = record.data[target_column]
+                    if is_empty:
+                        record_dict = record.data.copy()
+                        record_dict[agnocast_entry_id_column] = latest_value
+                        records_data.append(record_dict)
+                    else:
+                        latest_value = record.data[agnocast_entry_id_column]
+                        records_data.append(record.data)
+            
+            else:
+                for record in records.data:
+                    source_timestamp = record.data[target_column]
+                    if source_timestamp == 0:
+                        record_dict = record.data.copy()
+                        record_dict[target_column] = latest_value
+                        records_data.append(record_dict)
+                    else:
+                        latest_value = source_timestamp
+                        records_data.append(record.data)
 
             new_records = RecordsFactory.create_instance(
                 records_data,
                 columns=columns
             )
             return new_records
-
-        # TODO(atsushi421): consider agnocast take
 
         is_take_node = len(sub_records) == 0
         if is_take_node:
@@ -1949,7 +2069,11 @@ class NodeRecordsUseLatestMessage:
             # We replace this 0 with the source_timestamp of preceding record because
             # typical node which 'take' messages (instead of using subscription callback)
             # use last message when no message is taken.
-            sub_records = fill_source_timestamp_with_latest_timestamp(sub_records)
+            #
+            # (in the case of agnocast take)
+            # agnocast_take_empty of agnocast_take is True when no message is taken.
+            # We replace the corresponding agnocast_entry_id with one of the preceding record for the same reason mentioned above.
+            sub_records = fill_take_empty_with_latest(sub_records, is_agnocast)
         pub_records = self._provider.publish_records(self._node_path.publisher)
 
         columns = sub_records.columns
@@ -1962,15 +2086,23 @@ class NodeRecordsUseLatestMessage:
                 f'{self._node_path.publish_topic_name}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}',
             ]
 
-        # Set left_key to rmw_take timestamp
-        # if sub_records are obtained by RecordsProviderLttng.subscription_take_records()
         left_key = sub_records.columns[0]
         if is_take_node:
-            for column in sub_records.columns:
-                if column.endswith(COLUMN_NAME.RMW_TAKE_TIMESTAMP):
-                    columns.remove(column)
-                    left_key = column
-                    break
+            if is_agnocast:
+                # Set left_key to agnocast_take timestamp
+                for column in sub_records.columns:
+                    if column.endswith(COLUMN_NAME.AGNOCAST_TAKE_TIMESTAMP):
+                        # Preserve the agnocast_take_timestamp column instead of callback_start_timestamp in agnocast
+                        left_key = column
+                    if column.endswith(COLUMN_NAME.AGNOCAST_TAKE_EMPTY):
+                        columns.remove(column)  # drop
+            else:
+                # Set left_key to rmw_take timestamp
+                for column in sub_records.columns:
+                    if column.endswith(COLUMN_NAME.RMW_TAKE_TIMESTAMP):
+                        columns.remove(column)
+                        left_key = column
+                        break
 
         pub_sub_records = merge_sequential(
             left_records=sub_records,
@@ -2459,6 +2591,62 @@ class FilteredRecordsSource:
 
         return merged
 
+    def agnocast_take_comm_records(
+        self,
+        publisher_handles: list[int],
+        sub_handle: int
+    ) -> RecordsInterface:
+        """
+        Compose filtered agnocast take communication records.
+
+        Parameters
+        ----------
+        publisher_handles : list[int]
+            publisher handles
+        sub_handle : int
+            subscription handle
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+
+            - publisher_handle
+            - agnocast_publish_timestamp
+            - agnocast_take_empty
+            - agnocast_entry_id
+            - agnocast_take_timestamp
+
+        """
+        pub_records = self.agnocast_publish_records(publisher_handles)
+        take_records = self._grouped_agnocast_take_records[sub_handle].clone()
+        take_records.drop_columns(['subscription_handle'])
+
+        merged = merge(
+            left_records=pub_records,
+            right_records=take_records,
+            join_left_key=COLUMN_NAME.AGNOCAST_ENTRY_ID,
+            join_right_key=COLUMN_NAME.AGNOCAST_ENTRY_ID,
+            columns=Columns.from_str(
+                pub_records.columns + take_records.columns
+            ).column_names,
+            how='left'
+        )
+
+        columns = [
+            COLUMN_NAME.PUBLISHER_HANDLE,
+            COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP,
+            COLUMN_NAME.AGNOCAST_TAKE_EMPTY,
+            COLUMN_NAME.AGNOCAST_ENTRY_ID,
+            COLUMN_NAME.AGNOCAST_TAKE_TIMESTAMP,
+        ]
+        drop = list(set(merged.columns) - set(columns))
+        merged.drop_columns(drop)
+        merged.reindex(columns)
+        merged.sort(COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP)
+
+        return merged
+
     def intra_comm_records(
         self,
         publisher_handles: list[int],
@@ -2895,6 +3083,12 @@ class FilteredRecordsSource:
     def _grouped_rmw_take_records(self) -> dict[int, RecordsInterface]:
         records = self._lttng.compose_rmw_take_records()
         group = records.groupby([COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE])
+        return self._expand_key_tuple(group)
+
+    @cached_property
+    def _grouped_agnocast_take_records(self) -> dict[int, RecordsInterface]:
+        records = self._lttng.compose_agnocast_take_records()
+        group = records.groupby([COLUMN_NAME.SUBSCRIPTION_HANDLE])
         return self._expand_key_tuple(group)
 
     @cached_property

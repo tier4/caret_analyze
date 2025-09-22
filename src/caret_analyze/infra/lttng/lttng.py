@@ -1157,6 +1157,26 @@ class Lttng(InfraBase):
         """
         return self._source.rmw_take_records.clone()
 
+    def compose_agnocast_take_records(
+        self,
+    ) -> RecordsInterface:
+        """
+        Compose agnocast_take records of all communications in one records.
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+
+            - tid
+            - agnocast_take_timestamp
+            - subscription_handle
+            - agnocast_take_empty
+            - agnocast_entry_id
+
+        """
+        return self._source.agnocast_take_records.clone()
+
     def create_timer_events_factory(
         self,
         timer_callback: TimerCallbackValueLttng

@@ -1368,7 +1368,6 @@ class Ros2Handler():
         timestamp = get_field(event, '_timestamp')
         tid = get_field(event, '_vtid')
 
-        # HACK: add to existing data
-        rmw_handle = self._remapper.rmw_subscription_handle_remapper.get_latest_object_id(
+        subscription_handle = self._remapper.subscription_handle_remapper.get_nearest_object_id(
             subscription_handle, event)
-        self.data.add_rmw_take_instance(tid, timestamp, rmw_handle, message, entry_id)
+        self.data.add_agnocast_take_instance(tid, timestamp, subscription_handle, message, entry_id)

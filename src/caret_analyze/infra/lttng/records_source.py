@@ -516,6 +516,26 @@ class RecordsSource():
         return rmw_take_records
 
     @cached_property
+    def agnocast_take_records(self) -> RecordsInterface:
+        """
+        Compose agnocast_take records.
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+
+            - tid
+            - agnocast_take_timestamp
+            - subscription_handle
+            - agnocast_take_empty
+            - agnocast_entry_id
+
+        """
+        agnocast_take_records = self._data.agnocast_take_instances.clone()
+        return agnocast_take_records
+
+    @cached_property
     def intra_proc_comm_records(self) -> RecordsInterface:
         """
         Compose intra process communication records.

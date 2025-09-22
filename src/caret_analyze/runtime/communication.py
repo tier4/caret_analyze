@@ -356,3 +356,9 @@ class Communication(PathBase, Summarizable):
         if self.publisher:
             return self.publisher.construction_order
         return None
+
+    @property
+    def is_agnocast_take_comm(self) -> bool:
+        if self.value.publisher.is_agnocast_publisher and self.value.subscription.is_agnocast_subscription and self.callback_subscription.symbol.startswith('dummy_take'):
+            return True
+        return False
