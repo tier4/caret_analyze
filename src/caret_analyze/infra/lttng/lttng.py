@@ -47,7 +47,7 @@ from ...common import ClockConverter, Util
 from ...exceptions import InvalidArgumentError
 from ...record import RecordsInterface
 from ...value_objects import CallbackGroupValue, ExecutorValue, NodeValue, \
-        NodeValueWithId, Qos, ServiceValue, SubscriptionValue, TimerValue
+    NodeValueWithId, Qos, ServiceValue, SubscriptionValue, TimerValue
 
 Event = dict[str, int]
 
@@ -411,6 +411,9 @@ class Lttng(InfraBase):
         'ros2:rclcpp_buffer_to_ipb',
         'ros2_caret:rclcpp_ipb_to_subscription',
         'ros2:rclcpp_ipb_to_subscription',
+        'ros2_caret:agnocast_subscription_init',
+        'ros2_caret:agnocast_publisher_init',
+        'ros2_caret:agnocast_construct_executor',
     ]
 
     def __init__(
@@ -623,6 +626,9 @@ class Lttng(InfraBase):
             data.finalize()
             if len(event_filters) > 0:
                 print('filtered to {} events.'.format(filtered_event_count))
+
+        # For Agnocast
+        data.merge_agnocast_data()
 
         events_ = None if len(events) == 0 else events
         return data, events_, begin, end
@@ -1113,6 +1119,24 @@ class Lttng(InfraBase):
         """
         return self._source.subscribe_records.clone()
 
+    def compose_agnocast_subscribe_records(
+        self,
+    ) -> RecordsInterface:
+        """
+        Compose agnocast subscribe records of all communications in one records.
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+
+            - callback_start_timestamp
+            - callback_object
+            - agnocast_entry_id
+
+        """
+        return self._source.agnocast_subscribe_records.clone()
+
     def compose_rmw_take_records(
         self,
     ) -> RecordsInterface:
@@ -1132,6 +1156,26 @@ class Lttng(InfraBase):
 
         """
         return self._source.rmw_take_records.clone()
+
+    def compose_agnocast_take_records(
+        self,
+    ) -> RecordsInterface:
+        """
+        Compose agnocast_take records of all communications in one records.
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+
+            - tid
+            - agnocast_take_timestamp
+            - subscription_handle
+            - agnocast_take_empty
+            - agnocast_entry_id
+
+        """
+        return self._source.agnocast_take_records.clone()
 
     def create_timer_events_factory(
         self,
@@ -1189,6 +1233,16 @@ class Lttng(InfraBase):
 
         """
         return self._source.tilde_subscribe_records.clone()
+
+    def compose_agnocast_publish_records(
+        self,
+    ) -> RecordsInterface:
+        return self._source.agnocast_publish_records.clone()
+
+    def compose_agnocast_path_beginning_records(
+        self
+    ) -> RecordsInterface:
+        return self._source.agnocast_path_beginning_records.clone()
 
     def compose_path_beginning_records(
         self

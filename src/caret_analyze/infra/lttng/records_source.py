@@ -284,6 +284,24 @@ class RecordsSource():
         return records
 
     @cached_property
+    def agnocast_publish_records(self) -> RecordsInterface:
+        """
+        Compose Agnocast publish records.
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+            - agnocast_publish_timestamp
+            - publisher_handle
+            - agnocast_entry_id
+
+        """
+        records = self._data.agnocast_publish_instances.clone()
+        records.drop_columns(['tid'])
+        return records
+
+    @cached_property
     def intra_callback_records(self) -> RecordsInterface:
         """
         Compose intra callback records.
@@ -434,6 +452,48 @@ class RecordsSource():
         return subscribe
 
     @cached_property
+    def agnocast_subscribe_records(self) -> RecordsInterface:
+        """
+        Compose agnocast subscribe records.
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+
+            - callback_start_timestamp
+            - callback_object
+            - agnocast_entry_id
+
+        """
+        callback_start_instances = self.inter_callback_records
+        create_callable_records = self._data.agnocast_create_callable_instances.clone()
+
+        create_callable_records = merge_sequential(
+            left_records=create_callable_records,
+            right_records=callback_start_instances,
+            left_stamp_key=COLUMN_NAME.AGNOCAST_CREATE_CALLABLE_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
+            join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
+            columns=Columns.from_str(
+                create_callable_records.columns + callback_start_instances.columns
+            ).column_names,
+            how='left',
+        )
+        create_callable_records.drop_columns(
+            [
+                COLUMN_NAME.AGNOCAST_CREATE_CALLABLE_TIMESTAMP,
+                COLUMN_NAME.TID,
+                COLUMN_NAME.AGNOCAST_PID_CIID,
+                COLUMN_NAME.AGNOCAST_CALLABLE_OBJECT,
+                COLUMN_NAME.IS_INTRA_PROCESS,
+            ]
+        )
+
+        return create_callable_records
+
+    @cached_property
     def rmw_take_records(self) -> RecordsInterface:
         """
         Compose rmw_take records.
@@ -452,6 +512,26 @@ class RecordsSource():
         """
         rmw_take_records = self._data.rmw_take_instances.clone()
         return rmw_take_records
+
+    @cached_property
+    def agnocast_take_records(self) -> RecordsInterface:
+        """
+        Compose agnocast_take records.
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+
+            - tid
+            - agnocast_take_timestamp
+            - subscription_handle
+            - agnocast_take_empty
+            - agnocast_entry_id
+
+        """
+        agnocast_take_records = self._data.agnocast_take_instances.clone()
+        return agnocast_take_records
 
     @cached_property
     def intra_proc_comm_records(self) -> RecordsInterface:
@@ -818,6 +898,46 @@ class RecordsSource():
         records_inter.concat(records_intra)
 
         return records_inter
+
+    @cached_property
+    def agnocast_path_beginning_records(self) -> RecordsInterface:
+        """
+        Compose Agnocast callback records.
+
+        Used to evaluate the beginning node of a path.
+
+        Used tracepoints
+        - callback_start
+        - agnocast_publish
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+
+            - callback_start_timestamp
+            - agnocast_publish_timestamp
+            - callback_object
+            - publisher_handle
+
+        """
+        records: RecordsInterface
+        records = merge_sequential(
+            left_records=self._data.callback_start_instances,
+            right_records=self._data.agnocast_publish_instances,
+            left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP,
+            join_left_key=COLUMN_NAME.TID,
+            join_right_key=COLUMN_NAME.TID,
+            columns=[
+                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+                COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP,
+                COLUMN_NAME.CALLBACK_OBJECT,
+                COLUMN_NAME.PUBLISHER_HANDLE
+            ],
+            how='left_use_latest',
+        )
+        return records
 
     @cached_property
     def system_and_sim_times(self) -> RecordsInterface:

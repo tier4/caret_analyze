@@ -70,5 +70,13 @@ class ColumnName(NamedTuple):
     TILDE_SUBSCRIBE_TIMESTAMP: str = 'tilde_subscribe_timestamp'
     TILDE_MESSAGE_ID: str = 'tilde_message_id'
 
+    AGNOCAST_PUBLISH_TIMESTAMP: str = 'agnocast_publish_timestamp'
+    AGNOCAST_ENTRY_ID: str = 'agnocast_entry_id'
+    AGNOCAST_CREATE_CALLABLE_TIMESTAMP: str = 'agnocast_create_callable_timestamp'
+    AGNOCAST_PID_CIID: str = 'agnocast_pid_ciid'
+    AGNOCAST_CALLABLE_OBJECT: str = 'agnocast_callable_object'
+    AGNOCAST_TAKE_TIMESTAMP: str = 'agnocast_take_timestamp'
+    AGNOCAST_TAKE_EMPTY: str = 'agnocast_take_empty'
+
 
 COLUMN_NAME = ColumnName()

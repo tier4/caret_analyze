@@ -253,3 +253,16 @@ class PublisherStructValue(ValueObject, Summarizable):
             'topic_name': self.topic_name,
             'callbacks': self.callback_names
         })
+
+    @property
+    def is_agnocast_publisher(self) -> bool:
+        """
+        Check if the publisher is an agnocast publisher.
+
+        Returns
+        -------
+        bool
+            True if the publisher is an agnocast publisher.
+
+        """
+        return self.topic_name.endswith('_agnocast')

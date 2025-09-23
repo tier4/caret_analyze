@@ -250,3 +250,7 @@ class CommunicationStructValue(ValueObject, Summarizable):
             'publish_node': self.publish_node_name,
             'subscribe_node': self.subscribe_node_name,
         })
+
+    @property
+    def is_agnocast_take_comm(self) -> bool:
+        return self.publisher.is_agnocast_publisher and self.subscription.is_agnocast_take

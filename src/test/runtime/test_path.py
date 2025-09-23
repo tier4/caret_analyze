@@ -23,7 +23,9 @@ from caret_analyze.runtime.callback import CallbackBase
 from caret_analyze.runtime.communication import Communication
 from caret_analyze.runtime.node_path import NodePath
 from caret_analyze.runtime.path import ColumnMerger, Path, RecordsMerged
-from caret_analyze.value_objects import NodePathStructValue, PathStructValue
+from caret_analyze.value_objects import (
+    CommunicationStructValue, NodePathStructValue, PathStructValue
+)
 
 import pytest
 
@@ -264,6 +266,9 @@ class TestRecordsMerged:
                 ]
             )
         )
+        comm_val_mock = mocker.Mock(spec=CommunicationStructValue)
+        mocker.patch.object(comm_val_mock, 'is_agnocast_take_comm', False)
+        mocker.patch.object(comm_path, 'value', comm_val_mock)
 
         # cb_mock = mocker.Mock(spec=RecordsCppImpl)
         # comm_mock = mocker.Mock(spec=PathElement)
@@ -353,6 +358,9 @@ class TestRecordsMerged:
                 ]
             )
         )
+        comm_val_mock = mocker.Mock(spec=CommunicationStructValue)
+        mocker.patch.object(comm_val_mock, 'is_agnocast_take_comm', False)
+        mocker.patch.object(comm_path, 'value', comm_val_mock)
 
         merger_mock = mocker.Mock(spec=ColumnMerger)
         mocker.patch('caret_analyze.runtime.path.ColumnMerger',
@@ -522,6 +530,9 @@ class TestRecordsMerged:
                 ]
             )
         )
+        comm_val_mock = mocker.Mock(spec=CommunicationStructValue)
+        mocker.patch.object(comm_val_mock, 'is_agnocast_take_comm', False)
+        mocker.patch.object(comm_path, 'value', comm_val_mock)
 
         def append_columns_and_return_rename_rule(records):
             if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
@@ -609,6 +620,9 @@ class TestRecordsMerged:
         )
 
         mocker.patch.object(comm_path, 'use_take_manually', return_value=False)
+        comm_val_mock = mocker.Mock(spec=CommunicationStructValue)
+        mocker.patch.object(comm_val_mock, 'is_agnocast_take_comm', False)
+        mocker.patch.object(comm_path, 'value', comm_val_mock)
 
         return comm_path, rename_rule
 

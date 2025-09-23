@@ -111,15 +111,7 @@ class RecordsProvider(metaclass=ABCMeta):
         Returns
         -------
         RecordsInterface
-            Columns
-
-            communication record when the take method is used
-
-            - [topic_name]/rclcpp_publish_timestamp
-            - [topic_name]/rcl_publish_timestamp (Optional)
-            - [topic_name]/dds_write_timestamp (Optional)
-            - [topic_name]/source_timestamp
-            - [node_name]/rmw_take_timestamp
+            Records interface
 
         """
         pass
