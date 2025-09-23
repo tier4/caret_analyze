@@ -302,9 +302,13 @@ class Ros2Handler():
             self._handle_rclcpp_construct_ring_buffer
 
         # For Agnocast (initialization)
-        handler_map['ros2_caret:agnocast_subscription_init'] = self._handle_agnocast_subscription_init
+        handler_map['ros2_caret:agnocast_subscription_init'] = (
+            self._handle_agnocast_subscription_init
+        )
         handler_map['ros2_caret:agnocast_publisher_init'] = self._handle_agnocast_publisher_init
-        handler_map['ros2_caret:agnocast_construct_executor'] = self._handle_agnocast_construct_executor
+        handler_map['ros2_caret:agnocast_construct_executor'] = (
+            self._handle_agnocast_construct_executor
+        )
 
         self.handler_map = handler_map
 
@@ -1317,25 +1321,27 @@ class Ros2Handler():
         self,
         event: dict,
     ) -> None:
-        callable = get_field(event, 'callable')
+        callable_object = get_field(event, 'callable')
         timestamp = get_field(event, '_timestamp')
         tid = get_field(event, '_vtid')
 
-        callable = self._remapper.callable_remapper.get_latest_object_id(callable, event)
+        callable_object = \
+            self._remapper.callable_remapper.get_latest_object_id(callable_object, event)
 
-        self.data.add_agnocast_callable_start_instance(tid, timestamp, callable)
+        self.data.add_agnocast_callable_start_instance(tid, timestamp, callable_object)
 
     def _handle_agnocast_callable_end(
         self,
         event: dict,
     ) -> None:
-        callable = get_field(event, 'callable')
+        callable_object = get_field(event, 'callable')
         timestamp = get_field(event, '_timestamp')
         tid = get_field(event, '_vtid')
 
-        callable = self._remapper.callable_remapper.get_latest_object_id(callable, event)
+        callable_object = \
+            self._remapper.callable_remapper.get_latest_object_id(callable_object, event)
 
-        self.data.add_agnocast_callable_end_instance(tid, timestamp, callable)
+        self.data.add_agnocast_callable_end_instance(tid, timestamp, callable_object)
 
     def _handle_agnocast_take(
         self,

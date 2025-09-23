@@ -1238,10 +1238,14 @@ class DataFrameFormatted:
         if len(data.agnocast_subscriptions) > 0:
             agnocast_sub = data.agnocast_subscriptions.clone()
             agnocast_sub.reset_index()
-            drop_columns = ['callback_object', 'callback_group_addr', 'symbol', 'agnocast_pid_ciid']
+            drop_columns = [
+                'callback_object', 'callback_group_addr', 'symbol', 'agnocast_pid_ciid'
+            ]
             for dc in drop_columns:
                 agnocast_sub.drop_column(dc)
-            subscriptions = TracePointData.concat([subscriptions, agnocast_sub], subscriptions.columns)
+            subscriptions = TracePointData.concat(
+                [subscriptions, agnocast_sub], subscriptions.columns
+            )
 
         DataFrameFormatted._add_construction_order_publisher_or_subscription(
             subscriptions, 'construction_order', 'timestamp', 'node_handle', 'topic_name')
@@ -1518,7 +1522,10 @@ class DataFrameFormatted:
         callback_group_subscription = data.callback_group_subscription.clone()
         callback_group_subscription.reset_index()
         callback_group_subscription.remove_column('timestamp')
-        merge(subscriptions, callback_group_subscription, 'subscription_handle', merge_drop_columns=merge_drop_columns)
+        merge(
+            subscriptions, callback_group_subscription, 'subscription_handle',
+            merge_drop_columns=merge_drop_columns
+        )
 
         # Concatenate Agnocast data
         if len(data.agnocast_subscriptions) > 0:
@@ -1526,7 +1533,9 @@ class DataFrameFormatted:
             agnocast_subscriptions.reset_index()
             agnocast_subscriptions.remove_column('agnocast_pid_ciid')
             agnocast_subscriptions.add_column('callback_object_intra', lambda _: None)
-            subscriptions = TracePointData.concat([subscriptions, agnocast_subscriptions], subscriptions.columns)
+            subscriptions = TracePointData.concat(
+                [subscriptions, agnocast_subscriptions], subscriptions.columns
+            )
 
         DataFrameFormatted._add_construction_order(
             subscriptions, 'construction_order', 'timestamp',

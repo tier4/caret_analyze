@@ -253,10 +253,16 @@ class DataModelService:
             if len(sub_handles) == 1:
                 sub_handle = sub_handles[0]
             elif len(sub_handles) == 0:
-                msg = f'There is no subscription_handle that corresponds to callback_object: {cb_addr}.'
+                msg = (
+                    f'There is no subscription_handle that corresponds to '
+                    f'callback_object: {cb_addr}.'
+                )
                 raise InvalidArgumentError(msg)
             else:
-                msg = f'Duplicated subscription_handle: [{sub_handles}] that corresponds to callback_object: {cb_addr}.'
+                msg = (
+                    f'Duplicated subscription_handle: [{sub_handles}] that corresponds to '
+                    f'callback_object: {cb_addr}.'
+                )
                 raise InvalidArgumentError(msg)
 
             return sub_handle

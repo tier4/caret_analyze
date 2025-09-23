@@ -339,15 +339,23 @@ class RecordsProviderLttng(RuntimeDataProvider):
                 callback_objects = self._helper.get_subscription_callback_objects(callback)
 
                 try:
-                    sub_handle =\
-                        self._srv.get_agnocast_subscription_handle_from_callback_object(callback_objects[0])
+                    sub_handle = (
+                        self._srv.get_agnocast_subscription_handle_from_callback_object(
+                            callback_objects[0]
+                        )
+                    )
                 except InvalidArgumentError:
                     sub_handle = None
 
             # get agnocast_take_records, which relates to callback_object
             agnocast_take_records: RecordsInterface
-            if sub_handle is not None and sub_handle in self._source._grouped_agnocast_take_records:
-                agnocast_take_records = self._source._grouped_agnocast_take_records[sub_handle].clone()
+            if (
+                sub_handle is not None and
+                sub_handle in self._source._grouped_agnocast_take_records
+            ):
+                agnocast_take_records = (
+                    self._source._grouped_agnocast_take_records[sub_handle].clone()
+                )
             else:
                 agnocast_take_records = RecordsFactory.create_instance(
                     None,
@@ -363,12 +371,20 @@ class RecordsProviderLttng(RuntimeDataProvider):
             # drop columns
             columns = agnocast_take_records.columns
             drop_columns = list(
-                set(columns) - {COLUMN_NAME.AGNOCAST_TAKE_TIMESTAMP, COLUMN_NAME.AGNOCAST_ENTRY_ID, COLUMN_NAME.AGNOCAST_TAKE_EMPTY}
+                set(columns) - {
+                    COLUMN_NAME.AGNOCAST_TAKE_TIMESTAMP,
+                    COLUMN_NAME.AGNOCAST_ENTRY_ID,
+                    COLUMN_NAME.AGNOCAST_TAKE_EMPTY
+                }
             )
             agnocast_take_records.drop_columns(drop_columns)
 
             # reindex
-            agnocast_take_records.reindex([COLUMN_NAME.AGNOCAST_TAKE_TIMESTAMP, COLUMN_NAME.AGNOCAST_ENTRY_ID, COLUMN_NAME.AGNOCAST_TAKE_EMPTY])
+            agnocast_take_records.reindex([
+                COLUMN_NAME.AGNOCAST_TAKE_TIMESTAMP,
+                COLUMN_NAME.AGNOCAST_ENTRY_ID,
+                COLUMN_NAME.AGNOCAST_TAKE_EMPTY
+            ])
 
             # add prefix to columns; e.g. [topic_name]/agnocast_entry_id
             self._rename_column(
@@ -386,8 +402,11 @@ class RecordsProviderLttng(RuntimeDataProvider):
                 callback_objects = self._helper.get_subscription_callback_objects(callback)
 
                 try:
-                    rmw_handle =\
-                        self._srv.get_rmw_subscription_handle_from_callback_object(callback_objects[0])
+                    rmw_handle = (
+                        self._srv.get_rmw_subscription_handle_from_callback_object(
+                            callback_objects[0]
+                        )
+                    )
                 except InvalidArgumentError:
                     rmw_handle = None
 
@@ -787,7 +806,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/agnocast_entry_id
 
         """
-
         publisher_handles = self._helper.get_publisher_handles(publisher)
         pub_records = self._source.agnocast_publish_records(publisher_handles)
 
@@ -1095,7 +1113,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/agnocast_publish_timestamp
 
         """
-
         if publisher.is_agnocast_publisher:
             return self._agnocast_path_beginning_records(publisher)
 
@@ -1404,8 +1421,11 @@ class RecordsProviderLttng(RuntimeDataProvider):
             if callback is not None:
                 callback_objects = self._helper.get_subscription_callback_objects(callback)
 
-                sub_handle =\
-                    self._srv.get_agnocast_subscription_handle_from_callback_object(callback_objects[0])
+                sub_handle = (
+                    self._srv.get_agnocast_subscription_handle_from_callback_object(
+                        callback_objects[0]
+                    )
+                )
             else:
                 raise InvalidArgumentError('comm_value subscription has no callbacks')
 
@@ -2041,9 +2061,13 @@ class NodeRecordsUseLatestMessage:
         sub_records = self._provider.subscribe_records(self._node_path.subscription)
         is_agnocast = self._node_path.subscription.is_agnocast_subscription
 
-        # If explicitly take message by user, there are cases that source_timestamp is 0 or agnocast_take_empty is True.
+        # If explicitly take message by user, there are cases that source_timestamp
+        # is 0 or agnocast_take_empty is True.
         def fill_take_empty_with_latest(records, is_agnocast):
-            target_columns = [s for s in records.columns if COLUMN_NAME.SOURCE_TIMESTAMP in s or COLUMN_NAME.AGNOCAST_TAKE_EMPTY in s]
+            target_columns = [
+                s for s in records.columns
+                if COLUMN_NAME.SOURCE_TIMESTAMP in s or COLUMN_NAME.AGNOCAST_TAKE_EMPTY in s
+            ]
             assert(len(target_columns) == 1)
             target_column = target_columns[0]
             columns = [ColumnValue(c) for c in records.columns]
@@ -2051,7 +2075,9 @@ class NodeRecordsUseLatestMessage:
             latest_value = 0
 
             if is_agnocast:
-                agnocast_entry_id_column = [s for s in records.columns if COLUMN_NAME.AGNOCAST_ENTRY_ID in s][0]
+                agnocast_entry_id_column = [
+                    s for s in records.columns if COLUMN_NAME.AGNOCAST_ENTRY_ID in s
+                ][0]
                 for record in records.data:
                     is_empty = record.data[target_column]
                     if is_empty:
@@ -2089,7 +2115,8 @@ class NodeRecordsUseLatestMessage:
             sub_records = fill_take_empty_with_latest(sub_records, is_agnocast)
         elif self._node_path.subscription.is_agnocast_take:
             # agnocast_take_empty of agnocast_take is True when no message is taken.
-            # We replace the corresponding agnocast_entry_id with one of the preceding record for the same reason mentioned above.
+            # We replace the corresponding agnocast_entry_id with one of the preceding
+            # record for the same reason mentioned above.
             sub_records = fill_take_empty_with_latest(sub_records, is_agnocast)
 
         pub_records = self._provider.publish_records(self._node_path.publisher)
@@ -2116,7 +2143,8 @@ class NodeRecordsUseLatestMessage:
             # Set left_key to agnocast_take timestamp
             for column in sub_records.columns:
                 if column.endswith(COLUMN_NAME.AGNOCAST_TAKE_TIMESTAMP):
-                    # Preserve the agnocast_take_timestamp column instead of callback_start_timestamp in agnocast
+                    # Preserve the agnocast_take_timestamp column instead of
+                    # callback_start_timestamp in agnocast
                     left_key = column
                 if column.endswith(COLUMN_NAME.AGNOCAST_TAKE_EMPTY):
                     columns.remove(column)  # drop

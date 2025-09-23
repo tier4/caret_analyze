@@ -264,7 +264,10 @@ class RecordsMerged:
                             right_records = target.to_take_records()
                             take_records_applied_for_last_communication = True
                         except Exception as e:
-                            msg = f'Failed to get take records for the last Communication record: {e}'
+                            msg = (
+                                f'Failed to get take records for the last '
+                                f'Communication record: {e}'
+                            )
                             logger.error(msg)
                             raise InvalidRecordsError(msg)
                     else:
@@ -326,7 +329,10 @@ class RecordsMerged:
             output_log = False
             if take_records_applied_for_last_communication:
                 output_log = True
-            elif is_match_column(left_records.columns[-1], 'source_timestamp') or is_match_column(left_records.columns[-1], 'agnocast_entry_id'):
+            elif (
+                is_match_column(left_records.columns[-1], 'source_timestamp') or
+                is_match_column(left_records.columns[-1], 'agnocast_entry_id')
+            ):
                 output_log = True
 
             if output_log:

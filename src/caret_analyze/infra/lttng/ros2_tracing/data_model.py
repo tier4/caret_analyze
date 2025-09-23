@@ -17,7 +17,7 @@
 
 
 from ...trace_point_data import TracePointIntermediateData
-from ....record import Columns, ColumnValue, RecordsFactory, merge
+from ....record import Columns, ColumnValue, merge, RecordsFactory
 
 
 class Ros2DataModel():
@@ -833,20 +833,25 @@ class Ros2DataModel():
         self.agnocast_create_callable_instances.append(record)
 
     def add_agnocast_callable_start_instance(
-        self, tid: int, timestamp: int, callable: int
+        self, tid: int, timestamp: int, callable_object: int
     ) -> None:
         record = {
             'tid': tid,
             'callable_start_timestamp': timestamp,
-            'agnocast_callable_object': callable,
+            'agnocast_callable_object': callable_object,
         }
         self.agnocast_callable_start_instances.append(record)
 
-    def add_agnocast_callable_end_instance(self, tid: int, timestamp: int, callable: int) -> None:
+    def add_agnocast_callable_end_instance(
+        self,
+        tid: int,
+        timestamp: int,
+        callable_object: int
+    ) -> None:
         record = {
             'tid': tid,
             'callable_end_timestamp': timestamp,
-            'agnocast_callable_object': callable
+            'agnocast_callable_object': callable_object
         }
         self.agnocast_callable_end_instances.append(record)
 
@@ -1154,7 +1159,7 @@ class Ros2DataModel():
         )
         id_2_callback_df = self.agnocast_subscriptions.df[['agnocast_pid_ciid', 'callback_object']]
         # remove take subscription row
-        id_2_callback_df = id_2_callback_df[id_2_callback_df["agnocast_pid_ciid"] != 0]
+        id_2_callback_df = id_2_callback_df[id_2_callback_df['agnocast_pid_ciid'] != 0]
 
         for _, row in id_2_callback_df.iterrows():
             id_2_callback_records.append(row.to_dict())
@@ -1180,7 +1185,8 @@ class Ros2DataModel():
             join_left_key='agnocast_callable_object',
             join_right_key='agnocast_callable_object',
             columns=Columns.from_str(
-                self.agnocast_callable_start_instances.columns + callable_2_callback_records.columns
+                self.agnocast_callable_start_instances.columns +
+                callable_2_callback_records.columns
             ).column_names,
             how='left'
         )
@@ -1225,7 +1231,8 @@ class Ros2DataModel():
             join_left_key='agnocast_callable_object',
             join_right_key='agnocast_callable_object',
             columns=Columns.from_str(
-                self.agnocast_create_callable_instances.columns + callable_2_callback_records.columns
+                self.agnocast_create_callable_instances.columns +
+                callable_2_callback_records.columns
             ).column_names,
             how='left'
         )
