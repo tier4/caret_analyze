@@ -97,7 +97,7 @@ class MetricsBase(metaclass=ABCMeta):
                               if target_object.callback_names else '')
             ts_column_name = (
                 f'{callback_names}agnocast_publish_timestamp'
-                if target_object._val.is_agnocast_publisher
+                if target_object.value.is_agnocast_publisher
                 else f'{callback_names}rclcpp_publish_timestamp'
             )
         elif isinstance(target_object, Subscription):

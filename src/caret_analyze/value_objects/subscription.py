@@ -293,5 +293,6 @@ class SubscriptionStructValue(ValueObject, Summarizable):
 
     @property
     def is_agnocast_take(self) -> bool:
-        assert (self.callback is not None)
-        return self.is_agnocast_subscription and self.callback.symbol.startswith('dummy_take')
+        if self.callback is not None:
+            return self.is_agnocast_subscription and self.callback.symbol.startswith('dummy_take')
+        return False
