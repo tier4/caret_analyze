@@ -144,6 +144,9 @@ class Ros2Handler():
             'ros2:rclcpp_buffer_to_ipb',
             'ros2:rclcpp_ipb_to_subscription',
             'ros2:rclcpp_construct_ring_buffer',
+            'ros2_caret:agnocast_subscription_init',
+            'ros2_caret:agnocast_publisher_init',
+            'ros2_caret:agnocast_construct_executor',
             'agnocast:agnocast_publish',
             'agnocast:agnocast_create_callable',
             'agnocast:agnocast_callable_start',
@@ -171,9 +174,6 @@ class Ros2Handler():
                     'ros2_caret:rclcpp_buffer_to_ipb',
                     'ros2_caret:rclcpp_ipb_to_subscription',
                     'ros2_caret:rclcpp_construct_ring_buffer',
-                    'ros2_caret:agnocast_subscription_init',
-                    'ros2_caret:agnocast_publisher_init',
-                    'ros2_caret:agnocast_construct_executor',
                 ]
             )
         return tracepoints
