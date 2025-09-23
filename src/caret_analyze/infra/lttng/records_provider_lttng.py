@@ -1098,7 +1098,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         if publisher.is_agnocast_publisher:
             return self._agnocast_path_beginning_records(publisher)
-        
+
         publisher_handles = self._helper.get_publisher_handles(publisher)
         records = self._source.path_beginning_records(publisher_handles)
 
@@ -1416,7 +1416,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
                     'Failed to get agnocast subscription handle from callback object.'
                     f'callback_object: {callback_objects[0]}'
                 )
-        
+
             columns = [
                 COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP,
                 COLUMN_NAME.AGNOCAST_ENTRY_ID,
@@ -1459,7 +1459,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
             self._rename_column(records, comm_value.subscribe_callback_name,
                                 comm_value.topic_name, comm_value.subscribe_node_name)
-            
+
             return records
 
     @staticmethod
@@ -1536,7 +1536,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         if COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP in records.columns:
             rename_dict[COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP] = \
                 f'{topic_name}/{COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP}'
-        
+
         if COLUMN_NAME.AGNOCAST_ENTRY_ID in records.columns:
             rename_dict[COLUMN_NAME.AGNOCAST_ENTRY_ID] = \
                 f'{topic_name}/{COLUMN_NAME.AGNOCAST_ENTRY_ID}'
@@ -2061,7 +2061,7 @@ class NodeRecordsUseLatestMessage:
                     else:
                         latest_value = record.data[agnocast_entry_id_column]
                         records_data.append(record.data)
-            
+
             else:
                 for record in records.data:
                     source_timestamp = record.data[target_column]
@@ -2856,7 +2856,7 @@ class FilteredRecordsSource:
             records.filter_if(
                 lambda x: x.get('publisher_handle') in publisher_handles
             )
-        
+
         Columns
 
         - publisher_handle

@@ -1343,7 +1343,7 @@ class DataFrameFormatted:
             columns_ = columns[1:]  # ignore executor_id
             executors = TracePointData.concat(
                 [executors, executors_static], columns_)
-        
+
         # Concatenate Agnocast data
         if len(data.agnocast_executors) > 0:
             agnocast_executors = data.agnocast_executors.clone()
