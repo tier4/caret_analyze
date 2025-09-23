@@ -23,7 +23,9 @@ from caret_analyze.runtime.callback import CallbackBase
 from caret_analyze.runtime.communication import Communication
 from caret_analyze.runtime.node_path import NodePath
 from caret_analyze.runtime.path import ColumnMerger, Path, RecordsMerged
-from caret_analyze.value_objects import CommunicationStructValue, NodePathStructValue, PathStructValue
+from caret_analyze.value_objects import (
+    CommunicationStructValue, NodePathStructValue, PathStructValue
+)
 
 import pytest
 

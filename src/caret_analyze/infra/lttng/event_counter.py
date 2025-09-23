@@ -243,11 +243,13 @@ class EventCounter:
             'ros2_caret:dds_bind_addr_to_addr': data.dds_bind_addr_to_addr.to_dataframe(),
             'ros2_caret:tilde_publish': data.tilde_publish.to_dataframe(),
             'ros2_caret:tilde_subscribe': data.tilde_subscribe.to_dataframe(),
-            "agnocast:agnocast_callable_start": data.agnocast_callable_start_instances.to_dataframe(),
-            "agnocast:agnocast_callable_end": data.agnocast_callable_end_instances.to_dataframe(),
-            "agnocast:agnocast_create_callable": data.agnocast_create_callable_instances.to_dataframe(),
-            "agnocast:agnocast_publish": data.agnocast_publish_instances.to_dataframe(),
-            "agnocast:agnocast_take": data.agnocast_take_instances.to_dataframe(),
+            'agnocast:agnocast_callable_start': \
+                data.agnocast_callable_start_instances.to_dataframe(),
+            'agnocast:agnocast_callable_end': data.agnocast_callable_end_instances.to_dataframe(),
+            'agnocast:agnocast_create_callable': \
+                data.agnocast_create_callable_instances.to_dataframe(),
+            'agnocast:agnocast_publish': data.agnocast_publish_instances.to_dataframe(),
+            'agnocast:agnocast_take': data.agnocast_take_instances.to_dataframe(),
             'ros2_caret:sim_time': data.sim_time.to_dataframe(),
             'ros2_caret:on_data_available': data.on_data_available_instances.to_dataframe(),
             'ros2_caret:caret_init': data.caret_init.df,
@@ -299,7 +301,8 @@ class EventCounter:
             sub_handle_to_node_name[handler] = \
                 node_handle_to_node_name.get(row['node_handle'], '-')
             sub_handle_to_topic_name[handler] = row['topic_name']
-            sub_cb_to_node_name[row['callback_object']] = node_handle_to_node_name.get(row['node_handle'], '-')
+            sub_cb_to_node_name[row['callback_object']] = \
+                node_handle_to_node_name.get(row['node_handle'], '-')
             sub_cb_to_topic_name[row['callback_object']] = row['topic_name']
 
         for handler, row in data.timer_node_links.df.iterrows():
