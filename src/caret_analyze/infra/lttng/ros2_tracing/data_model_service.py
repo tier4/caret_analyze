@@ -103,16 +103,18 @@ class DataModelService:
         self,
         cbg_addr: int
     ) -> list[tuple[str | None, str | None]]:
+        agnocast_sub = self._data.agnocast_subscriptions.clone()
+        agnocast_sub.reset_index()
         cbg_sub = pd.concat([
             self._data.callback_group_subscription.df,
-            self._data.agnocast_subscriptions.df[self._data.callback_group_subscription.columns]
+            agnocast_sub.df[self._data.callback_group_subscription.columns]
         ])
         match_cbg_sub = self._ensure_dataframe(cbg_sub.loc[cbg_addr, :])
         sub_handles = match_cbg_sub.loc[:, 'subscription_handle'].to_list()
 
         node_names_and_cb_symbols: list[tuple[str | None, str | None]] = []
         middle_sub_df = pd.concat(
-            [self._data.subscriptions.df, self._data.agnocast_subscriptions.df
+            [self._data.subscriptions.df, agnocast_sub.df
              [self._data.subscriptions.df.columns.drop(['rmw_handle'])]])
         for handle in sub_handles:
             node_name = self._get_node_name_from_handle(handle, middle_sub_df)
@@ -182,10 +184,14 @@ class DataModelService:
         handle: int
     ) -> list[str | None]:
         try:
-            match_agnocast_sub = self._data.agnocast_subscriptions.df.loc[handle, :]
-            if not match_agnocast_sub.empty:
-                return match_agnocast_sub.loc[:, 'callback_symbol'].to_list()
+            agnocast_sub = self._data.agnocast_subscriptions.clone()
+            agnocast_sub.reset_index()
+            match_agnocast_sub = agnocast_sub.df.loc[handle, :]
+            return match_agnocast_sub.loc[:, 'callback_symbol'].to_list()
+        except KeyError:
+            pass
 
+        try:
             match_callback_objects = self._ensure_dataframe(
                 self._data.callback_objects.df.loc[handle, :])
             callback_objects = match_callback_objects.loc[:, 'callback_object'].to_list()
