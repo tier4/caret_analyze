@@ -243,10 +243,10 @@ class EventCounter:
             'ros2_caret:dds_bind_addr_to_addr': data.dds_bind_addr_to_addr.to_dataframe(),
             'ros2_caret:tilde_publish': data.tilde_publish.to_dataframe(),
             'ros2_caret:tilde_subscribe': data.tilde_subscribe.to_dataframe(),
-            'agnocast:agnocast_callable_start': \
+            'agnocast:agnocast_callable_start':
                 data.agnocast_callable_start_instances.to_dataframe(),
             'agnocast:agnocast_callable_end': data.agnocast_callable_end_instances.to_dataframe(),
-            'agnocast:agnocast_create_callable': \
+            'agnocast:agnocast_create_callable':
                 data.agnocast_create_callable_instances.to_dataframe(),
             'agnocast:agnocast_publish': data.agnocast_publish_instances.to_dataframe(),
             'agnocast:agnocast_take': data.agnocast_take_instances.to_dataframe(),
