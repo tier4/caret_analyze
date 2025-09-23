@@ -111,10 +111,9 @@ class DataModelService:
         sub_handles = match_cbg_sub.loc[:, 'subscription_handle'].to_list()
 
         node_names_and_cb_symbols: list[tuple[str | None, str | None]] = []
-        middle_sub_df = pd.concat([
-            self._data.subscriptions.df,
-            self._data.agnocast_subscriptions.df[self._data.subscriptions.df.columns.drop(['rmw_handle'])]
-        ])
+        middle_sub_df = pd.concat(
+            [self._data.subscriptions.df, self._data.agnocast_subscriptions.df
+             [self._data.subscriptions.df.columns.drop(['rmw_handle'])]])
         for handle in sub_handles:
             node_name = self._get_node_name_from_handle(handle, middle_sub_df)
             callback_symbol = self._get_callback_symbols_from_handle(handle)
@@ -249,7 +248,8 @@ class DataModelService:
                     ['subscription_handle', 'callback_object']
                 ]
             )
-            sub_handles = target_df[target_df['callback_object'] == cb_addr]['subscription_handle'].values
+            sub_handles = target_df[target_df['callback_object']
+                                    == cb_addr]['subscription_handle'].values
             if len(sub_handles) == 1:
                 sub_handle = sub_handles[0]
             elif len(sub_handles) == 0:
@@ -292,12 +292,12 @@ class DataModelService:
         try:
             target_df = self._ensure_dataframe(
                 self._data.subscription_objects.clone().df.reset_index()[
-                        ['subscription', 'subscription_handle']
-                    ]
-                )
+                    ['subscription', 'subscription_handle']
+                ]
+            )
             sub_handle = target_df[target_df['subscription'] == subscription][
-                    'subscription_handle'
-                ].values
+                'subscription_handle'
+            ].values
             if len(sub_handle) == 1:
                 return sub_handle[0]
             elif len(sub_handle) == 0:
@@ -322,7 +322,7 @@ class DataModelService:
                 ])
             rmw_handle = target_df[
                 target_df['subscription_handle'] == subscription_handle
-                ]['rmw_handle'].values
+            ]['rmw_handle'].values
             if len(rmw_handle) == 1:
                 return rmw_handle[0]
             elif len(rmw_handle) == 0:

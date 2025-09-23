@@ -490,7 +490,7 @@ class Ros2DataModel():
             'callback_start_timestamp': timestamp,
             'callback_object': callback,
             'is_intra_process': is_intra_process,
-            }
+        }
         self.callback_start_instances.append(record)
 
     def add_callback_end_instance(self, tid: int, timestamp: int, callback: int) -> None:

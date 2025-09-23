@@ -365,10 +365,8 @@ class RecordsMerged:
             raise InvalidRecordsError('first column not in columns')
 
         # remove source_timestamp and agnocast_entry_id columns
-        unnecessary_columns = [
-            column for column in left_records.columns
-            if is_match_column(column, 'source_timestamp') or is_match_column(column, 'agnocast_entry_id')
-        ]
+        unnecessary_columns = [column for column in left_records.columns if is_match_column(
+            column, 'source_timestamp') or is_match_column(column, 'agnocast_entry_id')]
         left_records.drop_columns(unnecessary_columns)
 
         # remove rmw_take columns except for the last one

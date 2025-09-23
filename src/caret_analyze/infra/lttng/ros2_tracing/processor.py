@@ -1222,7 +1222,8 @@ class Ros2Handler():
         depth = get_field(event, 'queue_depth')
         pid_ciid = get_field(event, 'pid_ciid')
         timestamp = get_field(event, '_timestamp')
-        topic_name = get_field(event, 'topic_name') + '_agnocast'  # To avoid conflict with ROS 2 publisher
+        # To avoid conflict with ROS 2 publisher
+        topic_name = get_field(event, 'topic_name') + '_agnocast'
 
         subscription_handle = \
             self._remapper.subscription_handle_remapper.register_and_get_object_id(handle, event)
@@ -1251,14 +1252,16 @@ class Ros2Handler():
         node_handle = get_field(event, 'node_handle')
         depth = get_field(event, 'queue_depth')
         timestamp = get_field(event, '_timestamp')
-        topic_name = get_field(event, 'topic_name') + '_agnocast'  # To avoid conflict with ROS 2 publisher
+        # To avoid conflict with ROS 2 publisher
+        topic_name = get_field(event, 'topic_name') + '_agnocast'
 
         publisher_handle = self._remapper.publisher_handle_remapper.register_and_get_object_id(
             handle,
             event)
         node_handle = self._remapper.node_handle_remapper.get_nearest_object_id(node_handle, event)
 
-        self.data.add_agnocast_publisher(publisher_handle, timestamp, node_handle, topic_name, depth)
+        self.data.add_agnocast_publisher(
+            publisher_handle, timestamp, node_handle, topic_name, depth)
 
     def _handle_agnocast_construct_executor(
         self,
@@ -1346,4 +1349,5 @@ class Ros2Handler():
 
         subscription_handle = self._remapper.subscription_handle_remapper.get_nearest_object_id(
             subscription_handle, event)
-        self.data.add_agnocast_take_instance(tid, timestamp, subscription_handle, message, entry_id)
+        self.data.add_agnocast_take_instance(
+            tid, timestamp, subscription_handle, message, entry_id)

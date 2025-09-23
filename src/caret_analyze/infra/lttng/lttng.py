@@ -47,7 +47,7 @@ from ...common import ClockConverter, Util
 from ...exceptions import InvalidArgumentError
 from ...record import RecordsInterface
 from ...value_objects import CallbackGroupValue, ExecutorValue, NodeValue, \
-        NodeValueWithId, Qos, ServiceValue, SubscriptionValue, TimerValue
+    NodeValueWithId, Qos, ServiceValue, SubscriptionValue, TimerValue
 
 Event = dict[str, int]
 
