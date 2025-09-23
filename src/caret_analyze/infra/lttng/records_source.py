@@ -491,8 +491,6 @@ class RecordsSource():
             ]
         )
 
-        # TODO(atsushi421): consider agnocast take
-
         return create_callable_records
 
     @cached_property

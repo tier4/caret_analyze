@@ -2530,9 +2530,6 @@ class FilteredRecordsSource:
             COLUMN_NAME.AGNOCAST_ENTRY_ID
         ]
 
-        # TODO(atsushi421): consider agnocast take
-        # if COLUMN_NAME.RMW_TAKE_TIMESTAMP in merged.columns:
-        #     columns.append(COLUMN_NAME.RMW_TAKE_TIMESTAMP)
         drop = list(set(merged.columns) - set(columns))
         merged.drop_columns(drop)
         merged.reindex(columns)
