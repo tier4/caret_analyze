@@ -185,7 +185,6 @@ class DataModelService:
     ) -> list[str | None]:
         try:
             agnocast_sub = self._data.agnocast_subscriptions.clone()
-            agnocast_sub.reset_index()
             match_agnocast_sub = agnocast_sub.df.loc[handle, :]
             return match_agnocast_sub.loc[:, 'callback_symbol'].to_list()
         except KeyError:
