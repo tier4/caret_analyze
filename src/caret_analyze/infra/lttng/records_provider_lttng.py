@@ -423,14 +423,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
                         ColumnValue(COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE),
                         ColumnValue(COLUMN_NAME.MESSAGE),
                         ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP)
-                        ]
-                    )
+                    ]
+                )
 
             # drop columns
             columns = rmw_records.columns
             drop_columns = list(
                 set(columns) - {COLUMN_NAME.SOURCE_TIMESTAMP, COLUMN_NAME.RMW_TAKE_TIMESTAMP}
-                )
+            )
             rmw_records.drop_columns(drop_columns)
 
             # reindex
@@ -535,7 +535,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             )
 
         callback_objects = self._helper.get_subscription_callback_objects(callback)
-        assert(callback_objects[1] is None)
+        assert (callback_objects[1] is None)
         sub_records = self._source.agnocast_subscribe_records(callback_objects[0])
 
         columns = [
@@ -1341,7 +1341,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         callback_object = self._helper.get_subscription_callback_object_inter(subscription_cb)
 
         if comm_value.publisher.is_agnocast_publisher:
-            assert(comm_value.subscription.is_agnocast_subscription)
+            assert (comm_value.subscription.is_agnocast_subscription)
             records = self._source.agnocast_comm_records(publisher_handles, callback_object)
 
             columns = [
@@ -1416,7 +1416,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         callback = comm_value.subscription.callback
 
         if comm_value.publisher.is_agnocast_publisher:
-            assert(comm_value.subscription.is_agnocast_subscription)
+            assert (comm_value.subscription.is_agnocast_subscription)
             sub_handle = None
             if callback is not None:
                 callback_objects = self._helper.get_subscription_callback_objects(callback)
@@ -2068,7 +2068,7 @@ class NodeRecordsUseLatestMessage:
                 s for s in records.columns
                 if COLUMN_NAME.SOURCE_TIMESTAMP in s or COLUMN_NAME.AGNOCAST_TAKE_EMPTY in s
             ]
-            assert(len(target_columns) == 1)
+            assert (len(target_columns) == 1)
             target_column = target_columns[0]
             columns = [ColumnValue(c) for c in records.columns]
             records_data = []
@@ -2595,7 +2595,19 @@ class FilteredRecordsSource:
 
         """
         pub_records = self.publish_records(publisher_handles)
-        rmw_records = self._grouped_rmw_take_records[rmw_handle].clone()
+        if rmw_handle in self._grouped_rmw_take_records:
+            rmw_records = self._grouped_rmw_take_records[rmw_handle].clone()
+        else:
+            return RecordsFactory.create_instance(
+                None,
+                columns=[
+                    COLUMN_NAME.PUBLISHER_HANDLE,
+                    COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
+                    COLUMN_NAME.MESSAGE_TIMESTAMP,
+                    COLUMN_NAME.SOURCE_TIMESTAMP,
+                    COLUMN_NAME.RMW_TAKE_TIMESTAMP,
+                ]
+            )
         rmw_records.drop_columns([
             'rmw_subscription_handle'])
 
@@ -2661,7 +2673,19 @@ class FilteredRecordsSource:
 
         """
         pub_records = self.agnocast_publish_records(publisher_handles)
-        take_records = self._grouped_agnocast_take_records[sub_handle].clone()
+        if sub_handle in self._grouped_agnocast_take_records:
+            take_records = self._grouped_agnocast_take_records[sub_handle].clone()
+        else:
+            return RecordsFactory.create_instance(
+                None,
+                columns=[
+                    COLUMN_NAME.PUBLISHER_HANDLE,
+                    COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP,
+                    COLUMN_NAME.AGNOCAST_TAKE_EMPTY,
+                    COLUMN_NAME.AGNOCAST_ENTRY_ID,
+                    COLUMN_NAME.AGNOCAST_TAKE_TIMESTAMP,
+                ]
+            )
         take_records.drop_columns(['subscription_handle'])
 
         merged = merge(
@@ -3104,7 +3128,7 @@ class FilteredRecordsSource:
                 optional_columns = {
                     COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
                     COLUMN_NAME.DDS_WRITE_TIMESTAMP
-                    }
+                }
                 drop_columns = list(optional_columns & mismatched_columns)
                 group[records_key].drop_columns(drop_columns)
         return self._expand_key_tuple(group)
