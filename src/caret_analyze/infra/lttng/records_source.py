@@ -488,7 +488,8 @@ class RecordsSource():
             join_left_key=COLUMN_NAME.AGNOCAST_CALLABLE_OBJECT,
             join_right_key=COLUMN_NAME.AGNOCAST_CALLABLE_OBJECT,
             columns=Columns.from_str(
-                create_callable_records.columns + self._agnocast_callable_2_callback_records.columns
+                create_callable_records.columns +
+                self._agnocast_callable_2_callback_records.columns
             ).column_names,
             how='left'
         )
@@ -981,7 +982,9 @@ class RecordsSource():
             join_left_key=COLUMN_NAME.AGNOCAST_CALLABLE_OBJECT,
             join_right_key=COLUMN_NAME.AGNOCAST_CALLABLE_OBJECT,
             columns=Columns.from_str(
-                self._data.agnocast_callable_start_instances.columns + self._agnocast_callable_2_callback_records.columns).column_names,
+                self._data.agnocast_callable_start_instances.columns +
+                self._agnocast_callable_2_callback_records.columns
+            ).column_names,
             how='left'
         )
         agnocast_callback_start.rename_columns(
@@ -1045,7 +1048,8 @@ class RecordsSource():
             join_left_key=COLUMN_NAME.AGNOCAST_PID_CIID,
             join_right_key=COLUMN_NAME.AGNOCAST_PID_CIID,
             columns=Columns.from_str(
-                self._data.agnocast_create_callable_instances.columns + id_2_callback_records.columns
+                self._data.agnocast_create_callable_instances.columns +
+                id_2_callback_records.columns
             ).column_names,
             how='left'
         )

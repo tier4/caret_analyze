@@ -17,7 +17,7 @@
 
 
 from ...trace_point_data import TracePointIntermediateData
-from ....record import Columns, ColumnValue, merge, RecordsFactory
+from ....record import ColumnValue, RecordsFactory
 
 
 class Ros2DataModel():

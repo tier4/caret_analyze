@@ -265,8 +265,8 @@ class DataModelService:
                 raise InvalidArgumentError(msg)
             else:
                 msg = (
-                    f'Duplicated agnocast subscription_handle: [{sub_handles}] that corresponds to '
-                    f'callback_object: {cb_addr}.')
+                    f'Duplicated agnocast subscription_handle: [{sub_handles}] that '
+                    f'corresponds to callback_object: {cb_addr}.')
                 raise InvalidArgumentError(msg)
 
             return sub_handle
