@@ -153,7 +153,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             Columns
 
             - [topic_name]/agnocast_publish_timestamp
-            - [topic_name]/agnocast_take_empty
             - [topic_name]/agnocast_entry_id
             - [topic_name]/agnocast_take_timestamp
 
