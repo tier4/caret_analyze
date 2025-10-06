@@ -627,9 +627,6 @@ class Lttng(InfraBase):
             if len(event_filters) > 0:
                 print('filtered to {} events.'.format(filtered_event_count))
 
-        # For Agnocast
-        data.merge_agnocast_data()
-
         events_ = None if len(events) == 0 else events
         return data, events_, begin, end
 

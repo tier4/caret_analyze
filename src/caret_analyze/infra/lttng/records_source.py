@@ -466,30 +466,43 @@ class RecordsSource():
             - agnocast_entry_id
 
         """
-        callback_start_instances = self.inter_callback_records
+        callback_start_instances = self._data.agnocast_callable_start_instances
         create_callable_records = self._data.agnocast_create_callable_instances.clone()
 
         create_callable_records = merge_sequential(
             left_records=create_callable_records,
             right_records=callback_start_instances,
             left_stamp_key=COLUMN_NAME.AGNOCAST_CREATE_CALLABLE_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
-            join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
+            right_stamp_key=COLUMN_NAME.AGNOCAST_CALLABLE_START_TIMESTAMP,
+            join_left_key=COLUMN_NAME.AGNOCAST_CALLABLE_OBJECT,
+            join_right_key=COLUMN_NAME.AGNOCAST_CALLABLE_OBJECT,
             columns=Columns.from_str(
                 create_callable_records.columns + callback_start_instances.columns
             ).column_names,
             how='left',
         )
-        create_callable_records.drop_columns(
-            [
-                COLUMN_NAME.AGNOCAST_CREATE_CALLABLE_TIMESTAMP,
-                COLUMN_NAME.TID,
-                COLUMN_NAME.AGNOCAST_PID_CIID,
-                COLUMN_NAME.AGNOCAST_CALLABLE_OBJECT,
-                COLUMN_NAME.IS_INTRA_PROCESS,
-            ]
+
+        create_callable_records = merge(
+            left_records=create_callable_records,
+            right_records=self._agnocast_callable_2_callback_records,
+            join_left_key=COLUMN_NAME.AGNOCAST_CALLABLE_OBJECT,
+            join_right_key=COLUMN_NAME.AGNOCAST_CALLABLE_OBJECT,
+            columns=Columns.from_str(
+                create_callable_records.columns + self._agnocast_callable_2_callback_records.columns
+            ).column_names,
+            how='left'
         )
+
+        create_callable_records.rename_columns(
+            {COLUMN_NAME.AGNOCAST_CALLABLE_START_TIMESTAMP: COLUMN_NAME.CALLBACK_START_TIMESTAMP})
+        columns = [
+            COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            COLUMN_NAME.CALLBACK_OBJECT,
+            COLUMN_NAME.AGNOCAST_ENTRY_ID
+        ]
+        create_callable_records.drop_columns(
+            list(set(create_callable_records.columns) - set(columns)))
+        create_callable_records.reindex(columns)
 
         return create_callable_records
 
@@ -813,6 +826,47 @@ class RecordsSource():
             ]
         )
 
+        # Concatenate Agnocast data
+        agnocast_records: RecordsInterface
+        agnocast_records = merge_sequential(
+            left_records=self._data.agnocast_callable_start_instances,
+            right_records=self._data.agnocast_callable_end_instances,
+            left_stamp_key=COLUMN_NAME.AGNOCAST_CALLABLE_START_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.AGNOCAST_CALLABLE_END_TIMESTAMP,
+            join_left_key=COLUMN_NAME.AGNOCAST_CALLABLE_OBJECT,
+            join_right_key=COLUMN_NAME.AGNOCAST_CALLABLE_OBJECT,
+            columns=Columns.from_str(
+                self._data.agnocast_callable_start_instances.columns +
+                self._data.agnocast_callable_end_instances.columns).column_names,
+            how='inner',
+        )
+
+        agnocast_records = merge(
+            left_records=agnocast_records,
+            right_records=self._agnocast_callable_2_callback_records,
+            join_left_key=COLUMN_NAME.AGNOCAST_CALLABLE_OBJECT,
+            join_right_key=COLUMN_NAME.AGNOCAST_CALLABLE_OBJECT,
+            columns=Columns.from_str(
+                agnocast_records.columns +
+                self._agnocast_callable_2_callback_records.columns).column_names,
+            how='left'
+        )
+
+        agnocast_records.rename_columns({
+            COLUMN_NAME.AGNOCAST_CALLABLE_START_TIMESTAMP: COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            COLUMN_NAME.AGNOCAST_CALLABLE_END_TIMESTAMP: COLUMN_NAME.CALLBACK_END_TIMESTAMP
+        })
+        columns = [
+            COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            COLUMN_NAME.CALLBACK_END_TIMESTAMP,
+            COLUMN_NAME.CALLBACK_OBJECT
+        ]
+        agnocast_records.drop_columns(list(set(agnocast_records.columns) - set(columns)))
+        agnocast_records.reindex(columns)
+
+        records.concat(agnocast_records)
+        records.sort(COLUMN_NAME.CALLBACK_START_TIMESTAMP, COLUMN_NAME.CALLBACK_END_TIMESTAMP)
+
         return records
 
     @cached_property
@@ -921,24 +975,84 @@ class RecordsSource():
             - publisher_handle
 
         """
+        agnocast_callback_start = merge(
+            left_records=self._data.agnocast_callable_start_instances,
+            right_records=self._agnocast_callable_2_callback_records,
+            join_left_key=COLUMN_NAME.AGNOCAST_CALLABLE_OBJECT,
+            join_right_key=COLUMN_NAME.AGNOCAST_CALLABLE_OBJECT,
+            columns=Columns.from_str(
+                self._data.agnocast_callable_start_instances.columns + self._agnocast_callable_2_callback_records.columns).column_names,
+            how='left'
+        )
+        agnocast_callback_start.rename_columns(
+            {COLUMN_NAME.AGNOCAST_CALLABLE_START_TIMESTAMP: COLUMN_NAME.CALLBACK_START_TIMESTAMP})
+        agnocast_callback_start.drop_columns([COLUMN_NAME.AGNOCAST_CALLABLE_OBJECT])
+
+        callback_start = self._data.callback_start_instances.clone()
+        callback_start.concat(agnocast_callback_start)
+        callback_start.sort(COLUMN_NAME.CALLBACK_START_TIMESTAMP)
+
         records: RecordsInterface
         records = merge_sequential(
-            left_records=self._data.callback_start_instances,
+            left_records=callback_start,
             right_records=self._data.agnocast_publish_instances,
             left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             right_stamp_key=COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP,
             join_left_key=COLUMN_NAME.TID,
             join_right_key=COLUMN_NAME.TID,
-            columns=[
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-                COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.CALLBACK_OBJECT,
-                COLUMN_NAME.PUBLISHER_HANDLE
-            ],
+            columns=Columns.from_str(
+                callback_start.columns +
+                self._data.agnocast_publish_instances.columns
+            ).column_names,
             how='left_use_latest',
         )
+
+        columns = [
+            COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            COLUMN_NAME.AGNOCAST_PUBLISH_TIMESTAMP,
+            COLUMN_NAME.CALLBACK_OBJECT,
+            COLUMN_NAME.PUBLISHER_HANDLE,
+        ]
+        records.drop_columns(list(set(records.columns) - set(columns)))
+        records.reindex(columns)
+
         return records
 
     @cached_property
     def system_and_sim_times(self) -> RecordsInterface:
         return self._data.sim_time
+
+    @cached_property
+    def _agnocast_callable_2_callback_records(self) -> RecordsInterface:
+        id_2_callback_records = RecordsFactory.create_instance(
+            None,
+            columns=[
+                ColumnValue(COLUMN_NAME.AGNOCAST_PID_CIID),
+                ColumnValue(COLUMN_NAME.CALLBACK_OBJECT),
+            ]
+        )
+        id_2_callback_df = self._data.agnocast_subscriptions.df[[
+            COLUMN_NAME.AGNOCAST_PID_CIID, COLUMN_NAME.CALLBACK_OBJECT]]
+        # remove take subscription row
+        id_2_callback_df = id_2_callback_df[id_2_callback_df[COLUMN_NAME.AGNOCAST_PID_CIID] != 0]
+
+        for _, row in id_2_callback_df.iterrows():
+            id_2_callback_records.append(row.to_dict())
+
+        callable_2_callback_records = merge(
+            left_records=self._data.agnocast_create_callable_instances,
+            right_records=id_2_callback_records,
+            join_left_key=COLUMN_NAME.AGNOCAST_PID_CIID,
+            join_right_key=COLUMN_NAME.AGNOCAST_PID_CIID,
+            columns=Columns.from_str(
+                self._data.agnocast_create_callable_instances.columns + id_2_callback_records.columns
+            ).column_names,
+            how='left'
+        )
+        callable_2_callback_records.drop_columns([
+            COLUMN_NAME.AGNOCAST_CREATE_CALLABLE_TIMESTAMP,
+            COLUMN_NAME.AGNOCAST_ENTRY_ID,
+            COLUMN_NAME.AGNOCAST_PID_CIID
+        ])
+
+        return callable_2_callback_records

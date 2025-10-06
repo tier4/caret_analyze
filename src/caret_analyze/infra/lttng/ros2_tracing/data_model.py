@@ -302,7 +302,7 @@ class Ros2DataModel():
             None,
             columns=[
                 ColumnValue('tid'),
-                ColumnValue('callable_start_timestamp'),
+                ColumnValue('agnocast_callable_start_timestamp'),
                 ColumnValue('agnocast_callable_object'),
             ]
         )
@@ -310,7 +310,7 @@ class Ros2DataModel():
             None,
             columns=[
                 ColumnValue('tid'),
-                ColumnValue('callable_end_timestamp'),
+                ColumnValue('agnocast_callable_end_timestamp'),
                 ColumnValue('agnocast_callable_object'),
             ]
         )
@@ -837,7 +837,7 @@ class Ros2DataModel():
     ) -> None:
         record = {
             'tid': tid,
-            'callable_start_timestamp': timestamp,
+            'agnocast_callable_start_timestamp': timestamp,
             'agnocast_callable_object': callable_object,
         }
         self.agnocast_callable_start_instances.append(record)
@@ -850,7 +850,7 @@ class Ros2DataModel():
     ) -> None:
         record = {
             'tid': tid,
-            'callable_end_timestamp': timestamp,
+            'agnocast_callable_end_timestamp': timestamp,
             'agnocast_callable_object': callable_object
         }
         self.agnocast_callable_end_instances.append(record)
@@ -1145,94 +1145,3 @@ class Ros2DataModel():
 
         self.agnocast_executors = self._agnocast_executors.get_finalized('executor_addr')
         del self._agnocast_executors
-
-    def merge_agnocast_data(self) -> None:
-        if len(self.agnocast_subscriptions) == 0:
-            return
-
-        id_2_callback_records = RecordsFactory.create_instance(
-            None,
-            columns=[
-                ColumnValue('agnocast_pid_ciid'),
-                ColumnValue('callback_object'),
-            ]
-        )
-        id_2_callback_df = self.agnocast_subscriptions.df[['agnocast_pid_ciid', 'callback_object']]
-        # remove take subscription row
-        id_2_callback_df = id_2_callback_df[id_2_callback_df['agnocast_pid_ciid'] != 0]
-
-        for _, row in id_2_callback_df.iterrows():
-            id_2_callback_records.append(row.to_dict())
-
-        callable_2_callback_records = merge(
-            left_records=self.agnocast_create_callable_instances,
-            right_records=id_2_callback_records,
-            join_left_key='agnocast_pid_ciid',
-            join_right_key='agnocast_pid_ciid',
-            columns=Columns.from_str(
-                self.agnocast_create_callable_instances.columns + id_2_callback_records.columns
-            ).column_names,
-            how='left'
-        )
-        callable_2_callback_records.drop_columns(
-            ['agnocast_create_callable_timestamp', 'agnocast_entry_id', 'agnocast_pid_ciid']
-        )
-
-        # Merge to callback_start_instances
-        agnocast_callback_start_records = merge(
-            left_records=self.agnocast_callable_start_instances,
-            right_records=callable_2_callback_records,
-            join_left_key='agnocast_callable_object',
-            join_right_key='agnocast_callable_object',
-            columns=Columns.from_str(
-                self.agnocast_callable_start_instances.columns +
-                callable_2_callback_records.columns
-            ).column_names,
-            how='left'
-        )
-        agnocast_callback_start_records.drop_columns(
-            ['agnocast_callable_object']
-        )
-        # agnocast callback is assumed to be intra-process
-        agnocast_callback_start_records.append_column(
-            ColumnValue('is_intra_process'),
-            [0] * len(agnocast_callback_start_records)
-        )
-        agnocast_callback_start_records.rename_columns({
-            'callable_start_timestamp': 'callback_start_timestamp'
-        })
-        self.callback_start_instances.concat(agnocast_callback_start_records)
-        self.callback_start_instances.sort('callback_start_timestamp')
-
-        # Merge to callback_end_instances
-        agnocast_callback_end_records = merge(
-            left_records=self.agnocast_callable_end_instances,
-            right_records=callable_2_callback_records,
-            join_left_key='agnocast_callable_object',
-            join_right_key='agnocast_callable_object',
-            columns=Columns.from_str(
-                self.agnocast_callable_end_instances.columns + callable_2_callback_records.columns
-            ).column_names,
-            how='left'
-        )
-        agnocast_callback_end_records.drop_columns(
-            ['agnocast_callable_object']
-        )
-        agnocast_callback_end_records.rename_columns({
-            'callable_end_timestamp': 'callback_end_timestamp'
-        })
-        self.callback_end_instances.concat(agnocast_callback_end_records)
-        self.callback_end_instances.sort('callback_end_timestamp')
-
-        # Add 'callback_object' column into 'self.agnocast_create_callable_instances'
-        self.agnocast_create_callable_instances = merge(
-            left_records=self.agnocast_create_callable_instances,
-            right_records=callable_2_callback_records,
-            join_left_key='agnocast_callable_object',
-            join_right_key='agnocast_callable_object',
-            columns=Columns.from_str(
-                self.agnocast_create_callable_instances.columns +
-                callable_2_callback_records.columns
-            ).column_names,
-            how='left'
-        )

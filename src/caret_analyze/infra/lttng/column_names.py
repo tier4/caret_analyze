@@ -73,6 +73,8 @@ class ColumnName(NamedTuple):
     AGNOCAST_PUBLISH_TIMESTAMP: str = 'agnocast_publish_timestamp'
     AGNOCAST_ENTRY_ID: str = 'agnocast_entry_id'
     AGNOCAST_CREATE_CALLABLE_TIMESTAMP: str = 'agnocast_create_callable_timestamp'
+    AGNOCAST_CALLABLE_START_TIMESTAMP: str = 'agnocast_callable_start_timestamp'
+    AGNOCAST_CALLABLE_END_TIMESTAMP: str = 'agnocast_callable_end_timestamp'
     AGNOCAST_PID_CIID: str = 'agnocast_pid_ciid'
     AGNOCAST_CALLABLE_OBJECT: str = 'agnocast_callable_object'
     AGNOCAST_TAKE_TIMESTAMP: str = 'agnocast_take_timestamp'
