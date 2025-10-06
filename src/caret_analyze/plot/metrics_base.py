@@ -96,9 +96,9 @@ class MetricsBase(metaclass=ABCMeta):
             callback_names = (f'{target_object.callback_names[0]}/'
                               if target_object.callback_names else '')
             ts_column_name = (
-                f'{callback_names}agnocast_publish_timestamp'
-                if target_object.value.is_agnocast_publisher
-                else f'{callback_names}rclcpp_publish_timestamp'
+                f'{callback_names}rclcpp_publish_timestamp'
+                if not target_object.value.is_agnocast_publisher
+                else f'{callback_names}agnocast_publish_timestamp'
             )
         elif isinstance(target_object, Subscription):
             ts_column_name = f'{target_object.column_names[0]}'
