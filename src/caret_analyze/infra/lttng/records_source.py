@@ -504,6 +504,7 @@ class RecordsSource():
         create_callable_records.drop_columns(
             list(set(create_callable_records.columns) - set(columns)))
         create_callable_records.reindex(columns)
+        create_callable_records.sort(COLUMN_NAME.CALLBACK_START_TIMESTAMP)
 
         return create_callable_records
 
