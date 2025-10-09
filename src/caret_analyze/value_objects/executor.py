@@ -26,6 +26,9 @@ class ExecutorType(ValueObject):
 
     SINGLE_THREADED_EXECUTOR: ExecutorType
     MULTI_THREADED_EXECUTOR: ExecutorType
+    # For Agnocast
+    Agnocast_SINGLE_THREADED_EXECUTOR: ExecutorType
+    Agnocast_MULTI_THREADED_EXECUTOR: ExecutorType
 
     def __init__(self, type_name: str) -> None:
         """
@@ -67,6 +70,13 @@ class ExecutorType(ValueObject):
 
 ExecutorType.SINGLE_THREADED_EXECUTOR = ExecutorType('single_threaded_executor')
 ExecutorType.MULTI_THREADED_EXECUTOR = ExecutorType('multi_threaded_executor')
+# For Agnocast
+ExecutorType.Agnocast_SINGLE_THREADED_EXECUTOR = ExecutorType(
+    'agnocast_single_threaded_executor'
+)
+ExecutorType.Agnocast_MULTI_THREADED_EXECUTOR = ExecutorType(
+    'agnocast_multi_threaded_executor'
+)
 
 
 class ExecutorStructValue(ValueObject, Summarizable):

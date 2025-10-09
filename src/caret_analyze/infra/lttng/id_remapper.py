@@ -160,6 +160,7 @@ class IDRemapperCollection:
         self._callback_remapper = IDRemapper()
         self._buffer_remapper = IDRemapper()
         self._ipb_remapper = IDRemapper()
+        self._callable_remapper = IDRemapper()  # For Agnocast
 
     @property
     def context_handle_remapper(self):
@@ -240,3 +241,8 @@ class IDRemapperCollection:
     @property
     def ipb_remapper(self):
         return self._ipb_remapper
+
+    # For Agnocast
+    @property
+    def callable_remapper(self):
+        return self._callable_remapper

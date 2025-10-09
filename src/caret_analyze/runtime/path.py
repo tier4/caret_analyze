@@ -253,22 +253,29 @@ class RecordsMerged:
                     msg = 'Detected dummy_records before merging end_records. merge terminated.'
                     logger.warning(msg)
                 break
-            should_drop_last_column = False
-            if isinstance(target, Communication) and target.use_take_manually():
-                if target == last_communication:
-                    try:
-                        right_records = target.to_take_records()
-                        take_records_applied_for_last_communication = True
-                    except Exception as e:
-                        msg = f'Failed to get take records for the last Communication record: {e}'
-                        logger.error(msg)
-                        raise InvalidRecordsError(msg)
-                else:
-                    should_drop_last_column = True
 
-            if should_drop_last_column:
-                if len(right_records.columns) > 0:
-                    right_records.drop_columns([right_records.columns[-1]])
+            if isinstance(target, Communication) and target.value.is_agnocast_take_comm:
+                right_records = target.to_take_records()
+            else:
+                should_drop_last_column = False
+                if isinstance(target, Communication) and target.use_take_manually():
+                    if target == last_communication:
+                        try:
+                            right_records = target.to_take_records()
+                            take_records_applied_for_last_communication = True
+                        except Exception as e:
+                            msg = (
+                                f'Failed to get take records for the last '
+                                f'Communication record: {e}'
+                            )
+                            logger.error(msg)
+                            raise InvalidRecordsError(msg)
+                    else:
+                        should_drop_last_column = True
+
+                if should_drop_last_column:
+                    if len(right_records.columns) > 0:
+                        right_records.drop_columns([right_records.columns[-1]])
 
             rename_rule = column_merger.append_columns_and_return_rename_rule(right_records)
             right_records.rename_columns(rename_rule)
@@ -322,7 +329,10 @@ class RecordsMerged:
             output_log = False
             if take_records_applied_for_last_communication:
                 output_log = True
-            elif is_match_column(left_records.columns[-1], 'source_timestamp'):
+            elif (
+                is_match_column(left_records.columns[-1], 'source_timestamp') or
+                is_match_column(left_records.columns[-1], 'agnocast_entry_id')
+            ):
                 output_log = True
 
             if output_log:
@@ -360,12 +370,10 @@ class RecordsMerged:
         else:
             raise InvalidRecordsError('first column not in columns')
 
-        # remove source_timestamp columns
-        source_columns = [
-            column for column in left_records.columns
-            if is_match_column(column, 'source_timestamp')
-        ]
-        left_records.drop_columns(source_columns)
+        # remove source_timestamp and agnocast_entry_id columns
+        unnecessary_columns = [column for column in left_records.columns if is_match_column(
+            column, 'source_timestamp') or is_match_column(column, 'agnocast_entry_id')]
+        left_records.drop_columns(unnecessary_columns)
 
         # remove rmw_take columns except for the last one
         rmw_cols = [col for col in left_records.columns if ('rmw_take' in col)]
