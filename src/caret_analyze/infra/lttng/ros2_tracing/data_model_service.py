@@ -111,8 +111,9 @@ class DataModelService:
             sub_handles = match_cbg_sub.loc[:, 'subscription_handle'].to_list()
 
         if len(self._data.agnocast_subscriptions.df) > 0:
+            agnocast_df = self._data.agnocast_subscriptions.df
             match_agnocast_cbg_sub = self._ensure_dataframe(
-                self._data.agnocast_subscriptions.df[self._data.agnocast_subscriptions.df['callback_group_addr'] == cbg_addr]
+                agnocast_df[agnocast_df['callback_group_addr'] == cbg_addr]
             )
             sub_handles += match_agnocast_cbg_sub.index.to_list()
 

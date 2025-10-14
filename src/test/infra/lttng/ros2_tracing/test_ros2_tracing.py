@@ -53,7 +53,8 @@ class TestLttngInfo:
         data.callback_group_add_service(0, 0, 0)
         data.callback_group_add_client(0, 0, 0)
         data.add_agnocast_publisher(0, 0, 0, 'agnocast_topic_name', 0)
-        data.add_agnocast_subscription(0, 0, 0, 0, 0, 'agnocast_symbol', 'agnocast_topic_name', 0, 0)
+        data.add_agnocast_subscription(
+            0, 0, 0, 0, 0, 'agnocast_symbol', 'agnocast_topic_name', 0, 0)
         data.add_agnocast_executor(0, 0, 'agnocast_executor_type')
         data.add_agnocast_publish_instance(0, 0, 0, 0)
         data.add_agnocast_create_callable_instance(0, 0, 0, 0)
