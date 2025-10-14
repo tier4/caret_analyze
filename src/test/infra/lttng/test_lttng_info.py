@@ -1386,3 +1386,110 @@ class TestDataFrameFormatted:
         ]
         df_expect = pd.DataFrame(columns=columns, dtype='Int64')
         assert data.df.equals(df_expect)
+
+    def test_build_publisher_df_agnocast(self):
+        data = Ros2DataModel()
+        pub_handle = 1
+        node_handle = 2
+        topic_name = '/agnocast_topic'
+        depth = 10
+
+        data.add_agnocast_publisher(pub_handle, 0, node_handle, topic_name, depth)
+        data.finalize()
+
+        pub = DataFrameFormatted._build_publisher(data)
+
+        expect = pd.DataFrame.from_dict(
+            [{
+                'publisher_id': f'publisher_{pub_handle}',
+                'publisher_handle': pub_handle,
+                'node_handle': node_handle,
+                'topic_name': topic_name,
+                'depth': depth,
+                'construction_order': 0
+            }]
+        ).convert_dtypes()
+        assert pub.df.equals(expect)
+
+    def test_build_subscription_callbacks_df_agnocast(self, mocker):
+        data = Ros2DataModel()
+        node_handle = 1
+        subscription_handle = 2
+        callback_object = 3
+        callback_group_addr = 4
+        symbol = 'agnocast_callback'
+        topic_name = '/agnocast_topic'
+        depth = 10
+        pid_ciid = 5
+
+        data.add_agnocast_subscription(
+            subscription_handle, 0, node_handle, callback_object,
+            callback_group_addr, symbol, topic_name, depth, pid_ciid
+        )
+        data.finalize()
+
+        mocker.patch.object(DataFrameFormatted, '_is_ignored_subscription', return_value=False)
+
+        sub = DataFrameFormatted._build_sub_callbacks(data)
+
+        expect = pd.DataFrame.from_dict(
+            [{
+                'callback_id': f'subscription_callback_{callback_object}',
+                'callback_object': callback_object,
+                'callback_object_intra': None,
+                'node_handle': node_handle,
+                'subscription_handle': subscription_handle,
+                'callback_group_addr': callback_group_addr,
+                'topic_name': topic_name,
+                'symbol': symbol,
+                'depth': depth,
+                'construction_order': 0
+            }]
+        ).convert_dtypes()
+        assert sub.df.equals(expect)
+
+    def test_build_executor_df_agnocast(self):
+        data = Ros2DataModel()
+        exec_addr = 1
+        exec_type = 'agnocast_single_threaded_executor'
+
+        data.add_agnocast_executor(exec_addr, 0, exec_type)
+        data.finalize()
+
+        executor = DataFrameFormatted._build_executor(data)
+
+        expect = pd.DataFrame.from_dict(
+            [{
+                'executor_id': f'executor_{exec_addr}',
+                'executor_addr': exec_addr,
+                'executor_type_name': exec_type
+            }]
+        ).convert_dtypes()
+        assert executor.df.equals(expect)
+
+    def test_build_subscription_df_agnocast(self):
+        data = Ros2DataModel()
+        node_handle = 1
+        subscription_handle = 3
+        topic_name = '/agnocast_topic'
+        depth = 10
+        construction_order = 0
+
+        data.add_agnocast_subscription(
+            subscription_handle, 0, node_handle, None, None, None, topic_name, depth, None
+        )
+        data.finalize()
+
+        sub = DataFrameFormatted._build_subscription(data)
+
+        expect = pd.DataFrame.from_dict(
+            [{
+                'subscription_id': f'subscription_{subscription_handle}',
+                'subscription_handle': subscription_handle,
+                'node_handle': node_handle,
+                'topic_name': topic_name,
+                'depth': depth,
+                'construction_order': construction_order
+            }]
+        ).convert_dtypes()
+        assert sub.df.equals(expect)
