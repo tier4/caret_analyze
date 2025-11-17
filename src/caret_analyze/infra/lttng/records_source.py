@@ -1038,7 +1038,9 @@ class RecordsSource():
         id_2_callback_df = self._data.agnocast_subscriptions.df[[
             COLUMN_NAME.AGNOCAST_PID_CALLBACK_INFO_ID, COLUMN_NAME.CALLBACK_OBJECT]]
         # remove take subscription row
-        id_2_callback_df = id_2_callback_df[id_2_callback_df[COLUMN_NAME.AGNOCAST_PID_CALLBACK_INFO_ID] != 0]
+        id_2_callback_df = id_2_callback_df[
+            id_2_callback_df[COLUMN_NAME.AGNOCAST_PID_CALLBACK_INFO_ID] != 0
+        ]
 
         for _, row in id_2_callback_df.iterrows():
             id_2_callback_records.append(row.to_dict())
