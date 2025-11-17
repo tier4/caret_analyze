@@ -1239,7 +1239,7 @@ class DataFrameFormatted:
             agnocast_sub = data.agnocast_subscriptions.clone()
             agnocast_sub.reset_index()
             drop_columns = [
-                'callback_object', 'callback_group_addr', 'symbol', 'agnocast_pid_ciid'
+                'callback_object', 'callback_group_addr', 'symbol', 'agnocast_pid_callback_info_id'
             ]
             for dc in drop_columns:
                 agnocast_sub.drop_column(dc)
@@ -1531,7 +1531,7 @@ class DataFrameFormatted:
         if len(data.agnocast_subscriptions) > 0:
             agnocast_subscriptions = data.agnocast_subscriptions.clone()
             agnocast_subscriptions.reset_index()
-            agnocast_subscriptions.remove_column('agnocast_pid_ciid')
+            agnocast_subscriptions.remove_column('agnocast_pid_callback_info_id')
             agnocast_subscriptions.add_column('callback_object_intra', lambda _: None)
             subscriptions = TracePointData.concat(
                 [subscriptions, agnocast_subscriptions], subscriptions.columns

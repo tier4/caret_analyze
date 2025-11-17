@@ -1031,14 +1031,14 @@ class RecordsSource():
         id_2_callback_records = RecordsFactory.create_instance(
             None,
             columns=[
-                ColumnValue(COLUMN_NAME.AGNOCAST_PID_CIID),
+                ColumnValue(COLUMN_NAME.AGNOCAST_PID_CALLBACK_INFO_ID),
                 ColumnValue(COLUMN_NAME.CALLBACK_OBJECT),
             ]
         )
         id_2_callback_df = self._data.agnocast_subscriptions.df[[
-            COLUMN_NAME.AGNOCAST_PID_CIID, COLUMN_NAME.CALLBACK_OBJECT]]
+            COLUMN_NAME.AGNOCAST_PID_CALLBACK_INFO_ID, COLUMN_NAME.CALLBACK_OBJECT]]
         # remove take subscription row
-        id_2_callback_df = id_2_callback_df[id_2_callback_df[COLUMN_NAME.AGNOCAST_PID_CIID] != 0]
+        id_2_callback_df = id_2_callback_df[id_2_callback_df[COLUMN_NAME.AGNOCAST_PID_CALLBACK_INFO_ID] != 0]
 
         for _, row in id_2_callback_df.iterrows():
             id_2_callback_records.append(row.to_dict())
@@ -1046,8 +1046,8 @@ class RecordsSource():
         callable_2_callback_records = merge(
             left_records=self._data.agnocast_create_callable_instances,
             right_records=id_2_callback_records,
-            join_left_key=COLUMN_NAME.AGNOCAST_PID_CIID,
-            join_right_key=COLUMN_NAME.AGNOCAST_PID_CIID,
+            join_left_key=COLUMN_NAME.AGNOCAST_PID_CALLBACK_INFO_ID,
+            join_right_key=COLUMN_NAME.AGNOCAST_PID_CALLBACK_INFO_ID,
             columns=Columns.from_str(
                 self._data.agnocast_create_callable_instances.columns +
                 id_2_callback_records.columns
@@ -1057,7 +1057,7 @@ class RecordsSource():
         callable_2_callback_records.drop_columns([
             COLUMN_NAME.AGNOCAST_CREATE_CALLABLE_TIMESTAMP,
             COLUMN_NAME.AGNOCAST_ENTRY_ID,
-            COLUMN_NAME.AGNOCAST_PID_CIID
+            COLUMN_NAME.AGNOCAST_PID_CALLBACK_INFO_ID
         ])
 
         return callable_2_callback_records

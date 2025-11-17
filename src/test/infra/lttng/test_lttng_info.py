@@ -1420,11 +1420,11 @@ class TestDataFrameFormatted:
         symbol = 'agnocast_callback'
         topic_name = '/agnocast_topic'
         depth = 10
-        pid_ciid = 5
+        pid_callback_info_id = 5
 
         data.add_agnocast_subscription(
             subscription_handle, 0, node_handle, callback_object,
-            callback_group_addr, symbol, topic_name, depth, pid_ciid
+            callback_group_addr, symbol, topic_name, depth, pid_callback_info_id
         )
         data.finalize()
 

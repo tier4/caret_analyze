@@ -106,7 +106,8 @@ class Ros2DataModel():
             ['publisher_handle', 'timestamp', 'node_handle', 'topic_name', 'depth'])
         self._agnocast_subscriptions = TracePointIntermediateData(
             ['subscription_handle', 'timestamp', 'node_handle', 'callback_object',
-             'callback_group_addr', 'symbol', 'topic_name', 'depth', 'agnocast_pid_ciid'])
+             'callback_group_addr', 'symbol', 'topic_name', 'depth',
+             'agnocast_pid_callback_info_id'])
         self._agnocast_executors = TracePointIntermediateData(
             ['timestamp', 'executor_addr', 'executor_type_name'])
 
@@ -295,7 +296,7 @@ class Ros2DataModel():
                 ColumnValue('agnocast_create_callable_timestamp'),
                 ColumnValue('agnocast_callable_object'),
                 ColumnValue('agnocast_entry_id'),
-                ColumnValue('agnocast_pid_ciid'),
+                ColumnValue('agnocast_pid_callback_info_id'),
             ]
         )
         self.agnocast_callable_start_instances = RecordsFactory.create_instance(
@@ -774,7 +775,7 @@ class Ros2DataModel():
 
     def add_agnocast_subscription(
         self, handle, timestamp, node_handle, callback_object, callback_group_addr, symbol,
-        topic_name, depth, pid_ciid
+        topic_name, depth, pid_callback_info_id
     ) -> None:
         record = {
             'subscription_handle': handle,
@@ -785,7 +786,7 @@ class Ros2DataModel():
             'symbol': symbol,
             'topic_name': topic_name,
             'depth': depth,
-            'agnocast_pid_ciid': pid_ciid,
+            'agnocast_pid_callback_info_id': pid_callback_info_id,
         }
         self._agnocast_subscriptions.append(record)
 
@@ -822,13 +823,13 @@ class Ros2DataModel():
         timestamp: int,
         callable_object: int,
         entry_id: int,
-        pid_ciid: int
+        pid_callback_info_id: int
     ) -> None:
         record = {
             'agnocast_create_callable_timestamp': timestamp,
             'agnocast_callable_object': callable_object,
             'agnocast_entry_id': entry_id,
-            'agnocast_pid_ciid': pid_ciid,
+            'agnocast_pid_callback_info_id': pid_callback_info_id,
         }
         self.agnocast_create_callable_instances.append(record)
 

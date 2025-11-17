@@ -1224,7 +1224,7 @@ class Ros2Handler():
         callback_group_addr = get_field(event, 'callback_group')
         symbol = get_field(event, 'symbol')
         depth = get_field(event, 'queue_depth')
-        pid_ciid = get_field(event, 'pid_ciid')
+        pid_callback_info_id = get_field(event, 'pid_callback_info_id')
         timestamp = get_field(event, '_timestamp')
         # To avoid conflict with ROS 2 publisher
         topic_name = get_field(event, 'topic_name') + '_agnocast'
@@ -1245,7 +1245,7 @@ class Ros2Handler():
             symbol,
             topic_name,
             depth,
-            pid_ciid
+            pid_callback_info_id
         )
 
     def _handle_agnocast_publisher_init(
@@ -1306,7 +1306,7 @@ class Ros2Handler():
     ) -> None:
         callable_object = get_field(event, 'callable')
         entry_id = get_field(event, 'entry_id')
-        pid_ciid = get_field(event, 'pid_ciid')
+        pid_callback_info_id = get_field(event, 'pid_callback_info_id')
         timestamp = get_field(event, '_timestamp')
 
         callable_object = self._remapper.callable_remapper.register_and_get_object_id(
@@ -1314,7 +1314,7 @@ class Ros2Handler():
             event)
 
         self.data.add_agnocast_create_callable_instance(
-            timestamp, callable_object, entry_id, pid_ciid
+            timestamp, callable_object, entry_id, pid_callback_info_id
         )
 
     def _handle_agnocast_callable_start(
