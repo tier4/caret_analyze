@@ -39,7 +39,7 @@ jobs:
           dpkg -l > package_list.txt
           python3 -m pip list > pip_list.txt
       - name: Upload package list
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: package_list
           path: |
