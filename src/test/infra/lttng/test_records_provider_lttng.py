@@ -145,6 +145,7 @@ class TestRecordsProviderLttng:
         mocker.patch.object(source_mock, '_grouped_rmw_take_records', {4: rmw_records})
 
         subscription_mock = mocker.Mock(spec=SubscriptionStructValue)
+        mocker.patch.object(subscription_mock, 'is_agnocast_subscription', False)
         provider = RecordsProviderLttng(lttng_mock)
         records = provider.subscription_take_records(subscription_mock)
 
@@ -251,6 +252,7 @@ class TestRecordsProviderLttng:
         provider = RecordsProviderLttng(lttng_mock)
 
         publisher_mock = mocker.Mock(spec=PublisherStructValue)
+        mocker.patch.object(publisher_mock, 'is_agnocast_publisher', False)
         records = provider.publish_records(publisher_mock)
 
         assert records == records_mock
@@ -361,6 +363,7 @@ class TestRecordsProviderLttng:
 
         provider = RecordsProviderLttng(lttng_mock)
         publisher_handles = mocker.Mock(spec=PublisherStructValue)
+        mocker.patch.object(publisher_handles, 'is_agnocast_publisher', False)
         records = provider.path_beginning_records(publisher_handles)
 
         assert records == records_mock
@@ -496,6 +499,15 @@ class TestNodeRecordsUseLatestMessage:
         use_latest_message = mocker.Mock(spec=UseLatestMessage)
         mocker.patch.object(node_path_mock, 'message_context', use_latest_message)
 
+        subscription_mock = mocker.Mock(spec=SubscriptionStructValue)
+        mocker.patch.object(subscription_mock, 'is_agnocast_subscription', False)
+        mocker.patch.object(subscription_mock, 'is_agnocast_take', False)
+        mocker.patch.object(node_path_mock, 'subscription', subscription_mock)
+
+        publisher_mock = mocker.Mock(spec=PublisherStructValue)
+        mocker.patch.object(publisher_mock, 'is_agnocast_publisher', False)
+        mocker.patch.object(node_path_mock, 'publisher', publisher_mock)
+
         def noop(*args, **kwargs):
             pass
         mocker.patch.object(NodeRecordsUseLatestMessage, '_validate', noop)
@@ -587,6 +599,15 @@ class TestNodeRecordsUseLatestMessage:
 
         use_latest_message = mocker.Mock(spec=UseLatestMessage)
         mocker.patch.object(node_path_mock, 'message_context', use_latest_message)
+
+        subscription_mock = mocker.Mock(spec=SubscriptionStructValue)
+        mocker.patch.object(subscription_mock, 'is_agnocast_subscription', False)
+        mocker.patch.object(subscription_mock, 'is_agnocast_take', False)
+        mocker.patch.object(node_path_mock, 'subscription', subscription_mock)
+
+        publisher_mock = mocker.Mock(spec=PublisherStructValue)
+        mocker.patch.object(publisher_mock, 'is_agnocast_publisher', False)
+        mocker.patch.object(node_path_mock, 'publisher', publisher_mock)
 
         def noop(*args, **kwargs):
             pass
@@ -691,6 +712,15 @@ class TestNodeRecordsUseLatestMessage:
 
         use_latest_message = mocker.Mock(spec=UseLatestMessage)
         mocker.patch.object(node_path_mock, 'message_context', use_latest_message)
+
+        subscription_mock = mocker.Mock(spec=SubscriptionStructValue)
+        mocker.patch.object(subscription_mock, 'is_agnocast_subscription', False)
+        mocker.patch.object(subscription_mock, 'is_agnocast_take', False)
+        mocker.patch.object(node_path_mock, 'subscription', subscription_mock)
+
+        publisher_mock = mocker.Mock(spec=PublisherStructValue)
+        mocker.patch.object(publisher_mock, 'is_agnocast_publisher', False)
+        mocker.patch.object(node_path_mock, 'publisher', publisher_mock)
 
         def noop(*args, **kwargs):
             pass

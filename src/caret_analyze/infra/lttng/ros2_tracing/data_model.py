@@ -101,6 +101,16 @@ class Ros2DataModel():
         self._lifecycle_transitions = TracePointIntermediateData(
             ['state_machine_handle', 'start_label', 'goal_label', 'timestamp'])
 
+        # For Agnocast (initialization)
+        self._agnocast_publishers = TracePointIntermediateData(
+            ['publisher_handle', 'timestamp', 'node_handle', 'topic_name', 'depth'])
+        self._agnocast_subscriptions = TracePointIntermediateData(
+            ['subscription_handle', 'timestamp', 'node_handle', 'callback_object',
+             'callback_group_addr', 'symbol', 'topic_name', 'depth',
+             'agnocast_pid_callback_info_id'])
+        self._agnocast_executors = TracePointIntermediateData(
+            ['timestamp', 'executor_addr', 'executor_type_name'])
+
         # Events (multiple instances, may not have a meaningful index)
         self.callback_start_instances = RecordsFactory.create_instance(
             None,
@@ -270,6 +280,52 @@ class Ros2DataModel():
             ]
         )
 
+        # For Agnocast (runtime)
+        self.agnocast_publish_instances = RecordsFactory.create_instance(
+            None,
+            columns=[
+                ColumnValue('tid'),
+                ColumnValue('agnocast_publish_timestamp'),
+                ColumnValue('publisher_handle'),
+                ColumnValue('agnocast_entry_id'),
+            ]
+        )
+        self.agnocast_create_callable_instances = RecordsFactory.create_instance(
+            None,
+            columns=[
+                ColumnValue('agnocast_create_callable_timestamp'),
+                ColumnValue('agnocast_callable_object'),
+                ColumnValue('agnocast_entry_id'),
+                ColumnValue('agnocast_pid_callback_info_id'),
+            ]
+        )
+        self.agnocast_callable_start_instances = RecordsFactory.create_instance(
+            None,
+            columns=[
+                ColumnValue('tid'),
+                ColumnValue('agnocast_callable_start_timestamp'),
+                ColumnValue('agnocast_callable_object'),
+            ]
+        )
+        self.agnocast_callable_end_instances = RecordsFactory.create_instance(
+            None,
+            columns=[
+                ColumnValue('tid'),
+                ColumnValue('agnocast_callable_end_timestamp'),
+                ColumnValue('agnocast_callable_object'),
+            ]
+        )
+        self.agnocast_take_instances = RecordsFactory.create_instance(
+            None,
+            columns=[
+                ColumnValue('tid'),
+                ColumnValue('agnocast_take_timestamp'),
+                ColumnValue('subscription_handle'),
+                ColumnValue('agnocast_take_empty'),
+                ColumnValue('agnocast_entry_id')
+            ]
+        )
+
     def add_context(self, pid, context_handle, timestamp) -> None:
         record = {
             'context_handle': context_handle,
@@ -435,7 +491,7 @@ class Ros2DataModel():
             'callback_start_timestamp': timestamp,
             'callback_object': callback,
             'is_intra_process': is_intra_process,
-            }
+        }
         self.callback_start_instances.append(record)
 
     def add_callback_end_instance(self, tid: int, timestamp: int, callback: int) -> None:
@@ -627,6 +683,23 @@ class Ros2DataModel():
         }
         self.rmw_take_instances.append(record)
 
+    def add_agnocast_take_instance(
+        self,
+        tid: int,
+        timestamp: int,
+        subscription_handle: int,
+        message: int,
+        entry_id: int
+    ) -> None:
+        record = {
+            'tid': tid,
+            'agnocast_take_timestamp': timestamp,
+            'subscription_handle': subscription_handle,
+            'agnocast_take_empty': True if message == 0 else False,
+            'agnocast_entry_id': entry_id
+        }
+        self.agnocast_take_instances.append(record)
+
     def add_sim_time(
         self,
         timestamp: int,
@@ -687,6 +760,101 @@ class Ros2DataModel():
         }
         self.dispatch_intra_process_subscription_callback_instances.append(
             record)
+
+    def add_agnocast_publisher(
+        self, handle, timestamp, node_handle, topic_name, depth
+    ) -> None:
+        record = {
+            'publisher_handle': handle,
+            'timestamp': timestamp,
+            'node_handle': node_handle,
+            'topic_name': topic_name,
+            'depth': depth
+        }
+        self._agnocast_publishers.append(record)
+
+    def add_agnocast_subscription(
+        self, handle, timestamp, node_handle, callback_object, callback_group_addr, symbol,
+        topic_name, depth, pid_callback_info_id
+    ) -> None:
+        record = {
+            'subscription_handle': handle,
+            'timestamp': timestamp,
+            'node_handle': node_handle,
+            'callback_object': callback_object,
+            'callback_group_addr': callback_group_addr,
+            'symbol': symbol,
+            'topic_name': topic_name,
+            'depth': depth,
+            'agnocast_pid_callback_info_id': pid_callback_info_id,
+        }
+        self._agnocast_subscriptions.append(record)
+
+    def add_agnocast_executor(
+        self,
+        executor_addr: int,
+        timestamp: int,
+        executor_type_name: str
+    ) -> None:
+        record = {
+            'timestamp': timestamp,
+            'executor_addr': executor_addr,
+            'executor_type_name': executor_type_name,
+        }
+        self._agnocast_executors.append(record)
+
+    def add_agnocast_publish_instance(
+        self,
+        tid: int,
+        timestamp: int,
+        publisher_handle: int,
+        entry_id: int,
+    ) -> None:
+        record = {
+            'tid': tid,
+            'agnocast_publish_timestamp': timestamp,
+            'publisher_handle': publisher_handle,
+            'agnocast_entry_id': entry_id,
+        }
+        self.agnocast_publish_instances.append(record)
+
+    def add_agnocast_create_callable_instance(
+        self,
+        timestamp: int,
+        callable_object: int,
+        entry_id: int,
+        pid_callback_info_id: int
+    ) -> None:
+        record = {
+            'agnocast_create_callable_timestamp': timestamp,
+            'agnocast_callable_object': callable_object,
+            'agnocast_entry_id': entry_id,
+            'agnocast_pid_callback_info_id': pid_callback_info_id,
+        }
+        self.agnocast_create_callable_instances.append(record)
+
+    def add_agnocast_callable_start_instance(
+        self, tid: int, timestamp: int, callable_object: int
+    ) -> None:
+        record = {
+            'tid': tid,
+            'agnocast_callable_start_timestamp': timestamp,
+            'agnocast_callable_object': callable_object,
+        }
+        self.agnocast_callable_start_instances.append(record)
+
+    def add_agnocast_callable_end_instance(
+        self,
+        tid: int,
+        timestamp: int,
+        callable_object: int
+    ) -> None:
+        record = {
+            'tid': tid,
+            'agnocast_callable_end_timestamp': timestamp,
+            'agnocast_callable_object': callable_object
+        }
+        self.agnocast_callable_end_instances.append(record)
 
     def add_tilde_subscribe(
         self,
@@ -968,3 +1136,13 @@ class Ros2DataModel():
 
         self.rmw_impl = self._rmw_impl.get_finalized()
         del self._rmw_impl
+
+        self.agnocast_publishers = self._agnocast_publishers.get_finalized('publisher_handle')
+        del self._agnocast_publishers
+
+        self.agnocast_subscriptions = self._agnocast_subscriptions.get_finalized(
+            'subscription_handle')
+        del self._agnocast_subscriptions
+
+        self.agnocast_executors = self._agnocast_executors.get_finalized('executor_addr')
+        del self._agnocast_executors

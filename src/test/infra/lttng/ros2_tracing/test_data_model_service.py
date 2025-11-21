@@ -158,3 +158,40 @@ class TestDataModelService:
         node_names_and_cb_symbols = \
             data_model_srv.get_node_names_and_cb_symbols(cbg_addr)
         assert node_names_and_cb_symbols == [('ns/name', None)]
+
+    def test_get_node_names_and_cb_symbols_exist_agnocast_sub(self):
+        data = Ros2DataModel()
+        cbg_addr = 1
+        sub_handle = 2
+        node_handle = 3
+        callback_object = 4
+        symbol = 'agnocast_callback'
+        data.add_node(0, node_handle, 0, 0, 'name', 'ns')
+        data.add_agnocast_subscription(
+            sub_handle, 0, node_handle, callback_object, cbg_addr, symbol,
+            '/topic', 10, 12345
+        )
+        data.finalize()
+
+        data_model_srv = DataModelService(data)
+        node_names_and_cb_symbols = \
+            data_model_srv.get_node_names_and_cb_symbols(cbg_addr)
+        assert node_names_and_cb_symbols == [('ns/name', 'agnocast_callback')]
+
+    def test_get_agnocast_subscription_handle_from_callback_object(self):
+        data = Ros2DataModel()
+        sub_handle = 1
+        node_handle = 2
+        callback_object = 3
+        cbg_addr = 4
+        symbol = 'symbol'
+        data.add_agnocast_subscription(
+            sub_handle, 0, node_handle, callback_object, cbg_addr, symbol,
+            '/topic', 10, 12345
+        )
+        data.finalize()
+
+        data_model_srv = DataModelService(data)
+        result = data_model_srv.get_agnocast_subscription_handle_from_callback_object(
+            callback_object)
+        assert result == sub_handle

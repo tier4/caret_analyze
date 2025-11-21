@@ -153,6 +153,8 @@ def create_subscription_struct(
         mocker.patch.object(subscription, 'topic_name', topic_name)
         mocker.patch.object(subscription, 'callback_name', callback_name)
         mocker.patch.object(subscription, 'callback', sub_cb)
+        mocker.patch.object(subscription, 'is_agnocast_subscription', False)
+        mocker.patch.object(subscription, 'is_agnocast_take', False)
         return subscription
     return _create
 
@@ -164,6 +166,7 @@ def create_publisher_struct(
     def _create_publisher_lttng(topic_name: str = 'topic_name'):
         publisher = mocker.Mock(spec=PublisherStructValue)
         mocker.patch.object(publisher, 'topic_name', topic_name)
+        mocker.patch.object(publisher, 'is_agnocast_publisher', False)
         return publisher
 
     return _create_publisher_lttng
@@ -185,6 +188,8 @@ def create_comm_struct(
                             callback.subscribe_topic_name)
         mocker.patch.object(
             communication, 'subscribe_callback_name', callback.callback_name)
+        mocker.patch.object(
+            communication, 'is_agnocast_take_comm', False)
         return communication
 
     return _create

@@ -86,6 +86,14 @@ class TestEventCounter:
         data.add_buffer_to_ipb(0, 0, 0)
         data.add_ipb_to_subscription(0, 0, 0)
         data.add_ring_buffer(0, 0, 0)
+        data.add_agnocast_publisher(0, 0, 0, '', 0)
+        data.add_agnocast_subscription(0, 0, 0, 0, 0, '', '', 0, 0)
+        data.add_agnocast_executor(0, 0, '')
+        data.add_agnocast_callable_start_instance(0, 0, 0)
+        data.add_agnocast_callable_end_instance(0, 0, 0)
+        data.add_agnocast_create_callable_instance(0, 0, 0, 0)
+        data.add_agnocast_publish_instance(0, 0, 0, 0)
+        data.add_agnocast_take_instance(0, 0, 0, 0, 0)
 
         data.finalize()
 
