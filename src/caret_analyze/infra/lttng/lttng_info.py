@@ -1200,6 +1200,15 @@ class DataFrameFormatted:
         publishers = data.publishers.clone()
         publishers.reset_index()
 
+        # Concatenate Agnocast data
+        if len(data.agnocast_publishers) > 0:
+            agnocast_publishers = data.agnocast_publishers.clone()
+            agnocast_publishers.reset_index()
+            publishers = TracePointData.concat(
+                [publishers, agnocast_publishers],
+                ['publisher_handle', 'timestamp', 'node_handle', 'topic_name', 'depth']
+            )
+
         DataFrameFormatted._add_construction_order_publisher_or_subscription(
             publishers, 'construction_order', 'timestamp', 'node_handle', 'topic_name')
 
@@ -1223,6 +1232,20 @@ class DataFrameFormatted:
         )
         subscriptions = data.subscriptions.clone()
         subscriptions.reset_index()
+        subscriptions.drop_column('rmw_handle')
+
+        # Concatenate Agnocast data
+        if len(data.agnocast_subscriptions) > 0:
+            agnocast_sub = data.agnocast_subscriptions.clone()
+            agnocast_sub.reset_index()
+            drop_columns = [
+                'callback_object', 'callback_group_addr', 'symbol', 'agnocast_pid_callback_info_id'
+            ]
+            for dc in drop_columns:
+                agnocast_sub.drop_column(dc)
+            subscriptions = TracePointData.concat(
+                [subscriptions, agnocast_sub], subscriptions.columns
+            )
 
         DataFrameFormatted._add_construction_order_publisher_or_subscription(
             subscriptions, 'construction_order', 'timestamp', 'node_handle', 'topic_name')
@@ -1324,6 +1347,14 @@ class DataFrameFormatted:
             columns_ = columns[1:]  # ignore executor_id
             executors = TracePointData.concat(
                 [executors, executors_static], columns_)
+
+        # Concatenate Agnocast data
+        if len(data.agnocast_executors) > 0:
+            agnocast_executors = data.agnocast_executors.clone()
+            agnocast_executors.reset_index()
+            columns_ = columns[1:]  # ignore executor_id
+            executors = TracePointData.concat(
+                [executors, agnocast_executors], columns_)
 
         def to_executor_id(row: pd.Series) -> str:
             addr = row['executor_addr']
@@ -1488,13 +1519,27 @@ class DataFrameFormatted:
         symbols.remove_column('timestamp')
         merge(subscriptions, symbols, 'callback_object', merge_drop_columns=merge_drop_columns)
 
+        callback_group_subscription = data.callback_group_subscription.clone()
+        callback_group_subscription.reset_index()
+        callback_group_subscription.remove_column('timestamp')
+        merge(
+            subscriptions, callback_group_subscription, 'subscription_handle',
+            merge_drop_columns=merge_drop_columns
+        )
+
+        # Concatenate Agnocast data
+        if len(data.agnocast_subscriptions) > 0:
+            agnocast_subscriptions = data.agnocast_subscriptions.clone()
+            agnocast_subscriptions.reset_index()
+            agnocast_subscriptions.remove_column('agnocast_pid_callback_info_id')
+            agnocast_subscriptions.add_column('callback_object_intra', lambda _: None)
+            subscriptions = TracePointData.concat(
+                [subscriptions, agnocast_subscriptions], subscriptions.columns
+            )
+
         DataFrameFormatted._add_construction_order(
             subscriptions, 'construction_order', 'timestamp',
             'node_handle', 'topic_name', 'symbol')
-
-        callback_group_subscription = data.callback_group_subscription.clone()
-        callback_group_subscription.reset_index()
-        merge(subscriptions, callback_group_subscription, 'subscription_handle')
 
         subscriptions.add_column('callback_id', callback_id)
 

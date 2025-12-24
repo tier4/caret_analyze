@@ -17,6 +17,7 @@ from caret_analyze.runtime.callback import CallbackBase
 from caret_analyze.runtime.communication import Communication
 from caret_analyze.runtime.publisher import Publisher
 from caret_analyze.runtime.subscription import Subscription
+from caret_analyze.value_objects import PublisherStructValue
 
 import pandas as pd
 from pandas import MultiIndex
@@ -27,6 +28,9 @@ class TestMetricsBase:
     def test_get_ts_column_name_pub_no_callback_name(self, mocker):
         pub_mock = mocker.Mock(spec=Publisher)
         mocker.patch.object(pub_mock, 'callback_names', [])
+        pub_val_mock = mocker.Mock(spec=PublisherStructValue)
+        mocker.patch.object(pub_val_mock, 'is_agnocast_publisher', False)
+        mocker.patch.object(pub_mock, 'value', pub_val_mock)
 
         assert (MetricsBase._get_ts_column_name(pub_mock)
                 == 'rclcpp_publish_timestamp [ns]')
@@ -34,6 +38,9 @@ class TestMetricsBase:
     def test_get_ts_column_name_pub_normal(self, mocker):
         pub_mock = mocker.Mock(spec=Publisher)
         mocker.patch.object(pub_mock, 'callback_names', ['cb0', 'cb1'])
+        pub_val_mock = mocker.Mock(spec=PublisherStructValue)
+        mocker.patch.object(pub_val_mock, 'is_agnocast_publisher', False)
+        mocker.patch.object(pub_mock, 'value', pub_val_mock)
 
         assert (MetricsBase._get_ts_column_name(pub_mock)
                 == 'cb0/rclcpp_publish_timestamp [ns]')
