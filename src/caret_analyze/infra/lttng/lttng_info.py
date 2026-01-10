@@ -1835,11 +1835,47 @@ class DataFrameFormatted:
             if DataFrameFormatted._is_ignored_subscription(data, subscription_handle):
                 continue
 
+            # Handle more than three callbacks (Filtering instead of skipping)
+            if len(group) >= 3:
+                raw_cb_objs_hex = [hex(int(obj)) for obj in group['callback_object'].tolist()]
+                group.sort_values('timestamp', ascending=True, inplace=True)
+
+                actions = []
+                # Remove TimeSource
+                if not data.callback_symbols.df.empty:
+                    def get_symbol(cb_obj):
+                        try: return data.callback_symbols.df.loc[cb_obj, 'symbol']
+                        except: return ""
+                    group['symbol'] = group['callback_object'].apply(get_symbol)
+
+                    ts_mask = group['symbol'].str.contains('TimeSource', na=False)
+                    if ts_mask.any():
+                        group = group[~ts_mask].copy()
+                        actions.append("removed TimeSource")
+
+                # Keep latest 2
+                if len(group) > 2:
+                    group = group.iloc[-2:].copy()
+                    actions.append("kept latest 2")
+
+                action_msg = f"Action: {', '.join(actions)}" if actions else "Action: No filter applied"
+                final_selected_hex = [hex(int(obj)) for obj in group['callback_object'].tolist()]
+
+                logger.warning(
+                    'More than three callbacks are registered in one subscription_handle. '
+                    'Instead of skipping, filtered them to continue analysis.\n'
+                    f'  subscription_handle = {hex(subscription_handle)}\n'
+                    f'  original callback_objects = {raw_cb_objs_hex}\n'
+                    f'  {action_msg}\n'
+                    f'  final selected = {final_selected_hex}'
+                )
+
             record = {
                 'subscription_handle': key,
             }
             if len(group) == 1:
                 record['callback_object'] = group.at[0, 'callback_object']
+                ret_data.append(record)
             elif len(group) == 2:
                 # NOTE:
                 # The smaller timestamp is the callback_object of the in-process communication.
@@ -1848,14 +1884,15 @@ class DataFrameFormatted:
                 group.reset_index(drop=True, inplace=True)
                 record['callback_object'] = group.at[1, 'callback_object']
                 record['callback_object_intra'] = group.at[0, 'callback_object']
+                ret_data.append(record)
             else:
-                cb_objs = group['callback_object'].values
+                # If no valid callbacks remain
+                remaining_objs_hex = [hex(int(obj)) for obj in group['callback_object'].tolist()]
                 logger.warning(
-                    'More than three callbacks are registered in one subscription_handle. '
-                    'Skip loading callback info. The following callbacks cannot be measured.'
-                    f'subscription_handle = {key}, '
-                    f'callback_objects = {cb_objs}')
-            ret_data.append(record)
+                    'No valid callbacks found after filtering for subscription_handle. '
+                    f'subscription_handle = {hex(subscription_handle)}, '
+                    f'remaining_objects = {remaining_objs_hex}'
+                )
 
         trace_data = ret_data.get_finalized()
         trace_data.drop_duplicate()
