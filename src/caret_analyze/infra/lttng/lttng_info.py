@@ -1829,8 +1829,6 @@ class DataFrameFormatted:
             {'callback_object_intra': 'Int64'}
         )
         for key, group in subscription_objects.df.groupby('subscription_handle'):
-            group.reset_index(drop=True, inplace=True)
-
             subscription_handle = int(key)  # type: ignore
             if DataFrameFormatted._is_ignored_subscription(data, subscription_handle):
                 continue
@@ -1844,22 +1842,25 @@ class DataFrameFormatted:
                 # Remove TimeSource
                 if not data.callback_symbols.df.empty:
                     def get_symbol(cb_obj):
-                        try: return data.callback_symbols.df.loc[cb_obj, 'symbol']
-                        except: return ""
+                        try:
+                            return data.callback_symbols.df.loc[cb_obj, 'symbol']
+                        except Exception:
+                            return ''
                     group['symbol'] = group['callback_object'].apply(get_symbol)
 
                     ts_mask = group['symbol'].str.contains('TimeSource', na=False)
                     if ts_mask.any():
                         group = group[~ts_mask].copy()
-                        actions.append("removed TimeSource-derived callbacks")
+                        actions.append('removed TimeSource-derived callbacks')
 
                 # Keep latest 2
                 if len(group) > 2:
                     group.sort_values('timestamp', ascending=True, inplace=True)
                     group = group.iloc[-2:].copy()
-                    actions.append("kept latest 2 callbacks")
+                    actions.append('kept latest 2 callbacks')
 
-                action_msg = f"Action: {', '.join(actions)}" if actions else "Action: No filter applied"
+                action_str = ', '.join(actions) if actions else 'No filter applied'
+                action_msg = f'Action: {action_str}'
                 final_selected_hex = [hex(int(obj)) for obj in group['callback_object'].tolist()]
 
                 logger.warning(
@@ -1892,7 +1893,9 @@ class DataFrameFormatted:
 
             else:
                 # If no valid callbacks remain
-                remaining_objs_hex = [hex(int(obj)) for obj in group['callback_object'].tolist()]
+                remaining_objs_hex = [
+                    hex(int(obj)) for obj in group['callback_object'].tolist()
+                ]
                 logger.warning(
                     'No valid callbacks found after filtering for subscription_handle. '
                     f'subscription_handle = {hex(subscription_handle)}, '
