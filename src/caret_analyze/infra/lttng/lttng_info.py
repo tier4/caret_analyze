@@ -1855,6 +1855,7 @@ class DataFrameFormatted:
 
                 # Keep latest 2
                 if len(group) > 2:
+                    group.sort_values('timestamp', ascending=True, inplace=True)
                     group = group.iloc[-2:].copy()
                     actions.append("kept latest 2 callbacks")
 
@@ -1870,21 +1871,25 @@ class DataFrameFormatted:
                     f'  final selected = {final_selected_hex}'
                 )
 
+            group.sort_values('timestamp', ascending=True, inplace=True)
+            group.reset_index(drop=True, inplace=True)
+
             record = {
                 'subscription_handle': key,
             }
+
             if len(group) == 1:
                 record['callback_object'] = group.at[0, 'callback_object']
                 ret_data.append(record)
+
             elif len(group) == 2:
                 # NOTE:
                 # The smaller timestamp is the callback_object of the in-process communication.
                 # The larger timestamp is callback_object for inter-process communication.
-                group.sort_values('timestamp', inplace=True)
-                group.reset_index(drop=True, inplace=True)
                 record['callback_object'] = group.at[1, 'callback_object']
                 record['callback_object_intra'] = group.at[0, 'callback_object']
                 ret_data.append(record)
+
             else:
                 # If no valid callbacks remain
                 remaining_objs_hex = [hex(int(obj)) for obj in group['callback_object'].tolist()]
