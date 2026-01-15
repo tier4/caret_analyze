@@ -1851,12 +1851,12 @@ class DataFrameFormatted:
                     ts_mask = group['symbol'].str.contains('TimeSource', na=False)
                     if ts_mask.any():
                         group = group[~ts_mask].copy()
-                        actions.append("removed TimeSource")
+                        actions.append("removed TimeSource-derived callbacks")
 
                 # Keep latest 2
                 if len(group) > 2:
                     group = group.iloc[-2:].copy()
-                    actions.append("kept latest 2")
+                    actions.append("kept latest 2 callbacks")
 
                 action_msg = f"Action: {', '.join(actions)}" if actions else "Action: No filter applied"
                 final_selected_hex = [hex(int(obj)) for obj in group['callback_object'].tolist()]
