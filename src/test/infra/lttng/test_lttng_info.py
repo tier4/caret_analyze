@@ -1221,7 +1221,7 @@ class TestDataFrameFormatted:
 
         subscription_handle = 0x100
         sub_ptrs = [0x201, 0x202, 0x203]
-        
+
         cb_timesource = 0x301
         cb_intra = 0x302
         cb_inter = 0x303
@@ -1232,10 +1232,10 @@ class TestDataFrameFormatted:
 
         data.add_rclcpp_subscription(sub_ptrs[0], 100, subscription_handle)
         data.add_callback_object(sub_ptrs[0], 100, cb_timesource)
-        
+
         data.add_rclcpp_subscription(sub_ptrs[1], 200, subscription_handle)
         data.add_callback_object(sub_ptrs[1], 200, cb_intra)
-        
+
         data.add_rclcpp_subscription(sub_ptrs[2], 300, subscription_handle)
         data.add_callback_object(sub_ptrs[2], 300, cb_inter)
 
