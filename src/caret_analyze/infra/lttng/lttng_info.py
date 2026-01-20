@@ -1839,7 +1839,7 @@ class DataFrameFormatted:
                 group.sort_values('timestamp', ascending=True, inplace=True)
 
                 actions = []
-                # Remove TimeSource
+                # Remove rclcpp::TimeSource
                 if not data.callback_symbols.df.empty:
                     def get_symbol(cb_obj):
                         try:
@@ -1848,10 +1848,10 @@ class DataFrameFormatted:
                             return ''
                     group['symbol'] = group['callback_object'].apply(get_symbol)
 
-                    ts_mask = group['symbol'].str.contains('TimeSource', na=False)
+                    ts_mask = group['symbol'].str.contains('rclcpp::TimeSource', na=False)
                     if ts_mask.any():
                         group = group[~ts_mask].copy()
-                        actions.append('removed TimeSource-derived callbacks')
+                        actions.append('removed rclcpp::TimeSource-derived callbacks')
 
                 # Keep latest 2
                 if len(group) > 2:
