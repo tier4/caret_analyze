@@ -1216,22 +1216,25 @@ class TestDataFrameFormatted:
         ).convert_dtypes()
         assert sub.df.equals(expect)
 
-    def test_format_subscription_callback_object_with_timesource_filter(self, mocker):
+    def test_format_subscription_callback_object_with_time_source_filter(self, mocker):
         data = Ros2DataModel()
 
         subscription_handle = 0x100
         sub_ptrs = [0x201, 0x202, 0x203]
 
-        cb_timesource = 0x301
+        cb_time_source = 0x301
         cb_intra = 0x302
         cb_inter = 0x303
 
-        data.add_callback_symbol(cb_timesource, 0, 'rclcpp::TimeSource::NodeState::create_clock_sub()::...')
+        data.add_callback_symbol(
+            cb_time_source, 0,
+            'rclcpp::TimeSource::NodeState::create_clock_sub()::...'
+        )
         data.add_callback_symbol(cb_intra, 0, 'valid_callback_intra_symbol')
         data.add_callback_symbol(cb_inter, 0, 'valid_callback_inter_symbol')
 
         data.add_rclcpp_subscription(sub_ptrs[0], 100, subscription_handle)
-        data.add_callback_object(sub_ptrs[0], 100, cb_timesource)
+        data.add_callback_object(sub_ptrs[0], 100, cb_time_source)
 
         data.add_rclcpp_subscription(sub_ptrs[1], 200, subscription_handle)
         data.add_callback_object(sub_ptrs[1], 200, cb_intra)
