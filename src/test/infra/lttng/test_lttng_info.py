@@ -1216,6 +1216,46 @@ class TestDataFrameFormatted:
         ).convert_dtypes()
         assert sub.df.equals(expect)
 
+    def test_format_subscription_callback_object_with_timesource_filter(self, mocker):
+        data = Ros2DataModel()
+
+        subscription_handle = 0x100
+        sub_ptrs = [0x201, 0x202, 0x203]
+        
+        cb_timesource = 0x301
+        cb_intra = 0x302
+        cb_inter = 0x303
+
+        data.add_callback_symbol(cb_timesource, 0, 'rclcpp::TimeSource::NodeState::create_clock_sub()::...')
+        data.add_callback_symbol(cb_intra, 0, 'valid_callback_intra_symbol')
+        data.add_callback_symbol(cb_inter, 0, 'valid_callback_inter_symbol')
+
+        data.add_rclcpp_subscription(sub_ptrs[0], 100, subscription_handle)
+        data.add_callback_object(sub_ptrs[0], 100, cb_timesource)
+        
+        data.add_rclcpp_subscription(sub_ptrs[1], 200, subscription_handle)
+        data.add_callback_object(sub_ptrs[1], 200, cb_intra)
+        
+        data.add_rclcpp_subscription(sub_ptrs[2], 300, subscription_handle)
+        data.add_callback_object(sub_ptrs[2], 300, cb_inter)
+
+        data.finalize()
+
+        mocker.patch.object(DataFrameFormatted, '_is_ignored_subscription', return_value=False)
+
+        sub = DataFrameFormatted._format_subscription_callback_object(data)
+
+        expect = pd.DataFrame.from_dict(
+            [
+                {
+                    'subscription_handle': subscription_handle,
+                    'callback_object': cb_inter,
+                    'callback_object_intra': cb_intra,
+                },
+            ]
+        ).convert_dtypes()
+        assert sub.df.equals(expect)
+
     def test_build_nodes_df(self):
         data = Ros2DataModel()
 
