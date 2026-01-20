@@ -1297,7 +1297,7 @@ class TestDataFrameFormatted:
         assert 'More than three callbacks are registered in one subscription_handle.' in caplog.text
         assert f'subscription_handle = {hex(subscription_handle)}' in caplog.text
         assert 'final selected =' in caplog.text
-        
+
         warning_logs = [record for record in caplog.records if record.levelname == 'WARNING']
         assert len(warning_logs) >= 1
 
@@ -1310,7 +1310,7 @@ class TestDataFrameFormatted:
                 },
             ]
         ).convert_dtypes()
-        
+
         assert sub.df.equals(expect)
 
     def test_build_nodes_df(self):
