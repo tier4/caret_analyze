@@ -169,10 +169,11 @@ class TracePointData:
             has_columns = (set(data.columns) & set(columns)) == set(columns)
             if not has_columns:
                 continue
+
             target_df = data.df[list(columns)]
 
-        if not target_df.empty:
-            concat_targets.append(target_df)
+            if not target_df.empty:
+                concat_targets.append(target_df)
 
         if len(concat_targets) > 0:
             return TracePointData(pd.concat(concat_targets, axis=0).reset_index(drop=True))
