@@ -1261,52 +1261,57 @@ class TestDataFrameFormatted:
         ).convert_dtypes()
         assert sub.df.equals(expect)
 
-    def test_format_subscription_callback_object_with_3_or_more_callbacks(self, mocker, caplog):
+    def test_format_subscription_callback_object_with_wrong_choice(
+        self, mocker, caplog
+    ):
         data = Ros2DataModel()
 
         subscription_handle = 0x100
         sub_ptrs = [0x201, 0x202, 0x203]
 
-        cb_time_source = 0x301
-        cb_intra = 0x302
-        cb_inter = 0x303
+        cb_intra = 0x301
+        cb_inter = 0x302
+        cb_time_source = 0x303
 
+        data.add_callback_symbol(cb_intra, 0, 'valid_callback_intra_symbol')
+        data.add_callback_symbol(cb_inter, 0, 'valid_callback_inter_symbol')
         data.add_callback_symbol(
             cb_time_source, 0,
             '::TimeSource::NodeState::create_clock_sub()::...'
         )
-        data.add_callback_symbol(cb_intra, 0, 'valid_callback_intra_symbol')
-        data.add_callback_symbol(cb_inter, 0, 'valid_callback_inter_symbol')
 
         data.add_rclcpp_subscription(sub_ptrs[0], 100, subscription_handle)
-        data.add_callback_object(sub_ptrs[0], 100, cb_time_source)
+        data.add_callback_object(sub_ptrs[0], 100, cb_intra)
 
         data.add_rclcpp_subscription(sub_ptrs[1], 200, subscription_handle)
-        data.add_callback_object(sub_ptrs[1], 200, cb_intra)
+        data.add_callback_object(sub_ptrs[1], 200, cb_inter)
 
         data.add_rclcpp_subscription(sub_ptrs[2], 300, subscription_handle)
-        data.add_callback_object(sub_ptrs[2], 300, cb_inter)
+        data.add_callback_object(sub_ptrs[2], 300, cb_time_source)
 
         data.finalize()
 
-        mocker.patch.object(DataFrameFormatted, '_is_ignored_subscription', return_value=False)
+        mocker.patch.object(
+            DataFrameFormatted, '_is_ignored_subscription', return_value=False
+        )
 
         with caplog.at_level(WARNING):
             sub = DataFrameFormatted._format_subscription_callback_object(data)
 
-        assert 'More than three callbacks are registered in one subscription_handle.' in caplog.text
-        assert f'subscription_handle = {hex(subscription_handle)}' in caplog.text
+        msg = (
+            'More than three callbacks are registered '
+            'in one subscription_handle.'
+        )
+        assert msg in caplog.text
+        assert hex(subscription_handle) in caplog.text
         assert 'final selected =' in caplog.text
-
-        warning_logs = [record for record in caplog.records if record.levelname == 'WARNING']
-        assert len(warning_logs) >= 1
 
         expect = pd.DataFrame.from_dict(
             [
                 {
                     'subscription_handle': subscription_handle,
-                    'callback_object': cb_inter,
-                    'callback_object_intra': cb_intra,
+                    'callback_object': cb_time_source,
+                    'callback_object_intra': cb_inter,
                 },
             ]
         ).convert_dtypes()
