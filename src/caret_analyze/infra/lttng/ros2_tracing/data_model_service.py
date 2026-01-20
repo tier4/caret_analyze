@@ -129,7 +129,9 @@ class DataModelService:
         if len(valid_targets) > 0:
             middle_sub_df = pd.concat(valid_targets)
         else:
-            middle_sub_df = pd.DataFrame(columns=self._data.subscriptions.df.columns.drop(['rmw_handle']))
+            middle_sub_df = pd.DataFrame(
+                columns=self._data.subscriptions.df.columns.drop(['rmw_handle'])
+            )
 
         for handle in sub_handles:
             node_name = self._get_node_name_from_handle(handle, middle_sub_df)
