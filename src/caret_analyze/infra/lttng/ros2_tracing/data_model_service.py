@@ -118,10 +118,21 @@ class DataModelService:
             sub_handles += match_agnocast_cbg_sub.index.to_list()
 
         node_names_and_cb_symbols: list[tuple[str | None, str | None]] = []
-        middle_sub_df = pd.concat(
-            [self._data.subscriptions.df, self._data.agnocast_subscriptions.df[
-                self._data.subscriptions.df.columns.drop(['rmw_handle'])]]
-        )
+
+        common_cols = self._data.subscriptions.df.columns.drop(['rmw_handle'], errors='ignore')
+
+        concat_list = [
+            self._data.subscriptions.df[common_cols],
+            self._data.agnocast_subscriptions.df[common_cols]
+        ]
+
+        valid_targets = [df for df in concat_list if not df.empty]
+
+        if len(valid_targets) > 0:
+            middle_sub_df = pd.concat(valid_targets)
+        else:
+            middle_sub_df = pd.DataFrame(columns=common_cols)
+
         for handle in sub_handles:
             node_name = self._get_node_name_from_handle(handle, middle_sub_df)
             callback_symbol = self._get_callback_symbols_from_handle(handle)
