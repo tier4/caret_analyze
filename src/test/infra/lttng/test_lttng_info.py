@@ -1261,7 +1261,7 @@ class TestDataFrameFormatted:
         expected_action = 'Action: removed rclcpp::TimeSource-derived callbacks'
         assert expected_action in caplog.text
         assert 'final selected =' in caplog.text
-        
+
         expect = pd.DataFrame.from_dict(
             [
                 {
@@ -1524,17 +1524,17 @@ class TestDataFrameFormatted:
         data = Ros2DataModel()
 
         subscription_handle = 100
-        sub_ptr = 500  
-        
+        sub_ptr = 500
+
         cb_objs = [601, 602, 603]
 
         # Through the merge process, three callbacks are associated with a single handle.
         data.add_rclcpp_subscription(sub_ptr, 100, subscription_handle)
         data.add_callback_object(sub_ptr, 100, cb_objs[0])
-        
+
         data.add_rclcpp_subscription(sub_ptr, 200, subscription_handle)
         data.add_callback_object(sub_ptr, 200, cb_objs[1])
-        
+
         data.add_rclcpp_subscription(sub_ptr, 300, subscription_handle)
         data.add_callback_object(sub_ptr, 300, cb_objs[2])
 
@@ -1547,7 +1547,7 @@ class TestDataFrameFormatted:
 
         assert 'More than three callbacks are registered' in caplog.text
         assert 'Action: kept latest 2 callbacks' in caplog.text
-        
+
         expect = pd.DataFrame.from_dict(
             [
                 {

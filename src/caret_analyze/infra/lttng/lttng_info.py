@@ -1842,7 +1842,7 @@ class DataFrameFormatted:
                 # Remove rclcpp::TimeSource
                 if not data.callback_symbols.df.empty:
                     symbols_df = data.callback_symbols.df.reset_index()
-                    
+
                     def get_symbol(cb_obj):
                         mask = symbols_df['callback_object'] == cb_obj
                         if mask.any():
