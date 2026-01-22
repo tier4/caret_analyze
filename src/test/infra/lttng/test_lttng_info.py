@@ -1221,12 +1221,12 @@ class TestDataFrameFormatted:
     def test_format_subscription_callback_object_with_time_source_filter(self, mocker):
         data = Ros2DataModel()
 
-        subscription_handle = 0x100
-        sub_ptrs = [0x201, 0x202, 0x203]
+        subscription_handle = 100
+        sub_ptrs = [201, 202, 203]
 
-        cb_time_source = 0x301
-        cb_intra = 0x302
-        cb_inter = 0x303
+        cb_time_source = 301
+        cb_intra = 302
+        cb_inter = 303
 
         data.add_callback_symbol(
             cb_time_source, 0,
@@ -1266,12 +1266,12 @@ class TestDataFrameFormatted:
     ):
         data = Ros2DataModel()
 
-        subscription_handle = 0x100
-        sub_ptrs = [0x201, 0x202, 0x203]
+        subscription_handle = 100
+        sub_ptrs = [201, 202, 203]
 
-        cb_intra = 0x301
-        cb_inter = 0x302
-        cb_time_source = 0x303
+        cb_intra = 301
+        cb_inter = 302
+        cb_time_source = 303
 
         data.add_callback_symbol(cb_intra, 0, 'valid_callback_intra_symbol')
         data.add_callback_symbol(cb_inter, 0, 'valid_callback_inter_symbol')
@@ -1303,7 +1303,7 @@ class TestDataFrameFormatted:
             'in one subscription_handle.'
         )
         assert msg in caplog.text
-        assert hex(subscription_handle) in caplog.text
+        assert subscription_handle in caplog.text
         assert 'final selected =' in caplog.text
 
         expect = pd.DataFrame.from_dict(

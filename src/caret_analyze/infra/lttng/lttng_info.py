@@ -1835,7 +1835,7 @@ class DataFrameFormatted:
 
             # Handle more than three callbacks (Filtering instead of skipping)
             if len(group) >= 3:
-                raw_cb_objs_hex = [hex(int(obj)) for obj in group['callback_object'].tolist()]
+                raw_cb_objs = [int(obj) for obj in group['callback_object'].tolist()]
                 group.sort_values('timestamp', ascending=True, inplace=True)
 
                 actions = []
@@ -1861,15 +1861,15 @@ class DataFrameFormatted:
 
                 action_str = ', '.join(actions) if actions else 'No filter applied'
                 action_msg = f'Action: {action_str}'
-                final_selected_hex = [hex(int(obj)) for obj in group['callback_object'].tolist()]
+                final_selected = [int(obj) for obj in group['callback_object'].tolist()]
 
                 logger.warning(
                     'More than three callbacks are registered in one subscription_handle. '
                     'Instead of skipping, filtered them to continue analysis.\n'
-                    f'  subscription_handle = {hex(subscription_handle)}\n'
-                    f'  original callback_objects = {raw_cb_objs_hex}\n'
+                    f'  subscription_handle = {subscription_handle}\n'
+                    f'  original callback_objects = {raw_cb_objs}\n'
                     f'  {action_msg}\n'
-                    f'  final selected = {final_selected_hex}'
+                    f'  final selected = {final_selected}'
                 )
 
             group.sort_values('timestamp', ascending=True, inplace=True)
@@ -1893,13 +1893,13 @@ class DataFrameFormatted:
 
             else:
                 # If no valid callbacks remain
-                remaining_objs_hex = [
-                    hex(int(obj)) for obj in group['callback_object'].tolist()
+                remaining_objs = [
+                    int(obj) for obj in group['callback_object'].tolist()
                 ]
                 logger.warning(
                     'No valid callbacks found after filtering for subscription_handle. '
-                    f'subscription_handle = {hex(subscription_handle)}, '
-                    f'remaining_objects = {remaining_objs_hex}'
+                    f'subscription_handle = {subscription_handle}, '
+                    f'remaining_objects = {remaining_objs}'
                 )
 
         trace_data = ret_data.get_finalized()
