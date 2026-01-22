@@ -1303,7 +1303,7 @@ class TestDataFrameFormatted:
             'in one subscription_handle.'
         )
         assert msg in caplog.text
-        assert subscription_handle in caplog.text
+        assert f'subscription_handle = {subscription_handle}' in caplog.text
         assert 'final selected =' in caplog.text
 
         expect = pd.DataFrame.from_dict(
