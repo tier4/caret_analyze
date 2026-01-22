@@ -1841,13 +1841,15 @@ class DataFrameFormatted:
                 actions = []
                 # Remove rclcpp::TimeSource
                 if not data.callback_symbols.df.empty:
+                    symbols_df = data.callback_symbols.df.reset_index()
+                    
                     def get_symbol(cb_obj):
-                        try:
-                            return data.callback_symbols.df.loc[cb_obj, 'symbol']
-                        except Exception:
-                            return ''
-                    group['symbol'] = group['callback_object'].apply(get_symbol)
+                        mask = symbols_df['callback_object'] == cb_obj
+                        if mask.any():
+                            return symbols_df.loc[mask, 'symbol'].iloc[0]
+                        return ''
 
+                    group['symbol'] = group['callback_object'].apply(get_symbol)
                     ts_mask = group['symbol'].str.contains('rclcpp::TimeSource', na=False)
                     if ts_mask.any():
                         group = group[~ts_mask].copy()
