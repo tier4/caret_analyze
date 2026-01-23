@@ -1270,11 +1270,14 @@ class TestDataFrameFormatted:
         ]
     )
     def test_format_subscription_callback_object_filtering(
-        self, mocker, caplog, test_comment, callback_symbols, sub_ptrs, expected_action, expected_callbacks
+        self, mocker, caplog, test_comment, callback_symbols,
+        sub_ptrs, expected_action, expected_callbacks
     ):
         """
-        Verify that _format_subscription_callback_object correctly identifies and filters
-        excessive callbacks (>=3) using TimeSource detection and recency logic.
+        Verify that _format_subscription_callback_object correctly filters callbacks.
+
+        The logic filters excessive callbacks (>=3) using TimeSource detection
+        and recency logic.
         """
         data = Ros2DataModel()
         subscription_handle = 100

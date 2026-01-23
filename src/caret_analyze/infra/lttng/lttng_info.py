@@ -1844,8 +1844,10 @@ class DataFrameFormatted:
                     symbols_df = data.callback_symbols.df.reset_index()
 
                     if 'callback_object' in symbols_df.columns:
-                        symbol_map = dict(zip(symbols_df['callback_object'],
-                                            symbols_df['symbol']))
+                        symbol_map = dict(zip(
+                            symbols_df['callback_object'],
+                            symbols_df['symbol']
+                        ))
 
                         def get_symbol(cb_obj):
                             return symbol_map.get(cb_obj, '')
