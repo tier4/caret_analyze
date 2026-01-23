@@ -1829,33 +1829,83 @@ class DataFrameFormatted:
             {'callback_object_intra': 'Int64'}
         )
         for key, group in subscription_objects.df.groupby('subscription_handle'):
-            group.reset_index(drop=True, inplace=True)
-
             subscription_handle = int(key)  # type: ignore
             if DataFrameFormatted._is_ignored_subscription(data, subscription_handle):
                 continue
 
+            # Handle more than three callbacks (Filtering instead of skipping)
+            if len(group) >= 3:
+                raw_cb_objs = [int(obj) for obj in group['callback_object'].tolist()]
+                group.sort_values('timestamp', ascending=True, inplace=True)
+
+                actions = []
+                # Remove rclcpp::TimeSource
+                if not data.callback_symbols.df.empty:
+                    symbols_df = data.callback_symbols.df.reset_index()
+
+                    if 'callback_object' in symbols_df.columns:
+                        symbol_map = dict(zip(
+                            symbols_df['callback_object'],
+                            symbols_df['symbol']
+                        ))
+
+                        def get_symbol(cb_obj):
+                            return symbol_map.get(cb_obj, '')
+
+                        group['symbol'] = group['callback_object'].apply(get_symbol)
+                        ts_mask = group['symbol'].str.contains('rclcpp::TimeSource', na=False)
+                        if ts_mask.any():
+                            group = group[~ts_mask].copy()
+                            actions.append('removed rclcpp::TimeSource-derived callbacks')
+
+                # Keep latest 2
+                if len(group) > 2:
+                    group.sort_values('timestamp', ascending=True, inplace=True)
+                    group = group.iloc[-2:].copy()
+                    actions.append('kept latest 2 callbacks')
+
+                action_str = ', '.join(actions) if actions else 'No filter applied'
+                action_msg = f'Action: {action_str}'
+                final_selected = [int(obj) for obj in group['callback_object'].tolist()]
+
+                logger.warning(
+                    'More than three callbacks are registered in one subscription_handle. '
+                    'Instead of skipping, filtered them to continue analysis.\n'
+                    f'  subscription_handle = {subscription_handle}\n'
+                    f'  original callback_objects = {raw_cb_objs}\n'
+                    f'  {action_msg}\n'
+                    f'  final selected = {final_selected}'
+                )
+
+            group.sort_values('timestamp', ascending=True, inplace=True)
+            group.reset_index(drop=True, inplace=True)
+
             record = {
                 'subscription_handle': key,
             }
+
             if len(group) == 1:
                 record['callback_object'] = group.at[0, 'callback_object']
+                ret_data.append(record)
+
             elif len(group) == 2:
                 # NOTE:
                 # The smaller timestamp is the callback_object of the in-process communication.
                 # The larger timestamp is callback_object for inter-process communication.
-                group.sort_values('timestamp', inplace=True)
-                group.reset_index(drop=True, inplace=True)
                 record['callback_object'] = group.at[1, 'callback_object']
                 record['callback_object_intra'] = group.at[0, 'callback_object']
+                ret_data.append(record)
+
             else:
-                cb_objs = group['callback_object'].values
+                # If no valid callbacks remain
+                remaining_objs = [
+                    int(obj) for obj in group['callback_object'].tolist()
+                ]
                 logger.warning(
-                    'More than three callbacks are registered in one subscription_handle. '
-                    'Skip loading callback info. The following callbacks cannot be measured.'
-                    f'subscription_handle = {key}, '
-                    f'callback_objects = {cb_objs}')
-            ret_data.append(record)
+                    'No valid callbacks found after filtering for subscription_handle. '
+                    f'subscription_handle = {subscription_handle}, '
+                    f'remaining_objects = {remaining_objs}'
+                )
 
         trace_data = ret_data.get_finalized()
         trace_data.drop_duplicate()

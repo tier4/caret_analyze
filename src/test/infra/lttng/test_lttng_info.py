@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import WARNING
+
 from caret_analyze.infra.lttng.lttng_info import (DataFrameFormatted,
                                                   LttngInfo)
 from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
@@ -1215,6 +1217,107 @@ class TestDataFrameFormatted:
             ]
         ).convert_dtypes()
         assert sub.df.equals(expect)
+
+    @pytest.mark.parametrize(
+        'test_comment, callback_symbols, sub_ptrs, expected_action, expected_callbacks', [
+            # 1. Filter out TimeSource when it's at the beginning
+            (
+                'Remove TimeSource at index 0',
+                [(301, 'rclcpp::TimeSource::...'), (302, 'valid_intra'), (303, 'valid_inter')],
+                [201, 202, 203],
+                'removed rclcpp::TimeSource-derived callbacks',
+                (302, 303)
+            ),
+            # 2. Filter out TimeSource when it's at the end
+            (
+                'Remove TimeSource at index 2',
+                [(301, 'valid_intra'), (302, 'valid_inter'), (303, 'rclcpp::TimeSource::...')],
+                [201, 202, 203],
+                'removed rclcpp::TimeSource-derived callbacks',
+                (301, 302)
+            ),
+            # 3. keep the latest 2 callbacks, no TimeSource
+            (
+                'No TimeSource, keep latest 2',
+                [(301, 'valid_intra'), (302, 'valid_inter'), (303, 'unexpected::...')],
+                [201, 202, 203],
+                'kept latest 2 callbacks',
+                (302, 303)
+            ),
+            # 4. Complex case: Remove TimeSource first and keep latest 2
+            (
+                '4 callbacks: TimeSource + 3 others',
+                [
+                    (300, 'unexpected::...'), (301, 'valid_intra'),
+                    (302, 'valid_inter'), (303, 'rclcpp::TimeSource::...')
+                ],
+                [200, 201, 202, 203],
+                'removed rclcpp::TimeSource-derived callbacks, kept latest 2 callbacks',
+                (301, 302)
+            ),
+            # 5. Complex merged case: Remove TimeSource first and keep latest 2.
+            # Multiple callbacks in same subscription_ptr
+            (
+                'Merged callbacks on same sub_ptr',
+                [
+                    (300, 'unexpected::...'), (301, 'valid_intra'),
+                    (302, 'valid_inter'), (303, 'rclcpp::TimeSource::...')
+                ],
+                [200, 200, 200, 200],  # All sharing the same pointer
+                'removed rclcpp::TimeSource-derived callbacks, kept latest 2 callbacks',
+                (301, 302)
+            ),
+        ]
+    )
+    def test_format_subscription_callback_object_filtering(
+        self, mocker, caplog, test_comment, callback_symbols,
+        sub_ptrs, expected_action, expected_callbacks
+    ):
+        """
+        Verify that _format_subscription_callback_object correctly filters callbacks.
+
+        The logic filters excessive callbacks (>=3) using TimeSource detection
+        and recency logic.
+        """
+        data = Ros2DataModel()
+        subscription_handle = 100
+
+        # Setup data model
+        for i, (cb_obj, symbol) in enumerate(callback_symbols):
+            # Ensure different timestamps to test recency logic
+            timestamp = (i + 1) * 100
+            # sub_ptrs can be unique or duplicated based on test case
+            sub_ptr = sub_ptrs[i] if isinstance(sub_ptrs, list) else sub_ptrs
+
+            data.add_callback_symbol(cb_obj, 0, symbol)
+            data.add_rclcpp_subscription(sub_ptr, timestamp, subscription_handle)
+            data.add_callback_object(sub_ptr, timestamp, cb_obj)
+
+        data.finalize()
+
+        mocker.patch.object(DataFrameFormatted, '_is_ignored_subscription', return_value=False)
+
+        # Execute target logic
+        # Using WARNING level to capture the custom filter logs
+        with caplog.at_level(WARNING, logger=''):
+            sub = DataFrameFormatted._format_subscription_callback_object(data)
+
+        # Assertions for Log Messages
+        assert (
+            'More than three callbacks are registered' in caplog.text
+        ), f'Failed on: {test_comment}'
+        assert f'subscription_handle = {subscription_handle}' in caplog.text
+        assert expected_action in caplog.text
+
+        # Assertions for Data Result
+        cb_intra, cb_inter = expected_callbacks
+        expect = pd.DataFrame.from_dict([{
+            'subscription_handle': subscription_handle,
+            'callback_object': cb_inter,
+            'callback_object_intra': cb_intra,
+        }]).convert_dtypes()
+
+        assert sub.df.equals(expect), f'DataFrame mismatch on: {test_comment}'
 
     def test_build_nodes_df(self):
         data = Ros2DataModel()
