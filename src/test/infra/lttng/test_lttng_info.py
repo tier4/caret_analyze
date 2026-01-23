@@ -1278,14 +1278,14 @@ class TestDataFrameFormatted:
         """
         data = Ros2DataModel()
         subscription_handle = 100
-        
+
         # Setup data model
         for i, (cb_obj, symbol) in enumerate(callback_symbols):
             # Ensure different timestamps to test recency logic
             timestamp = (i + 1) * 100
             # sub_ptrs can be unique or duplicated based on test case
             sub_ptr = sub_ptrs[i] if isinstance(sub_ptrs, list) else sub_ptrs
-            
+
             data.add_callback_symbol(cb_obj, 0, symbol)
             data.add_rclcpp_subscription(sub_ptr, timestamp, subscription_handle)
             data.add_callback_object(sub_ptr, timestamp, cb_obj)
@@ -1305,7 +1305,7 @@ class TestDataFrameFormatted:
         ), f'Failed on: {test_comment}'
         assert f'subscription_handle = {subscription_handle}' in caplog.text
         assert expected_action in caplog.text
-        
+
         # Assertions for Data Result
         cb_intra, cb_inter = expected_callbacks
         expect = pd.DataFrame.from_dict([{
@@ -1313,7 +1313,7 @@ class TestDataFrameFormatted:
             'callback_object': cb_inter,
             'callback_object_intra': cb_intra,
         }]).convert_dtypes()
-        
+
         assert sub.df.equals(expect), f'DataFrame mismatch on: {test_comment}'
 
     def test_build_nodes_df(self):
