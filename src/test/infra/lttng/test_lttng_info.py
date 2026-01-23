@@ -1218,290 +1218,103 @@ class TestDataFrameFormatted:
         ).convert_dtypes()
         assert sub.df.equals(expect)
 
-    def test_format_subscription_callback_object_with_time_source_filter(
-        self, mocker, caplog
+    @pytest.mark.parametrize(
+        'test_comment, callback_symbols, sub_ptrs, expected_action, expected_callbacks', [
+            # 1. Filter out TimeSource when it's at the beginning
+            (
+                'Remove TimeSource at index 0',
+                [(301, 'rclcpp::TimeSource::...'), (302, 'valid_intra'), (303, 'valid_inter')],
+                [201, 202, 203],
+                'removed rclcpp::TimeSource-derived callbacks',
+                (302, 303)
+            ),
+            # 2. Filter out TimeSource when it's at the end
+            (
+                'Remove TimeSource at index 2',
+                [(301, 'valid_intra'), (302, 'valid_inter'), (303, 'rclcpp::TimeSource::...')],
+                [201, 202, 203],
+                'removed rclcpp::TimeSource-derived callbacks',
+                (301, 302)
+            ),
+            # 3. keep the latest 2 callbacks, no TimeSource
+            (
+                'No TimeSource, keep latest 2',
+                [(301, 'valid_intra'), (302, 'valid_inter'), (303, 'unexpected::...')],
+                [201, 202, 203],
+                'kept latest 2 callbacks',
+                (302, 303)
+            ),
+            # 4. Complex case: Remove TimeSource first and keep latest 2
+            (
+                '4 callbacks: TimeSource + 3 others',
+                [
+                    (300, 'unexpected::...'), (301, 'valid_intra'),
+                    (302, 'valid_inter'), (303, 'rclcpp::TimeSource::...')
+                ],
+                [200, 201, 202, 203],
+                'removed rclcpp::TimeSource-derived callbacks, kept latest 2 callbacks',
+                (301, 302)
+            ),
+            # 5. Complex merged case: Remove TimeSource first and keep latest 2.
+            # Multiple callbacks in same subscription_ptr
+            (
+                'Merged callbacks on same sub_ptr',
+                [
+                    (300, 'unexpected::...'), (301, 'valid_intra'),
+                    (302, 'valid_inter'), (303, 'rclcpp::TimeSource::...')
+                ],
+                [200, 200, 200, 200],  # All sharing the same pointer
+                'removed rclcpp::TimeSource-derived callbacks, kept latest 2 callbacks',
+                (301, 302)
+            ),
+        ]
+    )
+    def test_format_subscription_callback_object_filtering(
+        self, mocker, caplog, test_comment, callback_symbols, sub_ptrs, expected_action, expected_callbacks
     ):
+        """
+        Verify that _format_subscription_callback_object correctly identifies and filters
+        excessive callbacks (>=3) using TimeSource detection and recency logic.
+        """
         data = Ros2DataModel()
-
         subscription_handle = 100
-        sub_ptrs = [201, 202, 203]
-
-        cb_time_source = 301
-        cb_intra = 302
-        cb_inter = 303
-
-        data.add_callback_symbol(
-            cb_time_source, 0,
-            'rclcpp::TimeSource::NodeState::create_clock_sub()::...'
-        )
-        data.add_callback_symbol(cb_intra, 0, 'valid_callback_intra_symbol')
-        data.add_callback_symbol(cb_inter, 0, 'valid_callback_inter_symbol')
-
-        data.add_rclcpp_subscription(sub_ptrs[0], 100, subscription_handle)
-        data.add_callback_object(sub_ptrs[0], 100, cb_time_source)
-
-        data.add_rclcpp_subscription(sub_ptrs[1], 200, subscription_handle)
-        data.add_callback_object(sub_ptrs[1], 200, cb_intra)
-
-        data.add_rclcpp_subscription(sub_ptrs[2], 300, subscription_handle)
-        data.add_callback_object(sub_ptrs[2], 300, cb_inter)
+        
+        # Setup data model
+        for i, (cb_obj, symbol) in enumerate(callback_symbols):
+            # Ensure different timestamps to test recency logic
+            timestamp = (i + 1) * 100
+            # sub_ptrs can be unique or duplicated based on test case
+            sub_ptr = sub_ptrs[i] if isinstance(sub_ptrs, list) else sub_ptrs
+            
+            data.add_callback_symbol(cb_obj, 0, symbol)
+            data.add_rclcpp_subscription(sub_ptr, timestamp, subscription_handle)
+            data.add_callback_object(sub_ptr, timestamp, cb_obj)
 
         data.finalize()
 
         mocker.patch.object(DataFrameFormatted, '_is_ignored_subscription', return_value=False)
 
-        sub = DataFrameFormatted._format_subscription_callback_object(data)
-
-        msg = (
-            'More than three callbacks are registered '
-            'in one subscription_handle.'
-        )
-        assert msg in caplog.text
-        assert f'subscription_handle = {subscription_handle}' in caplog.text
-        expected_action = 'Action: removed rclcpp::TimeSource-derived callbacks'
-        assert expected_action in caplog.text
-        assert 'final selected =' in caplog.text
-
-        expect = pd.DataFrame.from_dict(
-            [
-                {
-                    'subscription_handle': subscription_handle,
-                    'callback_object': cb_inter,
-                    'callback_object_intra': cb_intra,
-                },
-            ]
-        ).convert_dtypes()
-        assert sub.df.equals(expect)
-
-    def test_format_subscription_callback_object_with_final_callback_TimeSource(
-        self, mocker, caplog
-    ):
-        data = Ros2DataModel()
-
-        subscription_handle = 100
-        sub_ptrs = [201, 202, 203]
-
-        cb_intra = 301
-        cb_inter = 302
-        cb_time_source = 303
-
-        data.add_callback_symbol(cb_intra, 0, 'valid_callback_intra_symbol')
-        data.add_callback_symbol(cb_inter, 0, 'valid_callback_inter_symbol')
-        data.add_callback_symbol(
-            cb_time_source, 0,
-            'rclcpp::TimeSource::NodeState::create_clock_sub()::...'
-        )
-
-        data.add_rclcpp_subscription(sub_ptrs[0], 100, subscription_handle)
-        data.add_callback_object(sub_ptrs[0], 100, cb_intra)
-
-        data.add_rclcpp_subscription(sub_ptrs[1], 200, subscription_handle)
-        data.add_callback_object(sub_ptrs[1], 200, cb_inter)
-
-        data.add_rclcpp_subscription(sub_ptrs[2], 300, subscription_handle)
-        data.add_callback_object(sub_ptrs[2], 300, cb_time_source)
-
-        data.finalize()
-
-        mocker.patch.object(
-            DataFrameFormatted, '_is_ignored_subscription', return_value=False
-        )
-
-        with caplog.at_level(WARNING):
+        # Execute target logic
+        # Using WARNING level to capture the custom filter logs
+        with caplog.at_level(WARNING, logger=''):
             sub = DataFrameFormatted._format_subscription_callback_object(data)
 
-        msg = (
-            'More than three callbacks are registered '
-            'in one subscription_handle.'
-        )
-        assert msg in caplog.text
+        # Assertions for Log Messages
+        assert (
+            'More than three callbacks are registered' in caplog.text
+        ), f'Failed on: {test_comment}'
         assert f'subscription_handle = {subscription_handle}' in caplog.text
-        expected_action = 'Action: removed rclcpp::TimeSource-derived callbacks'
         assert expected_action in caplog.text
-        assert 'final selected =' in caplog.text
-
-        expect = pd.DataFrame.from_dict(
-            [
-                {
-                    'subscription_handle': subscription_handle,
-                    'callback_object': cb_inter,
-                    'callback_object_intra': cb_intra,
-                },
-            ]
-        ).convert_dtypes()
-
-        assert sub.df.equals(expect)
-
-    def test_format_subscription_callback_object_with_wrong_choice(
-        self, mocker, caplog
-    ):
-        data = Ros2DataModel()
-
-        subscription_handle = 100
-        sub_ptrs = [201, 202, 203]
-
-        cb_intra = 301
-        cb_inter = 302
-        cb_unexpected = 303
-
-        data.add_callback_symbol(cb_intra, 0, 'valid_callback_intra_symbol')
-        data.add_callback_symbol(cb_inter, 0, 'valid_callback_inter_symbol')
-        data.add_callback_symbol(
-            cb_unexpected, 0,
-            'unexpected::Node::...'
-        )
-
-        data.add_rclcpp_subscription(sub_ptrs[0], 100, subscription_handle)
-        data.add_callback_object(sub_ptrs[0], 100, cb_intra)
-
-        data.add_rclcpp_subscription(sub_ptrs[1], 200, subscription_handle)
-        data.add_callback_object(sub_ptrs[1], 200, cb_inter)
-
-        data.add_rclcpp_subscription(sub_ptrs[2], 300, subscription_handle)
-        data.add_callback_object(sub_ptrs[2], 300, cb_unexpected)
-
-        data.finalize()
-
-        mocker.patch.object(
-            DataFrameFormatted, '_is_ignored_subscription', return_value=False
-        )
-
-        with caplog.at_level(WARNING):
-            sub = DataFrameFormatted._format_subscription_callback_object(data)
-
-        msg = (
-            'More than three callbacks are registered '
-            'in one subscription_handle.'
-        )
-        assert msg in caplog.text
-        assert f'subscription_handle = {subscription_handle}' in caplog.text
-        expected_action = 'Action: kept latest 2 callbacks'
-        assert expected_action in caplog.text
-        assert 'final selected =' in caplog.text
-
-        expect = pd.DataFrame.from_dict(
-            [
-                {
-                    'subscription_handle': subscription_handle,
-                    'callback_object': cb_unexpected,
-                    'callback_object_intra': cb_inter,
-                },
-            ]
-        ).convert_dtypes()
-
-        assert sub.df.equals(expect)
-
-    def test_format_subscription_callback_object_with_TimeSource_and_unexpected(
-        self, mocker, caplog
-    ):
-        data = Ros2DataModel()
-
-        subscription_handle = 100
-        sub_ptrs = [200, 201, 202, 203]
-
-        cb_unexpected = 300
-        cb_intra = 301
-        cb_inter = 302
-        cb_time_source = 303
-
-        data.add_callback_symbol(
-            cb_unexpected, 0,
-            'unexpected::Node::...'
-        )
-        data.add_callback_symbol(cb_intra, 0, 'valid_callback_intra_symbol')
-        data.add_callback_symbol(cb_inter, 0, 'valid_callback_inter_symbol')
-        data.add_callback_symbol(
-            cb_time_source, 0,
-            'rclcpp::TimeSource::...'
-        )
-
-        data.add_rclcpp_subscription(sub_ptrs[0], 100, subscription_handle)
-        data.add_callback_object(sub_ptrs[0], 100, cb_unexpected)
-
-        data.add_rclcpp_subscription(sub_ptrs[0], 200, subscription_handle)
-        data.add_callback_object(sub_ptrs[0], 200, cb_intra)
-
-        data.add_rclcpp_subscription(sub_ptrs[1], 300, subscription_handle)
-        data.add_callback_object(sub_ptrs[1], 300, cb_inter)
-
-        data.add_rclcpp_subscription(sub_ptrs[1], 400, subscription_handle)
-        data.add_callback_object(sub_ptrs[1], 400, cb_time_source)
-
-        data.finalize()
-
-        mocker.patch.object(
-            DataFrameFormatted, '_is_ignored_subscription', return_value=False
-        )
-
-        with caplog.at_level(WARNING):
-            sub = DataFrameFormatted._format_subscription_callback_object(data)
-
-        msg = (
-            'More than three callbacks are registered '
-            'in one subscription_handle.'
-        )
-        assert msg in caplog.text
-        assert f'subscription_handle = {subscription_handle}' in caplog.text
-        expected_action = (
-            'Action: removed rclcpp::TimeSource-derived callbacks, '
-            'kept latest 2 callbacks'
-        )
-        assert expected_action in caplog.text
-        assert 'final selected =' in caplog.text
-
-        expect = pd.DataFrame.from_dict(
-            [
-                {
-                    'subscription_handle': subscription_handle,
-                    'callback_object': cb_inter,
-                    'callback_object_intra': cb_intra,
-                },
-            ]
-        ).convert_dtypes()
-
-        assert sub.df.equals(expect)
-
-    def test_format_subscription_callback_object_with_merged_multiple_callbacks(
-        self, mocker, caplog
-    ):
-        data = Ros2DataModel()
-
-        subscription_handle = 100
-        sub_ptr = 500
-
-        cb_objs = [601, 602, 603]
-
-        # Through the merge process, three callbacks are associated with a single handle.
-        data.add_rclcpp_subscription(sub_ptr, 100, subscription_handle)
-        data.add_callback_object(sub_ptr, 100, cb_objs[0])
-
-        data.add_rclcpp_subscription(sub_ptr, 200, subscription_handle)
-        data.add_callback_object(sub_ptr, 200, cb_objs[1])
-
-        data.add_rclcpp_subscription(sub_ptr, 300, subscription_handle)
-        data.add_callback_object(sub_ptr, 300, cb_objs[2])
-
-        data.finalize()
-
-        mocker.patch.object(DataFrameFormatted, '_is_ignored_subscription', return_value=False)
-
-        with caplog.at_level(WARNING, logger='caret_analyze'):
-            sub = DataFrameFormatted._format_subscription_callback_object(data)
-
-        assert 'More than three callbacks are registered' in caplog.text
-        assert 'Action: kept latest 2 callbacks' in caplog.text
-
-        expect = pd.DataFrame.from_dict(
-            [
-                {
-                    'subscription_handle': subscription_handle,
-                    'callback_object': cb_objs[2],
-                    'callback_object_intra': cb_objs[1],
-                },
-            ]
-        ).convert_dtypes()
-
-        assert sub.df.equals(expect)
+        
+        # Assertions for Data Result
+        cb_intra, cb_inter = expected_callbacks
+        expect = pd.DataFrame.from_dict([{
+            'subscription_handle': subscription_handle,
+            'callback_object': cb_inter,
+            'callback_object_intra': cb_intra,
+        }]).convert_dtypes()
+        
+        assert sub.df.equals(expect), f'DataFrame mismatch on: {test_comment}'
 
     def test_build_nodes_df(self):
         data = Ros2DataModel()

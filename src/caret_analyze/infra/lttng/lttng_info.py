@@ -1842,18 +1842,19 @@ class DataFrameFormatted:
                 # Remove rclcpp::TimeSource
                 if not data.callback_symbols.df.empty:
                     symbols_df = data.callback_symbols.df.reset_index()
+                    
+                    if 'callback_object' in symbols_df.columns:
+                        symbol_map = dict(zip(symbols_df['callback_object'], 
+                                            symbols_df['symbol']))
 
-                    def get_symbol(cb_obj):
-                        mask = symbols_df['callback_object'] == cb_obj
-                        if mask.any():
-                            return symbols_df.loc[mask, 'symbol'].iloc[0]
-                        return ''
+                        def get_symbol(cb_obj):
+                            return symbol_map.get(cb_obj, '')
 
-                    group['symbol'] = group['callback_object'].apply(get_symbol)
-                    ts_mask = group['symbol'].str.contains('rclcpp::TimeSource', na=False)
-                    if ts_mask.any():
-                        group = group[~ts_mask].copy()
-                        actions.append('removed rclcpp::TimeSource-derived callbacks')
+                        group['symbol'] = group['callback_object'].apply(get_symbol)
+                        ts_mask = group['symbol'].str.contains('rclcpp::TimeSource', na=False)
+                        if ts_mask.any():
+                            group = group[~ts_mask].copy()
+                            actions.append('removed rclcpp::TimeSource-derived callbacks')
 
                 # Keep latest 2
                 if len(group) > 2:
