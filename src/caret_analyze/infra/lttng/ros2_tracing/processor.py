@@ -1224,7 +1224,10 @@ class Ros2Handler():
         callback_group_addr = get_field(event, 'callback_group')
         symbol = get_field(event, 'symbol')
         depth = get_field(event, 'queue_depth')
-        pid_callback_info_id = get_field(event, 'pid_callback_info_id')
+        if 'pid_callback_info_id' in event.keys():
+            pid_callback_info_id = get_field(event, 'pid_callback_info_id')
+        else:
+            pid_callback_info_id = get_field(event, 'pid_ciid')
         timestamp = get_field(event, '_timestamp')
         # To avoid conflict with ROS 2 publisher
         topic_name = get_field(event, 'topic_name') + '_agnocast'
@@ -1306,7 +1309,10 @@ class Ros2Handler():
     ) -> None:
         callable_object = get_field(event, 'callable')
         entry_id = get_field(event, 'entry_id')
-        pid_callback_info_id = get_field(event, 'pid_callback_info_id')
+        if 'pid_callback_info_id' in event.keys():
+            pid_callback_info_id = get_field(event, 'pid_callback_info_id')
+        else:
+            pid_callback_info_id = get_field(event, 'pid_ciid')
         timestamp = get_field(event, '_timestamp')
 
         callable_object = self._remapper.callable_remapper.register_and_get_object_id(
