@@ -32,8 +32,6 @@ logger = getLogger(__name__)
 if TYPE_CHECKING:
     from ..id_remapper import IDRemapperCollection
 
-# cspell:ignore ciid
-
 def get_field(event, key):
     e = event[key]
     if isinstance(e, bt2._StringFieldConst):
@@ -1225,6 +1223,7 @@ class Ros2Handler():
         callback_group_addr = get_field(event, 'callback_group')
         symbol = get_field(event, 'symbol')
         depth = get_field(event, 'queue_depth')
+        # cspell: ignore ciid
         if 'pid_callback_info_id' in event.keys():
             pid_callback_info_id = get_field(event, 'pid_callback_info_id')
         else:
@@ -1310,6 +1309,7 @@ class Ros2Handler():
     ) -> None:
         callable_object = get_field(event, 'callable')
         entry_id = get_field(event, 'entry_id')
+        # cspell: ignore ciid
         if 'pid_callback_info_id' in event.keys():
             pid_callback_info_id = get_field(event, 'pid_callback_info_id')
         else:
