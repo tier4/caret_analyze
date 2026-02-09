@@ -32,6 +32,7 @@ logger = getLogger(__name__)
 if TYPE_CHECKING:
     from ..id_remapper import IDRemapperCollection
 
+# cspell:ignore ciid
 
 def get_field(event, key):
     e = event[key]
