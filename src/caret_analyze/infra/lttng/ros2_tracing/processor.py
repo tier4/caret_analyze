@@ -29,9 +29,9 @@ from .data_model import Ros2DataModel
 
 logger = getLogger(__name__)
 
-
 if TYPE_CHECKING:
     from ..id_remapper import IDRemapperCollection
+
 
 def get_field(event, key):
     e = event[key]
