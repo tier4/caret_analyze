@@ -264,11 +264,13 @@ class TestEventCounter:
     @pytest.mark.parametrize(
         'id_field_name, expected_id_value',
         [
-            ('pid_callback_info_id', 111),  # Case using the new field name
-            ('pid_ciid', 222),              # Case using the legacy field name (alias)
+            ('pid_callback_info_id', 111),  # Case using the normal field name
+            ('pid_ciid', 222),              # Case using the legacy field name
         ],
     )
-    def test_handle_agnocast_subscription_init_id_variations(self, mocker, id_field_name, expected_id_value):
+    def test_handle_agnocast_subscription_init_id_variations(
+        self, mocker, id_field_name, expected_id_value
+    ):
         data_mock = mocker.Mock()
         remapper_mock = mocker.Mock()
         handler = Ros2Handler(data_mock, remapper_mock, None)
@@ -307,7 +309,9 @@ class TestEventCounter:
             ('pid_ciid', 444),
         ],
     )
-    def test_handle_agnocast_create_callable_id_variations(self, mocker, id_field_name, expected_id_value):
+    def test_handle_agnocast_create_callable_id_variations(
+        self, mocker, id_field_name, expected_id_value
+    ):
         data_mock = mocker.Mock()
         remapper_mock = mocker.Mock()
         handler = Ros2Handler(data_mock, remapper_mock, None)
