@@ -272,8 +272,8 @@ class TestEventCounter:
         data_mock = mocker.Mock()
         remapper_mock = mocker.Mock()
         handler = Ros2Handler(data_mock, remapper_mock, None)
-        
-        mocker.patch('caret_analyze.infra.lttng.ros2_tracing.processor.get_field', 
+
+        mocker.patch('caret_analyze.infra.lttng.ros2_tracing.processor.get_field',
                      side_effect=lambda event, key: event.get(key))
 
         remapper_mock.subscription_handle_remapper.register_and_get_object_id.return_value = 0x101
@@ -312,9 +312,9 @@ class TestEventCounter:
         remapper_mock = mocker.Mock()
         handler = Ros2Handler(data_mock, remapper_mock, None)
 
-        mocker.patch('caret_analyze.infra.lttng.ros2_tracing.processor.get_field', 
+        mocker.patch('caret_analyze.infra.lttng.ros2_tracing.processor.get_field',
                      side_effect=lambda event, key: event.get(key))
-        
+
         remapper_mock.callable_remapper.register_and_get_object_id.return_value = 0x505
 
         event = {
