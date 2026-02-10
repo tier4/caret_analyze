@@ -15,6 +15,8 @@
 
 """Module for trace events processor and ROS 2 model creation."""
 
+# cspell: ignore ciid
+
 from __future__ import annotations
 
 from collections import defaultdict
@@ -1224,7 +1226,6 @@ class Ros2Handler():
         callback_group_addr = get_field(event, 'callback_group')
         symbol = get_field(event, 'symbol')
         depth = get_field(event, 'queue_depth')
-        # cspell: ignore ciid
         if 'pid_callback_info_id' in event.keys():
             pid_callback_info_id = get_field(event, 'pid_callback_info_id')
         else:
@@ -1310,7 +1311,6 @@ class Ros2Handler():
     ) -> None:
         callable_object = get_field(event, 'callable')
         entry_id = get_field(event, 'entry_id')
-        # cspell: ignore ciid
         if 'pid_callback_info_id' in event.keys():
             pid_callback_info_id = get_field(event, 'pid_callback_info_id')
         else:
