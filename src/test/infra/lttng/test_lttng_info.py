@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import WARNING
+
 from caret_analyze.infra.lttng.lttng_info import (DataFrameFormatted,
                                                   LttngInfo)
 from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
@@ -1216,6 +1218,107 @@ class TestDataFrameFormatted:
         ).convert_dtypes()
         assert sub.df.equals(expect)
 
+    @pytest.mark.parametrize(
+        'test_comment, callback_symbols, sub_ptrs, expected_action, expected_callbacks', [
+            # 1. Filter out TimeSource when it's at the beginning
+            (
+                'Remove TimeSource at index 0',
+                [(301, 'rclcpp::TimeSource::...'), (302, 'valid_intra'), (303, 'valid_inter')],
+                [201, 202, 203],
+                'removed rclcpp::TimeSource-derived callbacks',
+                (302, 303)
+            ),
+            # 2. Filter out TimeSource when it's at the end
+            (
+                'Remove TimeSource at index 2',
+                [(301, 'valid_intra'), (302, 'valid_inter'), (303, 'rclcpp::TimeSource::...')],
+                [201, 202, 203],
+                'removed rclcpp::TimeSource-derived callbacks',
+                (301, 302)
+            ),
+            # 3. keep the latest 2 callbacks, no TimeSource
+            (
+                'No TimeSource, keep latest 2',
+                [(301, 'valid_intra'), (302, 'valid_inter'), (303, 'unexpected::...')],
+                [201, 202, 203],
+                'kept latest 2 callbacks',
+                (302, 303)
+            ),
+            # 4. Complex case: Remove TimeSource first and keep latest 2
+            (
+                '4 callbacks: TimeSource + 3 others',
+                [
+                    (300, 'unexpected::...'), (301, 'valid_intra'),
+                    (302, 'valid_inter'), (303, 'rclcpp::TimeSource::...')
+                ],
+                [200, 201, 202, 203],
+                'removed rclcpp::TimeSource-derived callbacks, kept latest 2 callbacks',
+                (301, 302)
+            ),
+            # 5. Complex merged case: Remove TimeSource first and keep latest 2.
+            # Multiple callbacks in same subscription_ptr
+            (
+                'Merged callbacks on same sub_ptr',
+                [
+                    (300, 'unexpected::...'), (301, 'valid_intra'),
+                    (302, 'valid_inter'), (303, 'rclcpp::TimeSource::...')
+                ],
+                [200, 200, 200, 200],  # All sharing the same pointer
+                'removed rclcpp::TimeSource-derived callbacks, kept latest 2 callbacks',
+                (301, 302)
+            ),
+        ]
+    )
+    def test_format_subscription_callback_object_filtering(
+        self, mocker, caplog, test_comment, callback_symbols,
+        sub_ptrs, expected_action, expected_callbacks
+    ):
+        """
+        Verify that _format_subscription_callback_object correctly filters callbacks.
+
+        The logic filters excessive callbacks (>=3) using TimeSource detection
+        and recency logic.
+        """
+        data = Ros2DataModel()
+        subscription_handle = 100
+
+        # Setup data model
+        for i, (cb_obj, symbol) in enumerate(callback_symbols):
+            # Ensure different timestamps to test recency logic
+            timestamp = (i + 1) * 100
+            # sub_ptrs can be unique or duplicated based on test case
+            sub_ptr = sub_ptrs[i] if isinstance(sub_ptrs, list) else sub_ptrs
+
+            data.add_callback_symbol(cb_obj, 0, symbol)
+            data.add_rclcpp_subscription(sub_ptr, timestamp, subscription_handle)
+            data.add_callback_object(sub_ptr, timestamp, cb_obj)
+
+        data.finalize()
+
+        mocker.patch.object(DataFrameFormatted, '_is_ignored_subscription', return_value=False)
+
+        # Execute target logic
+        # Using WARNING level to capture the custom filter logs
+        with caplog.at_level(WARNING, logger=''):
+            sub = DataFrameFormatted._format_subscription_callback_object(data)
+
+        # Assertions for Log Messages
+        assert (
+            'More than three callbacks are registered' in caplog.text
+        ), f'Failed on: {test_comment}'
+        assert f'subscription_handle = {subscription_handle}' in caplog.text
+        assert expected_action in caplog.text
+
+        # Assertions for Data Result
+        cb_intra, cb_inter = expected_callbacks
+        expect = pd.DataFrame.from_dict([{
+            'subscription_handle': subscription_handle,
+            'callback_object': cb_inter,
+            'callback_object_intra': cb_intra,
+        }]).convert_dtypes()
+
+        assert sub.df.equals(expect), f'DataFrame mismatch on: {test_comment}'
+
     def test_build_nodes_df(self):
         data = Ros2DataModel()
 
@@ -1386,3 +1489,110 @@ class TestDataFrameFormatted:
         ]
         df_expect = pd.DataFrame(columns=columns, dtype='Int64')
         assert data.df.equals(df_expect)
+
+    def test_build_publisher_df_agnocast(self):
+        data = Ros2DataModel()
+        pub_handle = 1
+        node_handle = 2
+        topic_name = '/agnocast_topic'
+        depth = 10
+
+        data.add_agnocast_publisher(pub_handle, 0, node_handle, topic_name, depth)
+        data.finalize()
+
+        pub = DataFrameFormatted._build_publisher(data)
+
+        expect = pd.DataFrame.from_dict(
+            [{
+                'publisher_id': f'publisher_{pub_handle}',
+                'publisher_handle': pub_handle,
+                'node_handle': node_handle,
+                'topic_name': topic_name,
+                'depth': depth,
+                'construction_order': 0
+            }]
+        ).convert_dtypes()
+        assert pub.df.equals(expect)
+
+    def test_build_subscription_callbacks_df_agnocast(self, mocker):
+        data = Ros2DataModel()
+        node_handle = 1
+        subscription_handle = 2
+        callback_object = 3
+        callback_group_addr = 4
+        symbol = 'agnocast_callback'
+        topic_name = '/agnocast_topic'
+        depth = 10
+        pid_callback_info_id = 5
+
+        data.add_agnocast_subscription(
+            subscription_handle, 0, node_handle, callback_object,
+            callback_group_addr, symbol, topic_name, depth, pid_callback_info_id
+        )
+        data.finalize()
+
+        mocker.patch.object(DataFrameFormatted, '_is_ignored_subscription', return_value=False)
+
+        sub = DataFrameFormatted._build_sub_callbacks(data)
+
+        expect = pd.DataFrame.from_dict(
+            [{
+                'callback_id': f'subscription_callback_{callback_object}',
+                'callback_object': callback_object,
+                'callback_object_intra': None,
+                'node_handle': node_handle,
+                'subscription_handle': subscription_handle,
+                'callback_group_addr': callback_group_addr,
+                'topic_name': topic_name,
+                'symbol': symbol,
+                'depth': depth,
+                'construction_order': 0
+            }]
+        ).convert_dtypes()
+        assert sub.df.equals(expect)
+
+    def test_build_executor_df_agnocast(self):
+        data = Ros2DataModel()
+        exec_addr = 1
+        exec_type = 'agnocast_single_threaded_executor'
+
+        data.add_agnocast_executor(exec_addr, 0, exec_type)
+        data.finalize()
+
+        executor = DataFrameFormatted._build_executor(data)
+
+        expect = pd.DataFrame.from_dict(
+            [{
+                'executor_id': f'executor_{exec_addr}',
+                'executor_addr': exec_addr,
+                'executor_type_name': exec_type
+            }]
+        ).convert_dtypes()
+        assert executor.df.equals(expect)
+
+    def test_build_subscription_df_agnocast(self):
+        data = Ros2DataModel()
+        node_handle = 1
+        subscription_handle = 3
+        topic_name = '/agnocast_topic'
+        depth = 10
+        construction_order = 0
+
+        data.add_agnocast_subscription(
+            subscription_handle, 0, node_handle, None, None, None, topic_name, depth, None
+        )
+        data.finalize()
+
+        sub = DataFrameFormatted._build_subscription(data)
+
+        expect = pd.DataFrame.from_dict(
+            [{
+                'subscription_id': f'subscription_{subscription_handle}',
+                'subscription_handle': subscription_handle,
+                'node_handle': node_handle,
+                'topic_name': topic_name,
+                'depth': depth,
+                'construction_order': construction_order
+            }]
+        ).convert_dtypes()
+        assert sub.df.equals(expect)

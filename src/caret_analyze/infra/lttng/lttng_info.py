@@ -163,7 +163,8 @@ class LttngInfo:
 
         Returns
         -------
-        Sequence[TimerCallbackInfo]
+        Sequence[TimerCallbackValueLttng]
+            Timer callback value of lttng.
 
         """
         if node.node_id is None:
@@ -183,8 +184,8 @@ class LttngInfo:
 
         Returns
         -------
-        Sequence[NodeValue]
-            node names.
+        Sequence[NodeValueLttng]
+            node names of lttng.
 
         """
         nodes_data = self._formatted.nodes.clone()
@@ -281,7 +282,8 @@ class LttngInfo:
 
         Returns
         -------
-        Sequence[SubscriptionCallbackInfo]
+        Sequence[SubscriptionCallbackValueLttng]
+            Subscription callback values of lttng.
 
         """
         if node.node_id is None:
@@ -359,7 +361,8 @@ class LttngInfo:
 
         Returns
         -------
-        Sequence[ServiceCallbackInfo]
+        Sequence[ServiceCallbackValueLttng]
+            Service callback value of lttng.
 
         """
         if node.node_id is None:
@@ -388,7 +391,8 @@ class LttngInfo:
 
         Returns
         -------
-        list[PublisherInfo]
+        list[PublisherValueLttng]
+            Publisher value of lttng.
 
         """
         if node.node_id is None:
@@ -408,12 +412,13 @@ class LttngInfo:
 
         Parameters
         ----------
-        node: NodeValue
+        node: NodeValueLttng
             target node.
 
         Returns
         -------
         list[SubscriptionValue]
+            Subscription values.
 
         """
         node_id = node.node_id
@@ -483,12 +488,13 @@ class LttngInfo:
 
         Parameters
         ----------
-        node: NodeValue
+        node: NodeValueLttng
             target node.
 
         Returns
         -------
         list[ServiceValue]
+            Service value
 
         """
         node_id = node.node_id
@@ -562,7 +568,8 @@ class LttngInfo:
 
         Returns
         -------
-        list[PublisherInfo]
+        list[PublisherValueLttng]
+            Publisher value of lttng.
 
         """
         pub = self._formatted.publishers.clone()
@@ -679,9 +686,15 @@ class LttngInfo:
         """
         Get callback groups value.
 
+        Parameters
+        ----------
+        node: NodeValue
+            target node.
+
         Returns
         -------
-        list[CallbackGroupInfo]
+        list[CallbackGroupValueLttng]
+            Callback group value of lttng.
 
         """
         if node.node_id is None:
@@ -700,7 +713,8 @@ class LttngInfo:
 
         Returns
         -------
-        list[ExecutorInfo]
+        list[ExecutorValue]
+            Executor value.
 
         """
         executor = self._formatted.executor.clone()
@@ -722,6 +736,25 @@ class LttngInfo:
         return execs
 
     def get_publisher_qos(self, publisher: PublisherValueLttng) -> Qos:
+        """
+        Get publishers qos information.
+
+        Parameters
+        ----------
+        publisher : PublisherValueLttng
+            target publisher value
+
+        Returns
+        -------
+        Qos
+            Publisher qos.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Occurs when publisher were not exist.
+
+        """
         publishers = self._formatted.publishers.clone()
         publishers.filter_rows('publisher_handle', publisher.publisher_handle)
 
@@ -736,6 +769,25 @@ class LttngInfo:
         return Qos(depth)
 
     def get_subscription_qos(self, callback: SubscriptionCallbackValueLttng) -> Qos:
+        """
+        Get subscription qos information.
+
+        Parameters
+        ----------
+        callback : SubscriptionCallbackValueLttng
+            target Subscription callback value
+
+        Returns
+        -------
+        Qos
+            Subscription qos.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Occurs when subscription were not exist.
+
+        """
         subscription = self._formatted.subscription_callbacks.clone()
         subscription.filter_rows('callback_object', callback.callback_object)
 
@@ -756,12 +808,13 @@ class LttngInfo:
 
         Parameters
         ----------
-        node: NodeValue
+        node: NodeValueLttng
             target node.
 
         Returns
         -------
         list[TimerValue]
+            Timers information.
 
         """
         node_id = node.node_id
@@ -779,6 +832,7 @@ class LttngInfo:
         Returns
         -------
         list[TimerValue]
+            Timers information.
 
         """
         tim = self._formatted.timers.clone()
@@ -801,6 +855,8 @@ class LttngInfo:
         for _, row in tim.df.iterrows():
             if row['node_id'] != node_id:
                 continue
+            if row['callback_id'] is pd.NA:
+                continue
 
             times_info.append(
                 TimerValue(
@@ -815,6 +871,20 @@ class LttngInfo:
         return times_info
 
     def get_timer_controls(self) -> Sequence[TimerControl]:
+        """
+        Get timer controls information.
+
+        Returns
+        -------
+        Sequence[TimerControl]
+            Timer controls information.
+
+        Raises
+        ------
+        NotImplementedError
+            Unsupported timer control type.
+
+        """
         timer_controls = self._formatted.timer_controls.clone()
         controls: list[TimerControl] = []
         for _, row in timer_controls.df.iterrows():
@@ -861,13 +931,9 @@ class DataFrameFormatted:
         """
         Build timer callbacks table.
 
-        Parameters
-        ----------
-        data : Ros2DataModel
-
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Column
 
             - callback_id
@@ -887,13 +953,9 @@ class DataFrameFormatted:
         """
         Build subscription callback table.
 
-        Parameters
-        ----------
-        data : Ros2DataModel
-
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             columns
 
             - callback_id
@@ -915,13 +977,9 @@ class DataFrameFormatted:
         """
         Build service callback table.
 
-        Parameters
-        ----------
-        data : Ros2DataModel
-
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Columns
 
             - callback_id
@@ -941,13 +999,9 @@ class DataFrameFormatted:
         """
         Build node table.
 
-        Parameters
-        ----------
-        data : Ros2DataModel
-
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Columns
 
             - node_id
@@ -964,7 +1018,7 @@ class DataFrameFormatted:
 
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Columns
 
             - publisher_id
@@ -984,7 +1038,7 @@ class DataFrameFormatted:
 
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Columns
 
             - subscription_id
@@ -1004,7 +1058,7 @@ class DataFrameFormatted:
 
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Columns
 
             - service_id
@@ -1023,7 +1077,7 @@ class DataFrameFormatted:
 
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Columns
 
             - timer_id
@@ -1042,7 +1096,7 @@ class DataFrameFormatted:
 
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Columns
 
             - executor_id
@@ -1059,13 +1113,13 @@ class DataFrameFormatted:
 
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Columns
 
             - callback_group_id
             - callback_group_addr
-            - executor_addr
             - group_type_name
+            - executor_addr
 
         """
         return self._cbg
@@ -1077,7 +1131,7 @@ class DataFrameFormatted:
 
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Columns
 
             - tilde_publisher
@@ -1095,7 +1149,7 @@ class DataFrameFormatted:
 
         Returns
         -------
-        pd.DataFrame
+        TracePointData
             Columns
             - tilde_subscription
             - node_name
@@ -1106,6 +1160,20 @@ class DataFrameFormatted:
 
     @property
     def timer_controls(self) -> TracePointData:
+        """
+        Get timer controls info table.
+
+        Returns
+        -------
+        TracePointData
+            Columns
+
+            - timestamp
+            - timer_handle
+            - type
+            - params
+
+        """
         return self._timer_control
 
     @staticmethod
@@ -1132,6 +1200,15 @@ class DataFrameFormatted:
         publishers = data.publishers.clone()
         publishers.reset_index()
 
+        # Concatenate Agnocast data
+        if len(data.agnocast_publishers) > 0:
+            agnocast_publishers = data.agnocast_publishers.clone()
+            agnocast_publishers.reset_index()
+            publishers = TracePointData.concat(
+                [publishers, agnocast_publishers],
+                ['publisher_handle', 'timestamp', 'node_handle', 'topic_name', 'depth']
+            )
+
         DataFrameFormatted._add_construction_order_publisher_or_subscription(
             publishers, 'construction_order', 'timestamp', 'node_handle', 'topic_name')
 
@@ -1155,6 +1232,20 @@ class DataFrameFormatted:
         )
         subscriptions = data.subscriptions.clone()
         subscriptions.reset_index()
+        subscriptions.drop_column('rmw_handle')
+
+        # Concatenate Agnocast data
+        if len(data.agnocast_subscriptions) > 0:
+            agnocast_sub = data.agnocast_subscriptions.clone()
+            agnocast_sub.reset_index()
+            drop_columns = [
+                'callback_object', 'callback_group_addr', 'symbol', 'agnocast_pid_callback_info_id'
+            ]
+            for dc in drop_columns:
+                agnocast_sub.drop_column(dc)
+            subscriptions = TracePointData.concat(
+                [subscriptions, agnocast_sub], subscriptions.columns
+            )
 
         DataFrameFormatted._add_construction_order_publisher_or_subscription(
             subscriptions, 'construction_order', 'timestamp', 'node_handle', 'topic_name')
@@ -1256,6 +1347,14 @@ class DataFrameFormatted:
             columns_ = columns[1:]  # ignore executor_id
             executors = TracePointData.concat(
                 [executors, executors_static], columns_)
+
+        # Concatenate Agnocast data
+        if len(data.agnocast_executors) > 0:
+            agnocast_executors = data.agnocast_executors.clone()
+            agnocast_executors.reset_index()
+            columns_ = columns[1:]  # ignore executor_id
+            executors = TracePointData.concat(
+                [executors, agnocast_executors], columns_)
 
         def to_executor_id(row: pd.Series) -> str:
             addr = row['executor_addr']
@@ -1420,13 +1519,27 @@ class DataFrameFormatted:
         symbols.remove_column('timestamp')
         merge(subscriptions, symbols, 'callback_object', merge_drop_columns=merge_drop_columns)
 
+        callback_group_subscription = data.callback_group_subscription.clone()
+        callback_group_subscription.reset_index()
+        callback_group_subscription.remove_column('timestamp')
+        merge(
+            subscriptions, callback_group_subscription, 'subscription_handle',
+            merge_drop_columns=merge_drop_columns
+        )
+
+        # Concatenate Agnocast data
+        if len(data.agnocast_subscriptions) > 0:
+            agnocast_subscriptions = data.agnocast_subscriptions.clone()
+            agnocast_subscriptions.reset_index()
+            agnocast_subscriptions.remove_column('agnocast_pid_callback_info_id')
+            agnocast_subscriptions.add_column('callback_object_intra', lambda _: None)
+            subscriptions = TracePointData.concat(
+                [subscriptions, agnocast_subscriptions], subscriptions.columns
+            )
+
         DataFrameFormatted._add_construction_order(
             subscriptions, 'construction_order', 'timestamp',
             'node_handle', 'topic_name', 'symbol')
-
-        callback_group_subscription = data.callback_group_subscription.clone()
-        callback_group_subscription.reset_index()
-        merge(subscriptions, callback_group_subscription, 'subscription_handle')
 
         subscriptions.add_column('callback_id', callback_id)
 
@@ -1716,33 +1829,83 @@ class DataFrameFormatted:
             {'callback_object_intra': 'Int64'}
         )
         for key, group in subscription_objects.df.groupby('subscription_handle'):
-            group.reset_index(drop=True, inplace=True)
-
             subscription_handle = int(key)  # type: ignore
             if DataFrameFormatted._is_ignored_subscription(data, subscription_handle):
                 continue
 
+            # Handle more than three callbacks (Filtering instead of skipping)
+            if len(group) >= 3:
+                raw_cb_objs = [int(obj) for obj in group['callback_object'].tolist()]
+                group.sort_values('timestamp', ascending=True, inplace=True)
+
+                actions = []
+                # Remove rclcpp::TimeSource
+                if not data.callback_symbols.df.empty:
+                    symbols_df = data.callback_symbols.df.reset_index()
+
+                    if 'callback_object' in symbols_df.columns:
+                        symbol_map = dict(zip(
+                            symbols_df['callback_object'],
+                            symbols_df['symbol']
+                        ))
+
+                        def get_symbol(cb_obj):
+                            return symbol_map.get(cb_obj, '')
+
+                        group['symbol'] = group['callback_object'].apply(get_symbol)
+                        ts_mask = group['symbol'].str.contains('rclcpp::TimeSource', na=False)
+                        if ts_mask.any():
+                            group = group[~ts_mask].copy()
+                            actions.append('removed rclcpp::TimeSource-derived callbacks')
+
+                # Keep latest 2
+                if len(group) > 2:
+                    group.sort_values('timestamp', ascending=True, inplace=True)
+                    group = group.iloc[-2:].copy()
+                    actions.append('kept latest 2 callbacks')
+
+                action_str = ', '.join(actions) if actions else 'No filter applied'
+                action_msg = f'Action: {action_str}'
+                final_selected = [int(obj) for obj in group['callback_object'].tolist()]
+
+                logger.warning(
+                    'More than three callbacks are registered in one subscription_handle. '
+                    'Instead of skipping, filtered them to continue analysis.\n'
+                    f'  subscription_handle = {subscription_handle}\n'
+                    f'  original callback_objects = {raw_cb_objs}\n'
+                    f'  {action_msg}\n'
+                    f'  final selected = {final_selected}'
+                )
+
+            group.sort_values('timestamp', ascending=True, inplace=True)
+            group.reset_index(drop=True, inplace=True)
+
             record = {
                 'subscription_handle': key,
             }
+
             if len(group) == 1:
                 record['callback_object'] = group.at[0, 'callback_object']
+                ret_data.append(record)
+
             elif len(group) == 2:
                 # NOTE:
                 # The smaller timestamp is the callback_object of the in-process communication.
                 # The larger timestamp is callback_object for inter-process communication.
-                group.sort_values('timestamp', inplace=True)
-                group.reset_index(drop=True, inplace=True)
                 record['callback_object'] = group.at[1, 'callback_object']
                 record['callback_object_intra'] = group.at[0, 'callback_object']
+                ret_data.append(record)
+
             else:
-                cb_objs = group['callback_object'].values
+                # If no valid callbacks remain
+                remaining_objs = [
+                    int(obj) for obj in group['callback_object'].tolist()
+                ]
                 logger.warning(
-                    'More than three callbacks are registered in one subscription_handle. '
-                    'Skip loading callback info. The following callbacks cannot be measured.'
-                    f'subscription_handle = {key}, '
-                    f'callback_objects = {cb_objs}')
-            ret_data.append(record)
+                    'No valid callbacks found after filtering for subscription_handle. '
+                    f'subscription_handle = {subscription_handle}, '
+                    f'remaining_objects = {remaining_objs}'
+                )
 
         trace_data = ret_data.get_finalized()
         trace_data.drop_duplicate()
