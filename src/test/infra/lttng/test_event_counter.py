@@ -276,10 +276,14 @@ class TestEventCounter:
         handler = Ros2Handler(data_mock, remapper_mock, None)
 
         base_val = 0x100
-        remapper_mock.subscription_handle_remapper.register_and_get_object_id.side_effect = lambda x, _: x + base_val
-        remapper_mock.node_handle_remapper.get_nearest_object_id.side_effect = lambda x, _: x + base_val
-        remapper_mock.callback_remapper.register_and_get_object_id.side_effect = lambda x, _: x + base_val
-        remapper_mock.callback_group_addr_remapper.get_nearest_object_id.side_effect = lambda x, _: x + base_val
+        remappers = [
+            remapper_mock.subscription_handle_remapper.register_and_get_object_id,
+            remapper_mock.node_handle_remapper.get_nearest_object_id,
+            remapper_mock.callback_remapper.register_and_get_object_id,
+            remapper_mock.callback_group_addr_remapper.get_nearest_object_id,
+        ]
+        for r in remappers:
+            r.side_effect = lambda x, _: x + base_val
 
         event = {
             'subscription_handle': 0x1,
@@ -322,7 +326,9 @@ class TestEventCounter:
         handler = Ros2Handler(data_mock, remapper_mock, None)
 
         base_val = 0x200
-        remapper_mock.callable_remapper.register_and_get_object_id.side_effect = lambda x, _: x + base_val
+        remapper_mock.callable_remapper.register_and_get_object_id.side_effect = (
+            lambda x, _: x + base_val
+        )
 
         event = {
             '_timestamp': 2000,
