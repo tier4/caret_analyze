@@ -264,8 +264,8 @@ class TestEventCounter:
     @pytest.mark.parametrize(
         'id_field_name, expected_id_value',
         [
-            ('pid_callback_info_id', 111),  # Case using the normal field name
-            ('pid_ciid', 222),              # Case using the legacy field name
+            ('pid_callback_info_id', 111),
+            ('pid_ciid', 222),
         ],
     )
     def test_handle_agnocast_subscription_init_id_variations(
@@ -275,22 +275,20 @@ class TestEventCounter:
         remapper_mock = mocker.Mock()
         handler = Ros2Handler(data_mock, remapper_mock, None)
 
-        mocker.patch('caret_analyze.infra.lttng.ros2_tracing.processor.get_field',
-                     side_effect=lambda event, key: event.get(key))
-
-        remapper_mock.subscription_handle_remapper.register_and_get_object_id.return_value = 0x101
-        remapper_mock.node_handle_remapper.get_nearest_object_id.return_value = 0x202
-        remapper_mock.callback_remapper.register_and_get_object_id.return_value = 0x303
-        remapper_mock.callback_group_addr_remapper.get_nearest_object_id.return_value = 0x404
+        base_val = 0x100
+        remapper_mock.subscription_handle_remapper.register_and_get_object_id.side_effect = lambda x, _: x + base_val
+        remapper_mock.node_handle_remapper.get_nearest_object_id.side_effect = lambda x, _: x + base_val
+        remapper_mock.callback_remapper.register_and_get_object_id.side_effect = lambda x, _: x + base_val
+        remapper_mock.callback_group_addr_remapper.get_nearest_object_id.side_effect = lambda x, _: x + base_val
 
         event = {
             'subscription_handle': 0x1,
+            '_timestamp': 1000,
             'node_handle': 0x2,
             'callback': 0x3,
             'callback_group': 0x4,
             'symbol': 'test_symbol',
             'queue_depth': 10,
-            '_timestamp': 1000,
             'topic_name': 'test_topic',
             id_field_name: expected_id_value
         }
@@ -298,8 +296,15 @@ class TestEventCounter:
         handler._handle_agnocast_subscription_init(event)
 
         data_mock.add_agnocast_subscription.assert_called_once_with(
-            0x101, 1000, 0x202, 0x303, 0x404, 'test_symbol', 'test_topic_agnocast', 10,
-            expected_id_value  # Confirm the value from the selected field name is used
+            0x1 + base_val,
+            1000,
+            0x2 + base_val,
+            0x3 + base_val,
+            0x4 + base_val,
+            'test_symbol',
+            'test_topic_agnocast',
+            10,
+            expected_id_value
         )
 
     @pytest.mark.parametrize(
@@ -316,15 +321,13 @@ class TestEventCounter:
         remapper_mock = mocker.Mock()
         handler = Ros2Handler(data_mock, remapper_mock, None)
 
-        mocker.patch('caret_analyze.infra.lttng.ros2_tracing.processor.get_field',
-                     side_effect=lambda event, key: event.get(key))
-
-        remapper_mock.callable_remapper.register_and_get_object_id.return_value = 0x505
+        base_val = 0x200
+        remapper_mock.callable_remapper.register_and_get_object_id.side_effect = lambda x, _: x + base_val
 
         event = {
+            '_timestamp': 2000,
             'callable': 0x5,
             'entry_id': 123,
-            '_timestamp': 2000,
             id_field_name: expected_id_value
         }
 
@@ -332,7 +335,7 @@ class TestEventCounter:
 
         data_mock.add_agnocast_create_callable_instance.assert_called_once_with(
             2000,
-            0x505,
+            0x5 + base_val,
             123,
-            expected_id_value  # Confirm the value is extracted correctly
+            expected_id_value
         )
