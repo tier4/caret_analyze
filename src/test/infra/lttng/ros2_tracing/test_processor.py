@@ -36,13 +36,13 @@ class TestProcessor:
         handler = Ros2Handler(data_mock, remapper_mock, None)
 
         remappers_dict = {
-            "subscription_handle": remapper_mock.subscription_handle_remapper
+            'subscription_handle': remapper_mock.subscription_handle_remapper
             .register_and_get_object_id,
-            "node_handle": remapper_mock.node_handle_remapper
+            'node_handle': remapper_mock.node_handle_remapper
             .get_nearest_object_id,
-            "callback": remapper_mock.callback_remapper
+            'callback': remapper_mock.callback_remapper
             .register_and_get_object_id,
-            "callback_group_addr": remapper_mock
+            'callback_group_addr': remapper_mock
             .callback_group_addr_remapper.get_nearest_object_id,
         }
 
