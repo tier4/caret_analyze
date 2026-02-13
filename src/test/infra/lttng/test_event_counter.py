@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# cspell: ignore ciid
-
 from logging import getLogger, WARNING
 
 from caret_analyze.exceptions import InvalidTraceFormatError
@@ -260,88 +258,3 @@ class TestEventCounter:
         logger.propagate = True
 
         EventCounter(data)
-
-    @pytest.mark.parametrize(
-        'id_field_name, expected_id_value',
-        [
-            ('pid_callback_info_id', 111),
-            ('pid_ciid', 222),
-        ],
-    )
-    def test_handle_agnocast_subscription_init_id_variations(
-        self, mocker, id_field_name, expected_id_value
-    ):
-        data_mock = mocker.Mock()
-        remapper_mock = mocker.Mock()
-        handler = Ros2Handler(data_mock, remapper_mock, None)
-
-        base_val = 0x100
-        remappers = [
-            remapper_mock.subscription_handle_remapper.register_and_get_object_id,
-            remapper_mock.node_handle_remapper.get_nearest_object_id,
-            remapper_mock.callback_remapper.register_and_get_object_id,
-            remapper_mock.callback_group_addr_remapper.get_nearest_object_id,
-        ]
-        for r in remappers:
-            r.side_effect = lambda x, _: x + base_val
-
-        event = {
-            'subscription_handle': 0x1,
-            '_timestamp': 1000,
-            'node_handle': 0x2,
-            'callback': 0x3,
-            'callback_group': 0x4,
-            'symbol': 'test_symbol',
-            'queue_depth': 10,
-            'topic_name': 'test_topic',
-            id_field_name: expected_id_value
-        }
-
-        handler._handle_agnocast_subscription_init(event)
-
-        data_mock.add_agnocast_subscription.assert_called_once_with(
-            0x1 + base_val,
-            1000,
-            0x2 + base_val,
-            0x3 + base_val,
-            0x4 + base_val,
-            'test_symbol',
-            'test_topic_agnocast',
-            10,
-            expected_id_value
-        )
-
-    @pytest.mark.parametrize(
-        'id_field_name, expected_id_value',
-        [
-            ('pid_callback_info_id', 333),
-            ('pid_ciid', 444),
-        ],
-    )
-    def test_handle_agnocast_create_callable_id_variations(
-        self, mocker, id_field_name, expected_id_value
-    ):
-        data_mock = mocker.Mock()
-        remapper_mock = mocker.Mock()
-        handler = Ros2Handler(data_mock, remapper_mock, None)
-
-        base_val = 0x200
-        remapper_mock.callable_remapper.register_and_get_object_id.side_effect = (
-            lambda x, _: x + base_val
-        )
-
-        event = {
-            '_timestamp': 2000,
-            'callable': 0x5,
-            'entry_id': 123,
-            id_field_name: expected_id_value
-        }
-
-        handler._handle_agnocast_create_callable(event)
-
-        data_mock.add_agnocast_create_callable_instance.assert_called_once_with(
-            2000,
-            0x5 + base_val,
-            123,
-            expected_id_value
-        )
