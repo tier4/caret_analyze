@@ -50,7 +50,7 @@ jobs:
           git clone https://github.com/tier4/caret_analyze_cpp_impl.git
       - name: Restore Cache
         id: cpp_impl-cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: caret_analyze_cpp_impl/install
           key: ${{ runner.os }}-node-cpp_impl-${{ hashFiles('caret_analyze_cpp_impl/CARET_analyze_cpp_impl/**') }}
@@ -65,7 +65,7 @@ jobs:
 
       - name: Cache caret_analyze_cpp_impl
         if: steps.cpp_impl-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: caret_analyze_cpp_impl/install
           key: ${{ runner.os }}-node-cpp_impl-${{ hashFiles('caret_analyze_cpp_impl/CARET_analyze_cpp_impl/**') }}
