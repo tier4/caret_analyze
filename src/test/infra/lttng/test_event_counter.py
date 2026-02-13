@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from logging import getLogger, WARNING
 
 from caret_analyze.exceptions import InvalidTraceFormatError
