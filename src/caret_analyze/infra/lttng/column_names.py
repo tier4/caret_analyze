@@ -79,6 +79,7 @@ class ColumnName(NamedTuple):
     AGNOCAST_CALLABLE_OBJECT: str = 'agnocast_callable_object'
     AGNOCAST_TAKE_TIMESTAMP: str = 'agnocast_take_timestamp'
     AGNOCAST_TAKE_EMPTY: str = 'agnocast_take_empty'
+    AGNOCAST_CREATE_TIMER_CALLABLE_TIMESTAMP: str = 'agnocast_create_timer_callable_timestamp'
 
 
 COLUMN_NAME = ColumnName()

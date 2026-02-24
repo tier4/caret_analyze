@@ -1062,4 +1062,37 @@ class RecordsSource():
             COLUMN_NAME.AGNOCAST_PID_CALLBACK_INFO_ID
         ])
 
+        timer_callable_instances = self._data.agnocast_create_timer_callable_instances
+        if len(timer_callable_instances) > 0:
+            timer_handle_2_callback = RecordsFactory.create_instance(
+                None,
+                columns=[
+                    ColumnValue('timer_handle'),
+                    ColumnValue(COLUMN_NAME.CALLBACK_OBJECT),
+                ]
+            )
+            timer_2_cb_df = self._data.agnocast_timers.df[['timer_handle', 'callback_object']]
+            timer_2_cb_df = timer_2_cb_df.rename(
+                columns={'callback_object': COLUMN_NAME.CALLBACK_OBJECT})
+            for _, row in timer_2_cb_df.iterrows():
+                timer_handle_2_callback.append(row.to_dict())
+
+            timer_callable_2_callback = merge(
+                left_records=timer_callable_instances,
+                right_records=timer_handle_2_callback,
+                join_left_key='timer_handle',
+                join_right_key='timer_handle',
+                columns=Columns.from_str(
+                    timer_callable_instances.columns +
+                    timer_handle_2_callback.columns
+                ).column_names,
+                how='left'
+            )
+            timer_callable_2_callback.drop_columns([
+                'agnocast_create_timer_callable_timestamp',
+                'timer_handle'
+            ])
+
+            callable_2_callback_records.concat(timer_callable_2_callback)
+
         return callable_2_callback_records

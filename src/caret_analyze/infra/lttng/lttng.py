@@ -414,6 +414,10 @@ class Lttng(InfraBase):
         'ros2_caret:agnocast_subscription_init',
         'ros2_caret:agnocast_publisher_init',
         'ros2_caret:agnocast_construct_executor',
+        'ros2_caret:agnocast_init',
+        'ros2_caret:agnocast_node_init',
+        'ros2_caret:agnocast_timer_init',
+        'ros2_caret:agnocast_add_callback_group',
     ]
 
     def __init__(

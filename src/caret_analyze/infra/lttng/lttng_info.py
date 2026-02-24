@@ -1302,6 +1302,15 @@ class DataFrameFormatted:
         timer_node_links.remove_column('timestamp')
         merge(timers, timer_node_links, 'timer_handle', merge_drop_columns=merge_drop_columns)
 
+        # Concatenate Agnocast data
+        if len(data.agnocast_timers) > 0:
+            agnocast_timers = data.agnocast_timers.clone()
+            agnocast_timers.reset_index()
+            timers = TracePointData.concat(
+                [timers, agnocast_timers],
+                ['timer_handle', 'timestamp', 'period', 'tid', 'node_handle']
+            )
+
         DataFrameFormatted._add_construction_order_timer(
             timers, 'construction_order', 'timestamp', 'node_handle', 'period')
 
@@ -1323,6 +1332,16 @@ class DataFrameFormatted:
         columns = ['timestamp', 'timer_handle', 'type', 'params']
         timers = data.timers.clone()
         timers.reset_index()
+
+        # Concatenate Agnocast data
+        if len(data.agnocast_timers) > 0:
+            agnocast_timers = data.agnocast_timers.clone()
+            agnocast_timers.reset_index()
+            timers = TracePointData.concat(
+                [timers, agnocast_timers],
+                ['timer_handle', 'timestamp', 'period', 'tid']
+            )
+
         timers.add_column('type', lambda _: 'init')
 
         def to_params(row: pd.Series):
@@ -1399,6 +1418,14 @@ class DataFrameFormatted:
                 columns_ = columns[1:]  # ignore callback_group_id
                 callback_groups = TracePointData.concat(
                     [callback_groups, callback_groups_static], columns_)
+
+        # Concatenate Agnocast data
+        if len(data.agnocast_callback_groups) > 0:
+            agnocast_cbg = data.agnocast_callback_groups.clone()
+            agnocast_cbg.reset_index()
+            columns_ = columns[1:]  # ignore callback_group_id
+            callback_groups = TracePointData.concat(
+                [callback_groups, agnocast_cbg], columns_)
 
         def to_callback_group_id(row: pd.Series) -> str:
             addr = row['callback_group_addr']
@@ -1477,6 +1504,15 @@ class DataFrameFormatted:
         callback_group_timer = data.callback_group_timer.clone()
         callback_group_timer.reset_index()
         merge(timers, callback_group_timer, 'timer_handle')
+
+        # Concatenate Agnocast data (利用時マージ)
+        if len(data.agnocast_timers) > 0:
+            agnocast_timers = data.agnocast_timers.clone()
+            agnocast_timers.reset_index()
+            agnocast_timers.rename_column('period', 'period_ns')
+            timers = TracePointData.concat(
+                [timers, agnocast_timers], timers.columns
+            )
 
         timers.add_column('callback_id', callback_id)
 
@@ -1919,6 +1955,15 @@ class DataFrameFormatted:
 
         node = data.nodes.clone()
         node.reset_index()
+
+        # Concatenate Agnocast data
+        if len(data.agnocast_nodes) > 0:
+            agnocast_nodes = data.agnocast_nodes.clone()
+            agnocast_nodes.reset_index()
+            node = TracePointData.concat(
+                [node, agnocast_nodes],
+                ['node_handle', 'timestamp', 'tid', 'namespace', 'name']
+            )
 
         def ns_and_node_name(row: pd.Series) -> str:
             ns: str = row['namespace']

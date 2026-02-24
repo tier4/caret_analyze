@@ -221,6 +221,10 @@ class EventCounter:
             'ros2_caret:agnocast_publisher_init': data.agnocast_publishers.df,
             'ros2_caret:agnocast_subscription_init': data.agnocast_subscriptions.df,
             'ros2_caret:agnocast_construct_executor': data.agnocast_executors.df,
+            'ros2_caret:agnocast_init': data.agnocast_contexts.df,
+            'ros2_caret:agnocast_node_init': data.agnocast_nodes.df,
+            'ros2_caret:agnocast_timer_init': data.agnocast_timers.df,
+            'ros2_caret:agnocast_add_callback_group': data.agnocast_callback_groups.df,
 
             'ros2:callback_start': data.callback_start_instances.to_dataframe(),
             'ros2:callback_end': data.callback_end_instances.to_dataframe(),
@@ -250,6 +254,8 @@ class EventCounter:
                 data.agnocast_create_callable_instances.to_dataframe(),
             'agnocast:agnocast_publish': data.agnocast_publish_instances.to_dataframe(),
             'agnocast:agnocast_take': data.agnocast_take_instances.to_dataframe(),
+            'agnocast:agnocast_create_timer_callable':
+                data.agnocast_create_timer_callable_instances.to_dataframe(),
             'ros2_caret:sim_time': data.sim_time.to_dataframe(),
             'ros2_caret:on_data_available': data.on_data_available_instances.to_dataframe(),
             'ros2_caret:caret_init': data.caret_init.df,
@@ -279,6 +285,9 @@ class EventCounter:
         for handler, row in data.nodes.df.iterrows():
             node_handle_to_node_name[handler] = ns_and_node_name(row['namespace'], row['name'])
 
+        for handler, row in data.agnocast_nodes.df.iterrows():
+            node_handle_to_node_name[handler] = ns_and_node_name(row['namespace'], row['name'])
+
         for handler, row in data.publishers.df.iterrows():
             pub_handle_to_node_name[handler] = \
                 node_handle_to_node_name.get(row['node_handle'], '-')
@@ -306,6 +315,10 @@ class EventCounter:
             sub_cb_to_topic_name[row['callback_object']] = row['topic_name']
 
         for handler, row in data.timer_node_links.df.iterrows():
+            timer_handle_to_node_name[handler] = \
+                node_handle_to_node_name.get(row['node_handle'], '-')
+
+        for handler, row in data.agnocast_timers.df.iterrows():
             timer_handle_to_node_name[handler] = \
                 node_handle_to_node_name.get(row['node_handle'], '-')
 

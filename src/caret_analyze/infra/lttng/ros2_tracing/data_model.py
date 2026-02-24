@@ -110,6 +110,15 @@ class Ros2DataModel():
              'agnocast_pid_callback_info_id'])
         self._agnocast_executors = TracePointIntermediateData(
             ['timestamp', 'executor_addr', 'executor_type_name'])
+        self._agnocast_contexts = TracePointIntermediateData(
+            ['context_handle', 'timestamp', 'pid'])
+        self._agnocast_nodes = TracePointIntermediateData(
+            ['node_handle', 'timestamp', 'tid', 'namespace', 'name'])
+        self._agnocast_timers = TracePointIntermediateData(
+            ['timer_handle', 'timestamp', 'node_handle', 'callback_object',
+             'callback_group_addr', 'symbol', 'period', 'tid'])
+        self._agnocast_callback_groups = TracePointIntermediateData(
+            ['timestamp', 'executor_addr', 'callback_group_addr', 'group_type_name'])
 
         # Events (multiple instances, may not have a meaningful index)
         self.callback_start_instances = RecordsFactory.create_instance(
@@ -323,6 +332,14 @@ class Ros2DataModel():
                 ColumnValue('subscription_handle'),
                 ColumnValue('agnocast_take_empty'),
                 ColumnValue('agnocast_entry_id')
+            ]
+        )
+        self.agnocast_create_timer_callable_instances = RecordsFactory.create_instance(
+            None,
+            columns=[
+                ColumnValue('agnocast_create_timer_callable_timestamp'),
+                ColumnValue('agnocast_callable_object'),
+                ColumnValue('timer_handle'),
             ]
         )
 
@@ -803,6 +820,68 @@ class Ros2DataModel():
         }
         self._agnocast_executors.append(record)
 
+    def add_agnocast_context(self, pid, context_handle, timestamp) -> None:
+        record = {
+            'context_handle': context_handle,
+            'timestamp': timestamp,
+            'pid': pid,
+        }
+        self._agnocast_contexts.append(record)
+
+    def add_agnocast_node(self, tid, node_handle, timestamp, name, namespace) -> None:
+        record = {
+            'node_handle': node_handle,
+            'timestamp': timestamp,
+            'tid': tid,
+            'namespace': namespace,
+            'name': name,
+        }
+        self._agnocast_nodes.append(record)
+
+    def add_agnocast_timer(
+        self, tid, timer_handle, timestamp, node_handle,
+        callback_object, callback_group_addr, symbol, period
+    ) -> None:
+        record = {
+            'timer_handle': timer_handle,
+            'timestamp': timestamp,
+            'node_handle': node_handle,
+            'callback_object': callback_object,
+            'callback_group_addr': callback_group_addr,
+            'symbol': symbol,
+            'period': period,
+            'tid': tid,
+        }
+        self._agnocast_timers.append(record)
+
+    def add_agnocast_callback_group(
+        self,
+        executor_addr: int,
+        timestamp: int,
+        callback_group_addr: int,
+        group_type_name: str
+    ) -> None:
+        record = {
+            'timestamp': timestamp,
+            'executor_addr': executor_addr,
+            'callback_group_addr': callback_group_addr,
+            'group_type_name': group_type_name,
+        }
+        self._agnocast_callback_groups.append(record)
+
+    def add_agnocast_create_timer_callable_instance(
+        self,
+        timestamp: int,
+        callable_object: int,
+        timer_handle: int,
+    ) -> None:
+        record = {
+            'agnocast_create_timer_callable_timestamp': timestamp,
+            'agnocast_callable_object': callable_object,
+            'timer_handle': timer_handle,
+        }
+        self.agnocast_create_timer_callable_instances.append(record)
+
     def add_agnocast_publish_instance(
         self,
         tid: int,
@@ -1146,3 +1225,16 @@ class Ros2DataModel():
 
         self.agnocast_executors = self._agnocast_executors.get_finalized('executor_addr')
         del self._agnocast_executors
+
+        self.agnocast_contexts = self._agnocast_contexts.get_finalized('context_handle')
+        del self._agnocast_contexts
+
+        self.agnocast_nodes = self._agnocast_nodes.get_finalized('node_handle')
+        del self._agnocast_nodes
+
+        self.agnocast_timers = self._agnocast_timers.get_finalized('timer_handle')
+        del self._agnocast_timers
+
+        self.agnocast_callback_groups = self._agnocast_callback_groups.get_finalized(
+            'callback_group_addr')
+        del self._agnocast_callback_groups
