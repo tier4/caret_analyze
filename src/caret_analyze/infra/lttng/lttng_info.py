@@ -1510,6 +1510,9 @@ class DataFrameFormatted:
             agnocast_timers = data.agnocast_timers.clone()
             agnocast_timers.reset_index()
             agnocast_timers.rename_column('period', 'period_ns')
+            DataFrameFormatted._add_construction_order(
+                agnocast_timers, 'construction_order',
+                'timestamp', 'node_handle', 'period_ns', 'symbol')
             timers = TracePointData.concat(
                 [timers, agnocast_timers], timers.columns
             )

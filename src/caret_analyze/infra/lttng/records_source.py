@@ -1071,7 +1071,7 @@ class RecordsSource():
                     ColumnValue(COLUMN_NAME.CALLBACK_OBJECT),
                 ]
             )
-            timer_2_cb_df = self._data.agnocast_timers.df[['timer_handle', 'callback_object']]
+            timer_2_cb_df = self._data.agnocast_timers.df.reset_index()[['timer_handle', 'callback_object']]
             timer_2_cb_df = timer_2_cb_df.rename(
                 columns={'callback_object': COLUMN_NAME.CALLBACK_OBJECT})
             for _, row in timer_2_cb_df.iterrows():
