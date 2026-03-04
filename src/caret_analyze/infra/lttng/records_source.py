@@ -1062,37 +1062,37 @@ class RecordsSource():
             COLUMN_NAME.AGNOCAST_PID_CALLBACK_INFO_ID
         ])
 
-        timer_callable_instances = self._data.agnocast_create_timer_callable_instances
-        if len(timer_callable_instances) > 0:
-            timer_handle_2_callback = RecordsFactory.create_instance(
-                None,
-                columns=[
-                    ColumnValue('timer_handle'),
-                    ColumnValue(COLUMN_NAME.CALLBACK_OBJECT),
-                ]
-            )
-            timer_2_cb_df = self._data.agnocast_timers.df.reset_index()[['timer_handle', 'callback_object']]
-            timer_2_cb_df = timer_2_cb_df.rename(
-                columns={'callback_object': COLUMN_NAME.CALLBACK_OBJECT})
-            for _, row in timer_2_cb_df.iterrows():
-                timer_handle_2_callback.append(row.to_dict())
+        # Concatenate agnocast timer callable records
+        timer_handle_2_callback = RecordsFactory.create_instance(
+            None,
+            columns=[
+                ColumnValue(COLUMN_NAME.TIMER_HANDLE),
+                ColumnValue(COLUMN_NAME.CALLBACK_OBJECT),
+            ]
+        )
+        timer_2_cb_df = self._data.agnocast_timers.df.reset_index()[[
+            COLUMN_NAME.TIMER_HANDLE, COLUMN_NAME.CALLBACK_OBJECT]]
 
-            timer_callable_2_callback = merge(
-                left_records=timer_callable_instances,
-                right_records=timer_handle_2_callback,
-                join_left_key='timer_handle',
-                join_right_key='timer_handle',
-                columns=Columns.from_str(
-                    timer_callable_instances.columns +
-                    timer_handle_2_callback.columns
-                ).column_names,
-                how='left'
-            )
-            timer_callable_2_callback.drop_columns([
-                'agnocast_create_timer_callable_timestamp',
-                'timer_handle'
-            ])
+        for _, row in timer_2_cb_df.iterrows():
+            timer_handle_2_callback.append(row.to_dict())
 
-            callable_2_callback_records.concat(timer_callable_2_callback)
+        timer_callable_2_callback = merge(
+            left_records=self._data.agnocast_create_timer_callable_instances,
+            right_records=timer_handle_2_callback,
+            join_left_key=COLUMN_NAME.TIMER_HANDLE,
+            join_right_key=COLUMN_NAME.TIMER_HANDLE,
+            columns=Columns.from_str(
+                self._data.agnocast_create_timer_callable_instances.columns +
+                timer_handle_2_callback.columns
+            ).column_names,
+            how='left'
+        )
+        timer_callable_2_callback.drop_columns([
+            COLUMN_NAME.AGNOCAST_CREATE_TIMER_CALLABLE_TIMESTAMP,
+            COLUMN_NAME.TIMER_HANDLE
+        ])
+
+        callable_2_callback_records.concat(timer_callable_2_callback)
 
         return callable_2_callback_records
+    
