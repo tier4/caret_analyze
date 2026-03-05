@@ -777,7 +777,7 @@ class Ros2DataModel():
         }
         self.dispatch_intra_process_subscription_callback_instances.append(
             record)
-        
+
     def add_agnocast_context(self, pid, context_handle, timestamp) -> None:
         record = {
             'context_handle': context_handle,
@@ -855,7 +855,7 @@ class Ros2DataModel():
             'group_type_name': group_type_name,
         }
         self._agnocast_callback_groups.append(record)
-    
+
     def add_agnocast_executor(
         self,
         executor_addr: int,
@@ -898,7 +898,7 @@ class Ros2DataModel():
             'agnocast_pid_callback_info_id': pid_callback_info_id,
         }
         self.agnocast_create_callable_instances.append(record)
-    
+
     def add_agnocast_create_timer_callable_instance(
         self,
         timestamp: int,

@@ -321,6 +321,8 @@ class EventCounter:
         for handler, row in data.agnocast_timers.df.iterrows():
             timer_handle_to_node_name[handler] = \
                 node_handle_to_node_name.get(row['node_handle'], '-')
+            timer_cb_to_node_name[row['callback_object']] = \
+                node_handle_to_node_name.get(row['node_handle'], '-')
 
         for sub, row in data.subscription_objects.df.iterrows():
             sub_handle = row['subscription_handle']

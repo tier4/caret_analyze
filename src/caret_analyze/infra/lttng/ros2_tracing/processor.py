@@ -148,8 +148,8 @@ class Ros2Handler():
             'ros2:rclcpp_construct_ring_buffer',
             'ros2_caret:agnocast_init',
             'ros2_caret:agnocast_node_init',
-            'ros2_caret:agnocast_subscription_init',
             'ros2_caret:agnocast_publisher_init',
+            'ros2_caret:agnocast_subscription_init',
             'ros2_caret:agnocast_timer_init',
             'ros2_caret:agnocast_add_callback_group',
             'ros2_caret:agnocast_construct_executor',
@@ -311,9 +311,9 @@ class Ros2Handler():
         # For Agnocast (initialization)
         handler_map['ros2_caret:agnocast_init'] = self._handle_agnocast_init
         handler_map['ros2_caret:agnocast_node_init'] = self._handle_agnocast_node_init
+        handler_map['ros2_caret:agnocast_publisher_init'] = self._handle_agnocast_publisher_init
         handler_map['ros2_caret:agnocast_subscription_init'] = \
             self._handle_agnocast_subscription_init
-        handler_map['ros2_caret:agnocast_publisher_init'] = self._handle_agnocast_publisher_init
         handler_map['ros2_caret:agnocast_timer_init'] = self._handle_agnocast_timer_init
         handler_map['ros2_caret:agnocast_add_callback_group'] = \
             self._handle_agnocast_add_callback_group
@@ -374,7 +374,6 @@ class Ros2Handler():
         handler_map['agnocast:agnocast_callable_start'] = self._handle_agnocast_callable_start
         handler_map['agnocast:agnocast_callable_end'] = self._handle_agnocast_callable_end
         handler_map['agnocast:agnocast_take'] = self._handle_agnocast_take
-
 
         self.handler_map = handler_map
 
@@ -1408,9 +1407,6 @@ class Ros2Handler():
         self,
         event: dict,
     ) -> None:
-        if not self._is_valid_data(event):
-            return
-
         callable_object = get_field(event, 'callable')
         timer_handle = get_field(event, 'timer_handle')
         timestamp = get_field(event, '_timestamp')
