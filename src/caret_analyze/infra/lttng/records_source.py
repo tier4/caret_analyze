@@ -1095,4 +1095,3 @@ class RecordsSource():
         callable_2_callback_records.concat(timer_callable_2_callback)
 
         return callable_2_callback_records
-    

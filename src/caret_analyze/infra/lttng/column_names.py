@@ -81,6 +81,6 @@ class ColumnName(NamedTuple):
     AGNOCAST_CALLABLE_OBJECT: str = 'agnocast_callable_object'
     AGNOCAST_TAKE_TIMESTAMP: str = 'agnocast_take_timestamp'
     AGNOCAST_TAKE_EMPTY: str = 'agnocast_take_empty'
-    
+
 
 COLUMN_NAME = ColumnName()

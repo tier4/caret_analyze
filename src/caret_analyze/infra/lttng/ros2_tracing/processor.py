@@ -146,19 +146,19 @@ class Ros2Handler():
             'ros2:rclcpp_buffer_to_ipb',
             'ros2:rclcpp_ipb_to_subscription',
             'ros2:rclcpp_construct_ring_buffer',
-            'ros2_caret:agnocast_subscription_init',
-            'ros2_caret:agnocast_publisher_init',
-            'ros2_caret:agnocast_construct_executor',
             'ros2_caret:agnocast_init',
             'ros2_caret:agnocast_node_init',
+            'ros2_caret:agnocast_subscription_init',
+            'ros2_caret:agnocast_publisher_init',
             'ros2_caret:agnocast_timer_init',
             'ros2_caret:agnocast_add_callback_group',
+            'ros2_caret:agnocast_construct_executor',
             'agnocast:agnocast_publish',
             'agnocast:agnocast_create_callable',
+            'agnocast:agnocast_create_timer_callable',
             'agnocast:agnocast_callable_start',
             'agnocast:agnocast_callable_end',
             'agnocast:agnocast_take',
-            'agnocast:agnocast_create_timer_callable',
         ]
 
         if include_wrapped_tracepoints:
@@ -309,19 +309,16 @@ class Ros2Handler():
             self._handle_rclcpp_construct_ring_buffer
 
         # For Agnocast (initialization)
-        handler_map['ros2_caret:agnocast_subscription_init'] = (
-            self._handle_agnocast_subscription_init
-        )
-        handler_map['ros2_caret:agnocast_publisher_init'] = self._handle_agnocast_publisher_init
-        handler_map['ros2_caret:agnocast_construct_executor'] = (
-            self._handle_agnocast_construct_executor
-        )
         handler_map['ros2_caret:agnocast_init'] = self._handle_agnocast_init
         handler_map['ros2_caret:agnocast_node_init'] = self._handle_agnocast_node_init
+        handler_map['ros2_caret:agnocast_subscription_init'] = \
+            self._handle_agnocast_subscription_init
+        handler_map['ros2_caret:agnocast_publisher_init'] = self._handle_agnocast_publisher_init
         handler_map['ros2_caret:agnocast_timer_init'] = self._handle_agnocast_timer_init
-        handler_map['ros2_caret:agnocast_add_callback_group'] = (
+        handler_map['ros2_caret:agnocast_add_callback_group'] = \
             self._handle_agnocast_add_callback_group
-        )
+        handler_map['ros2_caret:agnocast_construct_executor'] = \
+            self._handle_agnocast_construct_executor
 
         self.handler_map = handler_map
 
@@ -372,12 +369,12 @@ class Ros2Handler():
         #  For Agnocast (runtime)
         handler_map['agnocast:agnocast_publish'] = self._handle_agnocast_publish
         handler_map['agnocast:agnocast_create_callable'] = self._handle_agnocast_create_callable
+        handler_map['agnocast:agnocast_create_timer_callable'] = \
+            self._handle_agnocast_create_timer_callable
         handler_map['agnocast:agnocast_callable_start'] = self._handle_agnocast_callable_start
         handler_map['agnocast:agnocast_callable_end'] = self._handle_agnocast_callable_end
         handler_map['agnocast:agnocast_take'] = self._handle_agnocast_take
-        handler_map['agnocast:agnocast_create_timer_callable'] = (
-            self._handle_agnocast_create_timer_callable
-        )
+
 
         self.handler_map = handler_map
 
@@ -1230,6 +1227,50 @@ class Ros2Handler():
         self.data.add_sim_time(timestamp, sim_time)
 
     # For Agnocast
+    def _handle_agnocast_init(
+        self,
+        event: dict,
+    ) -> None:
+        context_handle = get_field(event, 'context_handle')
+        timestamp = get_field(event, '_timestamp')
+        pid = get_field(event, '_vpid')
+
+        context_handle = self._remapper.context_handle_remapper.register_and_get_object_id(
+            context_handle, event)
+        self.data.add_agnocast_context(pid, context_handle, timestamp)
+
+    def _handle_agnocast_node_init(
+        self,
+        event: dict,
+    ) -> None:
+        handle = get_field(event, 'node_handle')
+        timestamp = get_field(event, '_timestamp')
+        tid = get_field(event, '_vtid')
+        name = get_field(event, 'node_name')
+        namespace = get_field(event, 'namespace')
+
+        handle = self._remapper.node_handle_remapper.register_and_get_object_id(handle, event)
+        self.data.add_agnocast_node(tid, handle, timestamp, name, namespace)
+
+    def _handle_agnocast_publisher_init(
+        self,
+        event: dict,
+    ) -> None:
+        handle = get_field(event, 'publisher_handle')
+        node_handle = get_field(event, 'node_handle')
+        depth = get_field(event, 'queue_depth')
+        timestamp = get_field(event, '_timestamp')
+        # To avoid conflict with ROS 2 publisher
+        topic_name = get_field(event, 'topic_name') + '_agnocast'
+
+        publisher_handle = self._remapper.publisher_handle_remapper.register_and_get_object_id(
+            handle,
+            event)
+        node_handle = self._remapper.node_handle_remapper.get_nearest_object_id(node_handle, event)
+
+        self.data.add_agnocast_publisher(
+            publisher_handle, timestamp, node_handle, topic_name, depth)
+
     def _handle_agnocast_subscription_init(
         self,
         event: dict,
@@ -1266,68 +1307,6 @@ class Ros2Handler():
             depth,
             pid_callback_info_id
         )
-
-    def _handle_agnocast_publisher_init(
-        self,
-        event: dict,
-    ) -> None:
-        handle = get_field(event, 'publisher_handle')
-        node_handle = get_field(event, 'node_handle')
-        depth = get_field(event, 'queue_depth')
-        timestamp = get_field(event, '_timestamp')
-        # To avoid conflict with ROS 2 publisher
-        topic_name = get_field(event, 'topic_name') + '_agnocast'
-
-        publisher_handle = self._remapper.publisher_handle_remapper.register_and_get_object_id(
-            handle,
-            event)
-        node_handle = self._remapper.node_handle_remapper.get_nearest_object_id(node_handle, event)
-
-        self.data.add_agnocast_publisher(
-            publisher_handle, timestamp, node_handle, topic_name, depth)
-
-    def _handle_agnocast_construct_executor(
-        self,
-        event: dict,
-    ) -> None:
-        timestamp = get_field(event, '_timestamp')
-        executor_addr = get_field(event, 'executor_addr')
-        executor_type_name = get_field(event, 'executor_type_name')
-
-        distribution = self._get_distribution(self.data)
-        if distribution[0] >= 'jazzy'[0]:
-            executor_addr = self._remapper.executor_addr_remapper.get_nearest_object_id(
-                executor_addr, event)
-        else:
-            executor_addr = self._remapper.executor_addr_remapper.register_and_get_object_id(
-                executor_addr, event)
-
-        self.data.add_agnocast_executor(executor_addr, timestamp, executor_type_name)
-
-    def _handle_agnocast_init(
-        self,
-        event: dict,
-    ) -> None:
-        context_handle = get_field(event, 'context_handle')
-        timestamp = get_field(event, '_timestamp')
-        pid = get_field(event, '_vpid')
-
-        context_handle = self._remapper.context_handle_remapper.register_and_get_object_id(
-            context_handle, event)
-        self.data.add_agnocast_context(pid, context_handle, timestamp)
-
-    def _handle_agnocast_node_init(
-        self,
-        event: dict,
-    ) -> None:
-        handle = get_field(event, 'node_handle')
-        timestamp = get_field(event, '_timestamp')
-        tid = get_field(event, '_vtid')
-        name = get_field(event, 'node_name')
-        namespace = get_field(event, 'namespace')
-
-        handle = self._remapper.node_handle_remapper.register_and_get_object_id(handle, event)
-        self.data.add_agnocast_node(tid, handle, timestamp, name, namespace)
 
     def _handle_agnocast_timer_init(
         self,
@@ -1371,6 +1350,24 @@ class Ros2Handler():
                 callback_group_addr, event)
         self.data.add_agnocast_callback_group(
             executor_addr, timestamp, callback_group_addr, group_type_name)
+
+    def _handle_agnocast_construct_executor(
+        self,
+        event: dict,
+    ) -> None:
+        timestamp = get_field(event, '_timestamp')
+        executor_addr = get_field(event, 'executor_addr')
+        executor_type_name = get_field(event, 'executor_type_name')
+
+        distribution = self._get_distribution(self.data)
+        if distribution[0] >= 'jazzy'[0]:
+            executor_addr = self._remapper.executor_addr_remapper.get_nearest_object_id(
+                executor_addr, event)
+        else:
+            executor_addr = self._remapper.executor_addr_remapper.register_and_get_object_id(
+                executor_addr, event)
+
+        self.data.add_agnocast_executor(executor_addr, timestamp, executor_type_name)
 
     def _handle_agnocast_publish(
         self,
