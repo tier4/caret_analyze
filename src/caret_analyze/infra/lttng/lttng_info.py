@@ -1498,24 +1498,23 @@ class DataFrameFormatted:
         symbols.remove_column('timestamp')
         merge(timers, symbols, 'callback_object', merge_drop_columns=merge_drop_columns)
 
-        DataFrameFormatted._add_construction_order(
-            timers, 'construction_order', 'timestamp', 'node_handle', 'period_ns', 'symbol')
-
         callback_group_timer = data.callback_group_timer.clone()
         callback_group_timer.reset_index()
         merge(timers, callback_group_timer, 'timer_handle')
 
-        # Concatenate Agnocast data (利用時マージ)
+        # Concatenate Agnocast data
         if len(data.agnocast_timers) > 0:
             agnocast_timers = data.agnocast_timers.clone()
             agnocast_timers.reset_index()
             agnocast_timers.rename_column('period', 'period_ns')
-            DataFrameFormatted._add_construction_order(
-                agnocast_timers, 'construction_order',
-                'timestamp', 'node_handle', 'period_ns', 'symbol')
             timers = TracePointData.concat(
-                [timers, agnocast_timers], timers.columns
+                [timers, agnocast_timers],
+                ['timer_handle', 'timestamp', 'node_handle', 'callback_object',
+                 'callback_group_addr', 'symbol', 'period_ns', 'tid']
             )
+
+        DataFrameFormatted._add_construction_order(
+            timers, 'construction_order', 'timestamp', 'node_handle', 'period_ns', 'symbol')
 
         timers.add_column('callback_id', callback_id)
 
