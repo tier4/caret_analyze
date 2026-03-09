@@ -1500,7 +1500,9 @@ class DataFrameFormatted:
 
         callback_group_timer = data.callback_group_timer.clone()
         callback_group_timer.reset_index()
-        merge(timers, callback_group_timer, 'timer_handle')
+        callback_group_timer.remove_column('timestamp')
+        merge(timers, callback_group_timer, 'timer_handle',
+              merge_drop_columns=['tid', 'rmw_handle'])
 
         # Concatenate Agnocast data
         if len(data.agnocast_timers) > 0:
