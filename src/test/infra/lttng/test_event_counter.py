@@ -86,7 +86,7 @@ class TestEventCounter:
         data.add_ipb_to_subscription(0, 0, 0)
         data.add_ring_buffer(0, 0, 0)
         data.add_agnocast_context(0, 0, 0)
-        data.add_agnocast_node(0, 0, 0, '', '')
+        data.add_agnocast_node(0, 0, 0, 'name', '/')
         data.add_agnocast_publisher(0, 0, 0, '', 0)
         data.add_agnocast_subscription(0, 0, 0, 0, 0, '', '', 0, 0)
         data.add_agnocast_timer(0, 0, 0, 0, 0, 0, '', 0)
