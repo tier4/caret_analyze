@@ -1308,7 +1308,7 @@ class DataFrameFormatted:
             agnocast_timers.reset_index()
             timers = TracePointData.concat(
                 [timers, agnocast_timers],
-                ['timer_handle', 'timestamp', 'period', 'tid', 'node_handle']
+                ['timer_handle', 'timestamp', 'period', 'node_handle']
             )
 
         DataFrameFormatted._add_construction_order_timer(
@@ -1512,7 +1512,7 @@ class DataFrameFormatted:
             timers = TracePointData.concat(
                 [timers, agnocast_timers],
                 ['timer_handle', 'timestamp', 'node_handle', 'callback_object',
-                 'callback_group_addr', 'symbol', 'period_ns', 'tid']
+                 'callback_group_addr', 'symbol', 'period_ns']
             )
 
         DataFrameFormatted._add_construction_order(
