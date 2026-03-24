@@ -1551,6 +1551,129 @@ class TestDataFrameFormatted:
         ).convert_dtypes()
         assert sub.df.equals(expect)
 
+    def test_build_nodes_df_agnocast(self):
+        data = Ros2DataModel()
+        node_handle = 1
+        tid = 2
+        name = 'node1'
+        namespace = '/ns'
+
+        data.add_agnocast_node(tid, node_handle, 0, name, namespace)
+        data.finalize()
+
+        nodes = DataFrameFormatted._build_nodes(data)
+
+        expect = pd.DataFrame.from_dict(
+            [{
+                'node_id': '/ns/node1_1',
+                'node_handle': node_handle,
+                'node_name': '/ns/node1',
+            }]
+        ).convert_dtypes()
+        assert nodes.df.equals(expect)
+
+    def test_build_timer_df_agnocast(self):
+        data = Ros2DataModel()
+        timer_handle = 1
+        node_handle = 2
+        period = 1000
+
+        data.add_agnocast_timer(
+            0, timer_handle, 0, node_handle, 3, 4, 'symbol', period
+        )
+        data.finalize()
+
+        timer = DataFrameFormatted._build_timer(data)
+
+        expect = pd.DataFrame.from_dict(
+            [{
+                'timer_id': f'timer_{timer_handle}',
+                'timer_handle': timer_handle,
+                'node_handle': node_handle,
+                'period': period,
+                'construction_order': 0,
+            }]
+        ).convert_dtypes()
+        assert timer.df.equals(expect)
+
+    def test_build_timer_control_df_agnocast(self):
+        data = Ros2DataModel()
+        timer_handle = 1
+        period = 1000
+        timestamp = 100
+
+        data.add_agnocast_timer(
+            0, timer_handle, timestamp, 2, 3, 4, 'symbol', period
+        )
+        data.finalize()
+
+        timer_control = DataFrameFormatted._build_timer_control(data)
+
+        expect = pd.DataFrame.from_dict(
+            [{
+                'timestamp': timestamp,
+                'timer_handle': timer_handle,
+                'type': 'init',
+                'params': {'period': period},
+            }]
+        ).convert_dtypes()
+        assert timer_control.df.equals(expect)
+
+    def test_build_timer_callbacks_df_agnocast(self):
+        data = Ros2DataModel()
+        timer_handle = 1
+        node_handle = 2
+        callback_object = 3
+        callback_group_addr = 4
+        symbol = 'timer_cb_symbol'
+        period = 1000
+
+        data.add_agnocast_timer(
+            0, timer_handle, 0, node_handle,
+            callback_object, callback_group_addr, symbol, period
+        )
+        data.finalize()
+
+        timer_cbs = DataFrameFormatted._build_timer_callbacks(data)
+
+        expect = pd.DataFrame.from_dict(
+            [{
+                'callback_id': f'timer_callback_{callback_object}',
+                'callback_object': callback_object,
+                'node_handle': node_handle,
+                'timer_handle': timer_handle,
+                'callback_group_addr': callback_group_addr,
+                'period_ns': period,
+                'symbol': symbol,
+                'construction_order': 0,
+            }]
+        ).convert_dtypes()
+        assert timer_cbs.df.equals(expect)
+
+    def test_build_cbg_df_agnocast(self):
+        data = Ros2DataModel()
+        executor_addr = 1
+        callback_group_addr = 2
+        group_type_name = 'mutually_exclusive'
+
+        data.add_agnocast_executor(executor_addr, 0, 'executor_type')
+        data.add_agnocast_callback_group(
+            executor_addr, 0, callback_group_addr, group_type_name
+        )
+        data.finalize()
+
+        cbg = DataFrameFormatted._build_cbg(data)
+
+        expect = pd.DataFrame.from_dict(
+            [{
+                'callback_group_id': f'callback_group_{callback_group_addr}',
+                'callback_group_addr': callback_group_addr,
+                'group_type_name': group_type_name,
+                'executor_addr': executor_addr,
+            }]
+        ).convert_dtypes()
+        assert cbg.df.equals(expect)
+
     def test_build_executor_df_agnocast(self):
         data = Ros2DataModel()
         exec_addr = 1
