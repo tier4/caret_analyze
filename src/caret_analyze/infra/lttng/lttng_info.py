@@ -2000,5 +2000,5 @@ def merge(
     merge_drop_columns: list[str] | None = None
 ):
     how = how or 'inner'
-    merge_drop_columns = merge_drop_columns or ['timestamp', 'tid', 'rmw_handle']
+    merge_drop_columns = merge_drop_columns or ['timestamp', 'tid', 'rmw_handle', 'pid']
     left_data.merge(right_data, on, how=how, drop_columns=merge_drop_columns)
