@@ -460,7 +460,7 @@ class LttngInfo:
 
         subs_info = []
         for _, row in sub.df.iterrows():
-            if row['node_id'] != node_id:
+            if row['node_id'] is pd.NA or row['node_id'] != node_id:
                 continue
             tilde_subscription = row['tilde_subscription']
             if tilde_subscription is pd.NA:
@@ -581,7 +581,7 @@ class LttngInfo:
         # pub = pub.astype({'tilde_publisher': 'Int64'})
         pubs_info = []
         for _, row in pub.df.iterrows():
-            if row['node_id'] != node_id:
+            if row['node_id'] is pd.NA or row['node_id'] != node_id:
                 continue
             tilde_publisher = row['tilde_publisher']
             if tilde_publisher is pd.NA:
@@ -853,7 +853,7 @@ class LttngInfo:
 
         times_info = []
         for _, row in tim.df.iterrows():
-            if row['node_id'] != node_id:
+            if row['node_id'] is pd.NA or row['node_id'] != node_id:
                 continue
             if row['callback_id'] is pd.NA:
                 continue
