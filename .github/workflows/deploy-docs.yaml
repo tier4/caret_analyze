@@ -45,7 +45,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           latest: false
           mkdocs-requirements-txt: ./mkdocs-requirements.txt
-          mkdocs-requirements-txt: mkdocs-requirements.txt
 
   deploy-docs-push:
     if: ${{ github.event_name == 'push' }}
@@ -62,7 +61,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           latest: false
           mkdocs-requirements-txt: ./mkdocs-requirements.txt
-          mkdocs-requirements-txt: mkdocs-requirements.txt
 
   deploy-docs-workflow-dispatch:
     if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -79,20 +77,3 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           latest: false
           mkdocs-requirements-txt: ./mkdocs-requirements.txt
-          mkdocs-requirements-txt: mkdocs-requirements.txt
-
-  reorder-versions-json:
-    needs:
-      - deploy-docs-pr
-      - deploy-docs-push
-      - deploy-docs-workflow-dispatch
-    if: |
-      always() &&
-      (
-        needs.deploy-docs-pr.result == 'success' ||
-        needs.deploy-docs-push.result == 'success' ||
-        needs.deploy-docs-workflow-dispatch.result == 'success'
-      )
-    uses: ./.github/workflows/reorder-versions.yaml
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
