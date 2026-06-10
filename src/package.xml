@@ -16,6 +16,8 @@
   <depend>caret_analyze_cpp_impl</depend>
   <exec_depend>python3-tqdm</exec_depend>
   <exec_depend>python3-yaml</exec_depend>
+  <exec_depend>ros2trace_analysis</exec_depend>
+  <exec_depend>python3-bt2</exec_depend>
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
   <test_depend>ament_pep257</test_depend>
