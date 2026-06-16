@@ -19,7 +19,7 @@
 
 - repository: autowarefoundation/autoware-documentation
   files:
-    #- source: .github/workflows/deploy-docs.yaml
+    # - source: .github/workflows/deploy-docs.yaml
     #  pre-commands: |
     #    sd -s -- \
     #    '      - "**/*.jpg"' \
