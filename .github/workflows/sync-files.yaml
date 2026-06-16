@@ -6,7 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  # yamllint disable-rule:comments
   sync-files:
     runs-on: ubuntu-latest
     steps:
