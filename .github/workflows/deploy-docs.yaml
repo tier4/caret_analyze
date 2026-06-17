@@ -3,9 +3,21 @@ name: deploy-docs
 on:
   push:
     branches:
-      - "none-match-branch"
-  pull_request:
-    types: []
+      - main
+      - galactic
+    paths:
+      - mkdocs.yaml
+      - "**/*.md"
+      - "**/*.svg"
+      - "**/*.png"
+      - "**/*.jpg"
+    tags:
+      - "[0-9]+.[0-9]+*"
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - labeled
   workflow_dispatch:
 
 jobs:
@@ -31,7 +43,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           latest: false
-          mkdocs-requirements-txt: ./mkdocs-requirements.txt
+          mkdocs-requirements-txt: mkdocs-requirements.txt
 
   deploy-docs-push:
     if: ${{ github.event_name == 'push' }}
@@ -47,7 +59,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           latest: false
-          mkdocs-requirements-txt: ./mkdocs-requirements.txt
+          mkdocs-requirements-txt: mkdocs-requirements.txt
 
   deploy-docs-workflow-dispatch:
     if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -63,4 +75,20 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           latest: false
-          mkdocs-requirements-txt: ./mkdocs-requirements.txt
+          mkdocs-requirements-txt: mkdocs-requirements.txt
+
+  reorder-versions-json:
+    needs:
+      - deploy-docs-pr
+      - deploy-docs-push
+      - deploy-docs-workflow-dispatch
+    if: |
+      always() &&
+      (
+        needs.deploy-docs-pr.result == 'success' ||
+        needs.deploy-docs-push.result == 'success' ||
+        needs.deploy-docs-workflow-dispatch.result == 'success'
+      )
+    uses: ./.github/workflows/reorder-versions.yaml
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}

@@ -19,19 +19,19 @@
 
 - repository: autowarefoundation/autoware-documentation
   files:
-    #- source: .github/workflows/deploy-docs.yaml
-    #  pre-commands: |
-    #    sd -s -- \
-    #    '      - "**/*.jpg"' \
-    #    '      - "**/*.jpg"
-    #          - "**/*.py"' \
-    #    {source}
-    #    sd -- \
-    #    '          latest: (.*)' \
-    #    '          latest: $1
-    #              mkdocs-requirements-txt: ./mkdocs-requirements.txt' \
-    #    {source}
-    - source: .github/workflows/delete-closed-pr-docs.yaml
+    # - source: .github/workflows/deploy-docs.yaml
+    #   pre-commands: |
+    #     sd -s -- \
+    #     '      - "**/*.jpg"' \
+    #     '      - "**/*.jpg"
+    #           - "**/*.py"' \
+    #     {source}
+    #     sd -- \
+    #     '          latest: (.*)' \
+    #     '          latest: $1
+    #               mkdocs-requirements-txt: ./mkdocs-requirements.txt' \
+    #     {source}
+    # - source: .github/workflows/delete-closed-pr-docs.yaml
 
 - repository: tier4/caret_common
   files:
