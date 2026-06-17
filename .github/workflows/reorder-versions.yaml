@@ -1,3 +1,4 @@
+# cspell:ignore tonumber ltrimstr
 name: reorder-versions
 
 on:
