@@ -1,7 +1,7 @@
 [
   {
-    "version": "refs-tags-v0.2.3",
-    "title": "refs-tags-v0.2.3",
+    "version": "main",
+    "title": "main",
     "aliases": []
   },
   {
@@ -10,8 +10,8 @@
     "aliases": []
   },
   {
-    "version": "main",
-    "title": "main",
+    "version": "chore-fix_deploy-docs_error",
+    "title": "chore-fix_deploy-docs_error",
     "aliases": []
   },
   {
@@ -20,8 +20,8 @@
     "aliases": []
   },
   {
-    "version": "chore-fix_deploy-docs_error",
-    "title": "chore-fix_deploy-docs_error",
+    "version": "refs-tags-v0.2.3",
+    "title": "refs-tags-v0.2.3",
     "aliases": []
   }
 ]
