@@ -110,7 +110,7 @@ class LegendManager:
             legends.append(
                     Legend(
                         items=self._legend_items[i:i+separate_num],
-                        location=location # type: ignore[arg-type]
+                        location=location  # type: ignore[arg-type]
                     )
             )
         return legends

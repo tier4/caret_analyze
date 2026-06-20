@@ -101,8 +101,8 @@ def init_figure(
         tools = [zoom_tool, PanTool(), BoxZoomTool(), SaveTool(), ResetTool()]
         active_scroll_tool = zoom_tool
     else:
-        zoom_tool = WheelZoomTool(dimensions="width")
-        tools = [zoom_tool, PanTool(dimensions="width"), SaveTool(), ResetTool()]
+        zoom_tool = WheelZoomTool(dimensions='width')
+        tools = [zoom_tool, PanTool(dimensions='width'), SaveTool(), ResetTool()]
         active_scroll_tool = zoom_tool
 
     p = Figure(frame_height=270, frame_width=800, title=title)
@@ -113,6 +113,7 @@ def init_figure(
     p.toolbar.active_scroll = active_scroll_tool
 
     return p
+
 
 def apply_x_axis_offset(
     fig: Figure,
