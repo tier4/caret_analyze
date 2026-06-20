@@ -107,7 +107,12 @@ class LegendManager:
                     'please specify the `full_legends` option to True.'
                 )
                 break
-            legends.append(Legend(items=self._legend_items[i:i+separate_num], location=location))
+            legends.append(
+                    Legend(
+                        items=self._legend_items[i:i+separate_num],
+                        location=location # type: ignore[arg-type]
+                    )
+            )
         return legends
 
     def get_label(

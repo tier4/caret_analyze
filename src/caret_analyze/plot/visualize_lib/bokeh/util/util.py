@@ -16,7 +16,10 @@ from __future__ import annotations
 
 import datetime
 
-from bokeh.models import AdaptiveTicker, Range1d
+from bokeh.models import (
+    AdaptiveTicker, BoxZoomTool, PanTool, Range1d,
+    ResetTool, SaveTool, WheelZoomTool
+)
 from bokeh.plotting import figure as Figure
 
 import numpy as np
@@ -94,17 +97,22 @@ def init_figure(
             x_axis_label = xaxis_type
 
     if ywheel_zoom:
-        tools = ['wheel_zoom', 'pan', 'box_zoom', 'save', 'reset']
-        active_scroll = 'wheel_zoom'
+        zoom_tool = WheelZoomTool()
+        tools = [zoom_tool, PanTool(), BoxZoomTool(), SaveTool(), ResetTool()]
+        active_scroll_tool = zoom_tool
     else:
-        tools = ['xwheel_zoom', 'xpan', 'save', 'reset']
-        active_scroll = 'xwheel_zoom'
+        zoom_tool = WheelZoomTool(dimensions="width")
+        tools = [zoom_tool, PanTool(dimensions="width"), SaveTool(), ResetTool()]
+        active_scroll_tool = zoom_tool
 
-    return Figure(
-        frame_height=270, frame_width=800, title=title, y_axis_label=y_axis_label or '',
-        x_axis_label=x_axis_label, tools=tools, active_scroll=active_scroll
-    )
+    p = Figure(frame_height=270, frame_width=800, title=title)
+    p.yaxis.axis_label = y_axis_label or ''
+    p.xaxis.axis_label = x_axis_label
 
+    p.add_tools(*tools)
+    p.toolbar.active_scroll = active_scroll_tool
+    
+    return p
 
 def apply_x_axis_offset(
     fig: Figure,
