@@ -111,7 +111,7 @@ def init_figure(
 
     p.add_tools(*tools)
     p.toolbar.active_scroll = active_scroll_tool
-    
+
     return p
 
 def apply_x_axis_offset(
