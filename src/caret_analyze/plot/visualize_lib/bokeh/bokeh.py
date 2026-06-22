@@ -264,8 +264,10 @@ class Bokeh(VisualizeLibInterface):
         plot: Figure = Figure(
             title=f'Histogram of {metrics_name}'
             if case is None else f'Histogram of {metrics_name} --- {case} case ---',
-            x_axis_label=x_label, y_axis_label='The number of samples', width=800
-            )
+            width=800
+        )
+        plot.xaxis.axis_label = x_label
+        plot.yaxis.axis_label = 'The number of samples'
 
         hists_t = np.array(hist_list).T
 

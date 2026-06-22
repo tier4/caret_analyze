@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 from bokeh.models.annotations import Legend
 from bokeh.models.renderers import GraphRenderer
 from bokeh.plotting import figure as Figure
@@ -99,14 +101,15 @@ class BokehStackedBar:
         stacked_bar = fig.vbar_stack(list(reversed(y_labels)), x='start time',
                                      width='x_width_list', color=list(reversed(colors)),
                                      source=source.to_source())
-        source.add_label_data_to_stacked_bar(stacked_bar)
-        source.add_latency_data_to_stacked_bar(stacked_bar)
+        stacked_bar_cast = cast(list[GraphRenderer], stacked_bar)
+        source.add_label_data_to_stacked_bar(stacked_bar_cast)
+        source.add_latency_data_to_stacked_bar(stacked_bar_cast)
 
         fig.add_tools(
             HoverKeysFactory.create_instance('stacked_bar', target_objects).create_hover())
 
         # add legend (for each var in stacked bar)
-        legend_items = [(bar.name, [bar]) for bar in stacked_bar]
+        legend_items = cast(Any, [(bar.name, [bar]) for bar in stacked_bar])
         legend_items.reverse()
         legend = Legend(items=legend_items, location='bottom_left',
                         orientation='vertical', click_policy='mute')
@@ -240,7 +243,7 @@ class StackedBarSource:
         # add 'label' data to each bar due to display hover
         x_len = min([len(v) for v in self._data.values()])
         for bar in stacked_bar:
-            bar.data_source.add([bar.name] * x_len, 'label')
+            cast(Any, bar).data_source.add([bar.name] * x_len, 'label')
 
     def add_latency_data_to_stacked_bar(self, stacked_bar: list[GraphRenderer]):
         """
@@ -254,8 +257,10 @@ class StackedBarSource:
         """
         # add 'latency' data to each bar due to display hover
         for bar in stacked_bar:
-            bar.data_source.add(['latency = ' + str(latency)
-                                 for latency in self._data[bar.name or '']], 'latency')
+            cast(Any, bar).data_source.add(
+                ['latency = ' + str(latency) for latency in self._data[bar.name or '']],
+                'latency'
+            )
 
     def to_source(
         self,

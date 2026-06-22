@@ -17,7 +17,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from functools import cached_property
-from typing import Any
+from typing import Any, cast
 
 from bokeh.models import CrosshairTool, HoverTool
 from bokeh.plotting import ColumnDataSource, figure as Figure
@@ -98,7 +98,7 @@ class BokehMessageFlow:
         yaxis_property = YAxisProperty(df)
         yaxis_values = YAxisValues(df)
         fig.yaxis.ticker = yaxis_property.values
-        fig.yaxis.major_label_overrides = yaxis_property.labels_dict
+        fig.yaxis.major_label_overrides = cast(dict[Any, Any], yaxis_property.labels_dict)
 
         # Draw callback rect
         rect_source = MessageFlowRectSource(self._target_path)
